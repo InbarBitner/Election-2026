@@ -1,0 +1,52 @@
+{
+  "_comment": "Copy to polls.json and set enabled:true on the sources you are permitted to use. Nothing is scraped until you do — deciding which sites may be read, and under what terms, is the operator's call, not the code's. Check each site's terms of use and robots.txt first; the HTTP client refuses any URL robots.txt disallows.",
+  "sources": [
+    {
+      "name": "aggregator-json",
+      "enabled": false,
+      "kind": "json",
+      "url": "https://example.org/api/polls.json",
+      "sourceName": "שם המקור כפי שיוצג למשתמש",
+      "mapping": {
+        "records": "data.polls",
+        "pollster": "pollster",
+        "sponsor": "commissioned_by",
+        "date": "field_date_end",
+        "sampleSize": "sample_size",
+        "marginOfError": "margin_of_error",
+        "link": "article_url",
+        "parties": {
+          "הליכוד": "likud",
+          "יש עתיד": "yesh_atid",
+          "המחנה הממלכתי": "national_unity",
+          "הציונות הדתית": "rz",
+          "עוצמה יהודית": "otzma",
+          "ש\"ס": "shas",
+          "יהדות התורה": "utj",
+          "ישראל ביתנו": "yb",
+          "הדמוקרטים": "democrats",
+          "חד\"ש-תע\"ל": "hadash",
+          "רע\"ם": "raam",
+          "בנט 2026": "bennett"
+        }
+      }
+    },
+    {
+      "name": "news-site-table",
+      "enabled": false,
+      "kind": "html-table",
+      "url": "https://example.org/elections/poll-2026-08-31",
+      "sourceName": "אתר חדשות לדוגמה",
+      "mapping": {
+        "tableIndex": 0,
+        "partyColumn": 0,
+        "seatsColumn": 1,
+        "pollster": "שם בית הסקרים",
+        "sponsor": "המזמין",
+        "date": "2026-08-31",
+        "sampleSize": 750,
+        "marginOfError": 3.6
+      }
+    }
+  ]
+}

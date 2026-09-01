@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Next.js
+web/.next/
+web/out/
+web/next-env.d.ts
+*.tsbuildinfo
+
+# Generated database — rebuilt from data/seed by `python -m pipeline.seed`
+data/*.db
+data/*.db-journal
+data/*.db-wal
+
+# Live source configuration: which sites this deployment is permitted to
+# scrape is an operator decision, and the file may hold private endpoints.
+# The .example.json templates are committed.
+data/sources/polls.json
+data/sources/news_feeds.json
+
+# Secrets and local environment
+.env
+.env.local
+web/.env
+web/.env.local
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/

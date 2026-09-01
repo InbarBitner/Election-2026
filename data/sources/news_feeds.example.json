@@ -1,0 +1,6 @@
+{
+  "_comment": "Copy to news_feeds.json and enable the feeds you want. Only RSS/Atom feeds are read — never article pages. Headlines are stored verbatim and always linked back to the publisher.",
+  "feeds": [
+    { "name": "פיד חדשות לדוגמה", "enabled": false, "url": "https://example.org/rss/politics.xml" }
+  ]
+}

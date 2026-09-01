@@ -1,0 +1,100 @@
+name: צינור נתונים יומי
+
+# Runs the pipeline once a day and again on demand. The three steps are
+# separate so that a failure in one is visible in the run log rather than
+# hidden behind a single opaque "pipeline failed".
+on:
+  schedule:
+    # 04:15 UTC — after the previous evening's polls are published in Israel.
+    - cron: "15 4 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "הרצה יבשה (ללא כתיבה למסד הנתונים)"
+        type: boolean
+        default: false
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: התקנת תלויות
+        run: |
+          npm ci --prefix web
+          pip install -r requirements.txt
+
+      - name: הכנת מסד הנתונים
+        working-directory: web
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'file:../../data/election.db' }}
+        run: |
+          npx prisma generate
+          npx prisma db push --skip-generate
+
+      # Without a configured warehouse the run works against a fresh local
+      # database, which still exercises every step end to end.
+      - name: טעינת נתוני בסיס
+        if: ${{ !secrets.DATABASE_URL }}
+        env:
+          DATABASE_URL: file:../../data/election.db
+        run: python -m pipeline.seed
+
+      - name: הרצת ETL
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'file:../../data/election.db' }}
+        run: |
+          python -m pipeline.run_etl ${{ inputs.dry_run && '--dry-run' || '' }}
+
+      - name: בניית וקטורי מפלגות
+        if: ${{ !inputs.dry_run }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'file:../../data/election.db' }}
+        run: python -m pipeline.ml.build_vectors
+
+      # Falls back to the deterministic template when no key is configured,
+      # so the brief is produced either way.
+      - name: יצירת הסקירה היומית
+        if: ${{ !inputs.dry_run }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'file:../../data/election.db' }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python -m pipeline.brief.generate --date today
+
+      - name: הצגת הסקירה בסיכום הריצה
+        if: ${{ !inputs.dry_run }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'file:../../data/election.db' }}
+        run: |
+          python -m pipeline.brief.generate --date today --print >> "$GITHUB_STEP_SUMMARY"
+
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --prefix web
+      - run: npx prisma generate
+        working-directory: web
+      - run: npm run typecheck --prefix web
+      - run: npm run test --prefix web
+      - run: npm run lint --prefix web

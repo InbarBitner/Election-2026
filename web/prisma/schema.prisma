@@ -1,0 +1,270 @@
+// Election 2026 — data model.
+//
+// Portability note: this schema is deliberately provider-neutral so that moving
+// from the local SQLite dev database to a managed Postgres data warehouse is a
+// change of `provider` + `DATABASE_URL` only. Therefore:
+//   - no enums (status/kind fields are plain strings with documented values)
+//   - no scalar lists / arrays (repeated values are stored as JSON strings)
+//   - no database-specific native types
+//
+// Python (pipeline/) writes to the exact same tables via SQLAlchemy Core.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// A party (or joint list) running in the 2026 election.
+model Party {
+  id           String   @id
+  slug         String   @unique
+  name         String
+  shortName    String
+  leader       String
+  /// One of: right | center | center-left | haredi | arab
+  bloc         String
+  /// Chart colour on a light surface. The palette is validated for colour-vision
+  /// deficiency separation — see README, "צבעים ונגישות".
+  color        String
+  /// The same identity re-stepped for a dark surface (never an automatic flip).
+  colorDark    String
+  isActive     Boolean  @default(true)
+  platformText String   @default("")
+  sourceUrl    String
+  sourceName   String
+  /// One of: seed | etl
+  provenance   String   @default("seed")
+  updatedAt    DateTime @updatedAt
+
+  candidates  Candidate[]
+  pollResults PollResult[]
+  vector      PartyVector?
+  platform    PlatformPlank[]
+
+  @@index([bloc])
+}
+
+/// A person on a party list.
+model Candidate {
+  id              String   @id
+  partyId         String
+  name            String
+  listPosition    Int
+  bio             String   @default("")
+  /// Knesset member id in the open-data feeds (null for newcomers).
+  knessetMemberId String?
+  sourceUrl       String
+  sourceName      String
+  provenance      String   @default("seed")
+  updatedAt       DateTime @updatedAt
+
+  party       Party        @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  votes       VoteRecord[]
+  bills       Bill[]
+  quotes      Quote[]
+  connections Connection[]
+
+  @@unique([partyId, listPosition])
+  @@index([name])
+}
+
+/// A published opinion poll.
+model Poll {
+  id             String   @id
+  pollster       String
+  sponsor        String
+  fieldDateStart DateTime
+  fieldDateEnd   DateTime
+  sampleSize     Int
+  marginOfError  Float
+  sourceUrl      String
+  sourceName     String
+  provenance     String   @default("seed")
+  createdAt      DateTime @default(now())
+
+  results PollResult[]
+
+  /// Natural key — makes ETL loads idempotent.
+  @@unique([pollster, fieldDateEnd, sponsor])
+  @@index([fieldDateEnd])
+}
+
+model PollResult {
+  id      String @id
+  pollId  String
+  partyId String
+  seats   Float
+
+  poll  Poll  @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  party Party @relation(fields: [partyId], references: [id], onDelete: Cascade)
+
+  @@unique([pollId, partyId])
+}
+
+/// One position of a party on a policy axis, taken from its platform.
+model PlatformPlank {
+  id        String @id
+  partyId   String
+  /// One of the axis ids in data/seed/quiz.json
+  axis      String
+  topic     String
+  text      String
+  /// -1.0 .. 1.0 position on the axis
+  position  Float
+  sourceUrl String
+  sourceName String
+
+  party Party @relation(fields: [partyId], references: [id], onDelete: Cascade)
+
+  @@index([partyId, axis])
+}
+
+// ---------------------------------------------------------------------------
+// Candidate X-ray ("רנטגן מועמד") — every row here must carry a source.
+// ---------------------------------------------------------------------------
+
+model VoteRecord {
+  id          String   @id
+  candidateId String
+  billTitle   String
+  topic       String
+  date        DateTime
+  /// One of: for | against | abstain | absent
+  position    String
+  /// True when the member voted against their own faction's line.
+  againstFaction Boolean @default(false)
+  sourceUrl   String
+  sourceName  String
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId, date])
+}
+
+model Bill {
+  id          String   @id
+  candidateId String
+  title       String
+  topic       String
+  /// One of: proposed | preliminary | first-reading | passed | rejected
+  status      String
+  date        DateTime
+  /// True when the candidate is the lead sponsor rather than a co-sponsor.
+  isLeadSponsor Boolean @default(false)
+  summary     String
+  sourceUrl   String
+  sourceName  String
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId, date])
+}
+
+model Quote {
+  id          String   @id
+  candidateId String
+  text        String
+  context     String
+  topic       String
+  date        DateTime
+  sourceUrl   String
+  sourceName  String
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId, date])
+}
+
+model Connection {
+  id          String @id
+  candidateId String
+  /// One of: former-party | committee | co-sponsor | mentor | coalition
+  kind        String
+  targetName  String
+  description String
+  sourceUrl   String
+  sourceName  String
+
+  candidate Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId])
+}
+
+// ---------------------------------------------------------------------------
+// Voter recommendation engine
+// ---------------------------------------------------------------------------
+
+model QuizQuestion {
+  id       String @id
+  order    Int    @unique
+  axis     String
+  text     String
+  /// Short label shown on the result explanation.
+  shortLabel String
+  /// Base weight of the question inside its axis.
+  weight   Float  @default(1)
+  /// +1 when agreeing points to the axis' positive pole, -1 when it points to
+  /// the negative one. About half the statements are reversed so that a user
+  /// who agrees with everything does not come out at an extreme.
+  polarity Int    @default(1)
+}
+
+/// Party position vector, written by pipeline/ml/build_vectors.py.
+model PartyVector {
+  partyId     String   @id
+  /// JSON object: { "<axis>": number } with values in -1..1
+  vectorJson  String
+  /// One of: platform | platform+tfidf
+  derivedFrom String
+  updatedAt   DateTime @updatedAt
+
+  party Party @relation(fields: [partyId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------------------------
+// Automation / daily brief
+// ---------------------------------------------------------------------------
+
+model Event {
+  id          String   @id
+  /// One of: merger | split | coalition | poll_swing | quote | threshold
+  kind        String
+  date        DateTime
+  headline    String
+  description String
+  sourceUrl   String
+  sourceName  String
+  provenance  String   @default("seed")
+
+  @@index([date])
+}
+
+model DailyBrief {
+  /// YYYY-MM-DD
+  date        String   @id
+  headline    String
+  bodyMarkdown String
+  /// One of: llm | template
+  generator   String
+  /// The structured facts the summary was generated from.
+  factsJson   String
+  createdAt   DateTime @default(now())
+}
+
+/// One execution of the ETL pipeline, for monitoring.
+model EtlRun {
+  id         String   @id
+  startedAt  DateTime
+  finishedAt DateTime?
+  /// One of: running | success | partial | failed
+  status     String
+  /// JSON: { "<source>": { "fetched": n, "loaded": n, "error": "..." } }
+  statsJson  String   @default("{}")
+
+  @@index([startedAt])
+}

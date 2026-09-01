@@ -1,0 +1,66 @@
+{
+  "_comment": "polarity maps agreement with the statement onto the axis: +1 means 'agreeing pushes towards the positive pole', -1 means it pushes towards the negative pole. Roughly half the statements are reversed on purpose, so that a user who simply agrees with everything does not come out at an extreme.",
+  "axes": [
+    {
+      "id": "security",
+      "name": "ביטחון ומדיני",
+      "negativePole": "יונית — פשרה מדינית והסדר אזורי",
+      "positivePole": "נצית — עוצמה צבאית והחזקת שטחים"
+    },
+    {
+      "id": "economy",
+      "name": "כלכלה",
+      "negativePole": "סוציאל-דמוקרטית — מדינת רווחה ומעורבות ממשלתית",
+      "positivePole": "שוק חופשי — הפרטה, הורדת מסים ורגולציה"
+    },
+    {
+      "id": "religion",
+      "name": "דת ומדינה",
+      "negativePole": "הפרדת דת ממדינה",
+      "positivePole": "שמירה על הסטטוס-קוו הדתי והרחבתו"
+    },
+    {
+      "id": "governance",
+      "name": "משילות ומשפט",
+      "negativePole": "חיזוק הביקורת השיפוטית ועצמאות בג\"ץ",
+      "positivePole": "עליונות הרשות המחוקקת ורפורמה משפטית"
+    },
+    {
+      "id": "society",
+      "name": "חברה וזהות",
+      "negativePole": "פלורליזם, זכויות מיעוטים ושוויון אזרחי",
+      "positivePole": "זהות יהודית-לאומית ומסורת"
+    }
+  ],
+  "questions": [
+    { "id": "q01", "order": 1, "axis": "security", "polarity": -1, "shortLabel": "הסדר מדיני", "weight": 1.2, "text": "יש לחתור להסדר מדיני קבע מול הפלסטינים גם במחיר ויתורים טריטוריאליים." },
+    { "id": "q02", "order": 2, "axis": "security", "polarity": 1, "shortLabel": "התיישבות", "weight": 1.0, "text": "יש להרחיב את ההתיישבות היהודית ביהודה ושומרון." },
+    { "id": "q03", "order": 3, "axis": "security", "polarity": 1, "shortLabel": "תקציב ביטחון", "weight": 0.8, "text": "יש להגדיל את תקציב הביטחון גם על חשבון תקציבים אזרחיים." },
+    { "id": "q04", "order": 4, "axis": "security", "polarity": 1, "shortLabel": "נורמליזציה", "weight": 0.9, "text": "הסכמי נורמליזציה עם מדינות ערב חשובים יותר מהסדר עם הפלסטינים." },
+    { "id": "q05", "order": 5, "axis": "security", "polarity": 1, "shortLabel": "שימוש בכוח", "weight": 1.0, "text": "על ישראל להפעיל יד קשה יותר מול איומים ביטחוניים, גם במחיר בידוד בינלאומי." },
+
+    { "id": "q06", "order": 6, "axis": "economy", "polarity": 1, "shortLabel": "מסים", "weight": 1.0, "text": "יש להוריד מסים גם אם הדבר יצמצם את היקף שירותי הרווחה." },
+    { "id": "q07", "order": 7, "axis": "economy", "polarity": -1, "shortLabel": "יוקר המחיה", "weight": 1.2, "text": "המדינה צריכה להתערב ישירות במחירי מוצרי יסוד ודיור." },
+    { "id": "q08", "order": 8, "axis": "economy", "polarity": 1, "shortLabel": "הפרטה", "weight": 0.9, "text": "יש להפריט שירותים ציבוריים כדי לייעל אותם." },
+    { "id": "q09", "order": 9, "axis": "economy", "polarity": -1, "shortLabel": "שכר מינימום", "weight": 1.0, "text": "יש להעלות משמעותית את שכר המינימום גם אם הדבר יכביד על מעסיקים." },
+    { "id": "q10", "order": 10, "axis": "economy", "polarity": -1, "shortLabel": "קצבאות", "weight": 1.0, "text": "יש להרחיב את הקצבאות למשפחות ולקשישים." },
+
+    { "id": "q11", "order": 11, "axis": "religion", "polarity": -1, "shortLabel": "תחבורה בשבת", "weight": 1.0, "text": "יש להפעיל תחבורה ציבורית בשבת ביישובים שיבחרו בכך." },
+    { "id": "q12", "order": 12, "axis": "religion", "polarity": -1, "shortLabel": "גיוס", "weight": 1.3, "text": "יש לחייב בגיוס לצה\"ל את כלל בחורי הישיבות, ללא פטור גורף." },
+    { "id": "q13", "order": 13, "axis": "religion", "polarity": -1, "shortLabel": "נישואין אזרחיים", "weight": 1.1, "text": "יש לאפשר נישואין אזרחיים בישראל." },
+    { "id": "q14", "order": 14, "axis": "religion", "polarity": 1, "shortLabel": "תקצוב ישיבות", "weight": 0.9, "text": "יש להמשיך לתקצב ישיבות ומוסדות חינוך חרדיים ללא דרישת לימודי ליבה." },
+    { "id": "q15", "order": 15, "axis": "religion", "polarity": 1, "shortLabel": "כשרות וגיור", "weight": 0.7, "text": "יש לשמור על מונופול הרבנות הראשית בענייני כשרות וגיור." },
+
+    { "id": "q16", "order": 16, "axis": "governance", "polarity": 1, "shortLabel": "בג\"ץ", "weight": 1.3, "text": "יש לצמצם את יכולתו של בג\"ץ לפסול חוקים שחוקקה הכנסת." },
+    { "id": "q17", "order": 17, "axis": "governance", "polarity": 1, "shortLabel": "בחירת שופטים", "weight": 1.1, "text": "יש להגדיל את השפעת הפוליטיקאים בוועדה לבחירת שופטים." },
+    { "id": "q18", "order": 18, "axis": "governance", "polarity": 1, "shortLabel": "יועמ\"ש", "weight": 1.0, "text": "חוות דעת היועץ המשפטי לממשלה לא צריכה לחייב את הממשלה." },
+    { "id": "q19", "order": 19, "axis": "governance", "polarity": -1, "shortLabel": "חוקה", "weight": 0.8, "text": "יש לחוקק חוקה שתעגן זכויות אדם ותגביל את כוח הרוב." },
+    { "id": "q20", "order": 20, "axis": "governance", "polarity": -1, "shortLabel": "ועדת חקירה", "weight": 1.0, "text": "יש להקים ועדת חקירה ממלכתית עצמאית לאירועי השנים האחרונות." },
+
+    { "id": "q21", "order": 21, "axis": "society", "polarity": -1, "shortLabel": "שוויון אזרחי", "weight": 1.2, "text": "יש להבטיח שוויון אזרחי מלא לאזרחים הערבים, כולל בתקציבים ובייצוג." },
+    { "id": "q22", "order": 22, "axis": "society", "polarity": 1, "shortLabel": "זהות יהודית", "weight": 1.0, "text": "אופייה היהודי של המדינה צריך לגבור על שיקולי שוויון אזרחי במקרה של סתירה." },
+    { "id": "q23", "order": 23, "axis": "society", "polarity": -1, "shortLabel": "זכויות להט\"ב", "weight": 1.0, "text": "יש לעגן בחוק שוויון זכויות מלא לזוגות חד-מיניים, כולל הורות." },
+    { "id": "q24", "order": 24, "axis": "society", "polarity": 1, "shortLabel": "חופש ביטוי", "weight": 0.9, "text": "יש להגביל ביטויים הפוגעים בסמלי המדינה או תומכים באויב." },
+    { "id": "q25", "order": 25, "axis": "society", "polarity": 1, "shortLabel": "מדיניות הגירה", "weight": 0.8, "text": "יש להקשיח את מדיניות ההגירה והמעמד של מבקשי מקלט." }
+  ]
+}

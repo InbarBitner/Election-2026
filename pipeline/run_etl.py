@@ -1,0 +1,150 @@
+"""ETL orchestrator: extract → transform → load, one source at a time.
+
+Design rules:
+
+* A failing source degrades the run to "partial"; it never aborts the others.
+  A poll site changing its markup should not cost us the day's Knesset data.
+* Every run is recorded in EtlRun with per-source counts and errors, so a
+  silent failure is visible rather than merely absent.
+* `--dry-run` performs the full extract and transform and reports what *would*
+  be written, without opening a write transaction.
+"""
+
+from __future__ import annotations
+
+import argparse
+import logging
+import uuid
+from datetime import date, datetime, timedelta, timezone
+
+from sqlalchemy import select
+
+from .db import get_engine, table
+from .etl.extract import knesset_api, news_rss, polls_scraper
+from .etl.load import loader
+from .etl.transform.normalize import clean_polls
+
+log = logging.getLogger(__name__)
+
+
+def _source_stats() -> dict:
+    return {"fetched": 0, "loaded": 0, "rejected": 0, "error": None, "note": None}
+
+
+def _candidates_by_knesset_id(connection) -> dict[str, str]:
+    candidates = table("Candidate")
+    rows = connection.execute(
+        select(candidates.c.id, candidates.c.knessetMemberId).where(
+            candidates.c.knessetMemberId.isnot(None)
+        )
+    )
+    return {row.knessetMemberId: row.id for row in rows}
+
+
+def run(dry_run: bool = False, since_days: int = 7, knesset_number: int = 25) -> int:
+    run_id = f"etl_{datetime.now(timezone.utc):%Y%m%d%H%M%S}_{uuid.uuid4().hex[:6]}"
+    stats: dict[str, dict] = {
+        "polls": _source_stats(),
+        "knesset": _source_stats(),
+        "news": _source_stats(),
+    }
+    engine = get_engine()
+
+    if not dry_run:
+        with engine.begin() as connection:
+            loader.start_run(connection, run_id)
+
+    # --- Extract -----------------------------------------------------------
+    log.info("שולף סקרים...")
+    polls_result = polls_scraper.extract()
+    stats["polls"]["fetched"] = len(polls_result["polls"])
+    stats["polls"]["error"] = polls_result.get("error")
+    stats["polls"]["note"] = polls_result.get("note")
+
+    log.info("שולף נתוני כנסת...")
+    knesset_result = knesset_api.extract(knesset_number)
+    stats["knesset"]["fetched"] = len(knesset_result["votes"]) + len(knesset_result["bills"])
+    stats["knesset"]["error"] = knesset_result.get("error")
+
+    log.info("שולף פידי חדשות...")
+    news_result = news_rss.extract(since=date.today() - timedelta(days=since_days))
+    stats["news"]["fetched"] = len(news_result["events"])
+    stats["news"]["error"] = news_result.get("error")
+    stats["news"]["note"] = news_result.get("note")
+
+    # --- Transform ---------------------------------------------------------
+    cleaned = clean_polls(polls_result["polls"])
+    stats["polls"]["rejected"] = len(cleaned.rejected)
+    for rejection in cleaned.rejected:
+        log.warning("סקר נדחה — %s: %s", rejection.record, rejection.reason)
+    if cleaned.unmapped_parties:
+        # Unmapped names are surfaced, never silently guessed at: someone has
+        # to add the alias in party_mapping.ALIASES.
+        log.warning(
+            "שמות מפלגות שלא זוהו (הוסף ל-ALIASES): %s",
+            ", ".join(sorted(cleaned.unmapped_parties)),
+        )
+        stats["polls"]["unmapped"] = sorted(cleaned.unmapped_parties)
+
+    if dry_run:
+        log.info("--- dry-run, לא נכתב דבר ---")
+        for source, source_stats in stats.items():
+            log.info("  %-8s %s", source, source_stats)
+        log.info("  סקרים שהיו נטענים: %d", len(cleaned.polls))
+        log.info("  אירועים שהיו נטענים: %d", len(news_result["events"]))
+        return 0
+
+    # --- Load --------------------------------------------------------------
+    with engine.begin() as connection:
+        if cleaned.polls:
+            stats["polls"]["loaded"] = loader.load_polls(connection, cleaned.polls)
+
+        # Knesset records attach to candidates already linked to a member id;
+        # records for anyone else are dropped rather than creating orphans.
+        by_member = _candidates_by_knesset_id(connection)
+        votes = [
+            {**v, "candidateId": by_member[v["knessetMemberId"]]}
+            for v in knesset_result["votes"]
+            if v.get("knessetMemberId") in by_member
+        ]
+        bills = [
+            {**b, "candidateId": by_member[b["knessetMemberId"]]}
+            for b in knesset_result["bills"]
+            if b.get("knessetMemberId") in by_member
+        ]
+        if votes:
+            stats["knesset"]["loaded"] += loader.load_votes(connection, votes)
+        if bills:
+            stats["knesset"]["loaded"] += loader.load_bills(connection, bills)
+        if knesset_result["members"] and not by_member:
+            stats["knesset"]["note"] = (
+                f"נשלפו {len(knesset_result['members'])} ח\"כים אך אף מועמד במסד "
+                "אינו מקושר ל-knessetMemberId, ולכן לא נטענו הצבעות."
+            )
+
+        if news_result["events"]:
+            stats["news"]["loaded"] = loader.load_events(connection, news_result["events"])
+
+        failed = [name for name, s in stats.items() if s["error"]]
+        status = "failed" if len(failed) == len(stats) else ("partial" if failed else "success")
+        loader.finish_run(connection, run_id, status, stats)
+
+    for source, source_stats in stats.items():
+        log.info("%-8s נשלפו=%s נטענו=%s שגיאה=%s",
+                 source, source_stats["fetched"], source_stats["loaded"], source_stats["error"])
+    log.info("ריצה %s הסתיימה בסטטוס %s", run_id, status)
+    return 0 if status != "failed" else 1
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="הרצת צינור ה-ETL")
+    parser.add_argument("--dry-run", action="store_true", help="שלוף ונקה בלי לכתוב")
+    parser.add_argument("--since-days", type=int, default=7, help="כמה ימים אחורה בפידי החדשות")
+    parser.add_argument("--knesset", type=int, default=25, help="מספר הכנסת לשליפת נתונים")
+    args = parser.parse_args()
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+    return run(dry_run=args.dry_run, since_days=args.since_days, knesset_number=args.knesset)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,568 @@
+{
+  "_comment": "Party names, leaders and blocs are public facts and each row carries a source. The `position` value on every plank (-1..1) is an editorial characterisation used to bootstrap the recommendation engine; pipeline/ml/build_vectors.py refines it from the platform text, and a real deployment should replace these numbers with positions extracted from the parties' own published platforms.",
+  "blocs": [
+    {
+      "id": "right",
+      "name": "הגוש הימני"
+    },
+    {
+      "id": "center",
+      "name": "מרכז"
+    },
+    {
+      "id": "center-left",
+      "name": "מרכז-שמאל"
+    },
+    {
+      "id": "haredi",
+      "name": "המפלגות החרדיות"
+    },
+    {
+      "id": "arab",
+      "name": "המפלגות הערביות"
+    }
+  ],
+  "parties": [
+    {
+      "id": "likud",
+      "slug": "likud",
+      "name": "הליכוד",
+      "shortName": "הליכוד",
+      "leader": "בנימין נתניהו",
+      "bloc": "right",
+      "color": "#2b6cb8",
+      "sourceUrl": "https://he.wikipedia.org/wiki/הליכוד",
+      "sourceName": "ויקיפדיה",
+      "platformText": "מפלגת שלטון ימנית-לאומית. מדגישה עוצמה ביטחונית, המשך שליטה ביטחונית ביהודה ושומרון והתנגדות להקמת מדינה פלסטינית; בכלכלה תומכת בשוק חופשי, הורדת מסים ופתיחת השוק לתחרות; במישור המשפטי תומכת ברפורמה שתגביר את כוחה של הרשות המחוקקת מול בית המשפט העליון; שומרת על ברית עם המפלגות החרדיות ועל הסטטוס-קוו הדתי.",
+      "planks": [
+        {
+          "axis": "security",
+          "topic": "מדיני-ביטחוני",
+          "position": 0.8,
+          "text": "התנגדות להקמת מדינה פלסטינית, שמירה על שליטה ביטחונית ביהודה ושומרון והרחבת מעגל הנורמליזציה."
+        },
+        {
+          "axis": "economy",
+          "topic": "כלכלה",
+          "position": 0.6,
+          "text": "הורדת מסים, צמצום רגולציה, פתיחת השוק ליבוא ותחרות והפרטת שירותים."
+        },
+        {
+          "axis": "religion",
+          "topic": "דת ומדינה",
+          "position": 0.3,
+          "text": "שמירה על הסטטוס-קוו הדתי והמשך שיתוף הפעולה עם המפלגות החרדיות."
+        },
+        {
+          "axis": "governance",
+          "topic": "משילות",
+          "position": 0.8,
+          "text": "רפורמה משפטית שתחזק את הרשות המחוקקת ותשנה את הרכב הוועדה לבחירת שופטים."
+        },
+        {
+          "axis": "society",
+          "topic": "זהות",
+          "position": 0.7,
+          "text": "חיזוק אופייה היהודי של המדינה וחוק הלאום."
+        }
+      ],
+      "colorDark": "#2b6cb8"
+    },
+    {
+      "id": "yesh-atid",
+      "slug": "yesh-atid",
+      "name": "יש עתיד",
+      "shortName": "יש עתיד",
+      "leader": "יאיר לפיד",
+      "bloc": "center-left",
+      "color": "#00a3c4",
+      "sourceUrl": "https://he.wikipedia.org/wiki/יש_עתיד",
+      "sourceName": "ויקיפדיה",
+      "platformText": "מפלגת מרכז ליברלית המתמקדת במעמד הביניים החילוני. תומכת בהפרדת דת ממדינה, בגיוס שוויוני ובביטול הפטור הגורף לבחורי ישיבות; מתנגדת לרפורמה המשפטית ותומכת בחיזוק עצמאות מערכת המשפט; במישור המדיני תומכת בהיפרדות מהפלסטינים בהסדר מוסכם; בכלכלה מצדדת בשוק חופשי מתון לצד השקעה בחינוך ובבריאות.",
+      "planks": [
+        {
+          "axis": "security",
+          "topic": "מדיני-ביטחוני",
+          "position": -0.1,
+          "text": "היפרדות מהפלסטינים בהסדר מוסכם תוך שמירה על עליונות ביטחונית."
+        },
+        {
+          "axis": "economy",
+          "topic": "כלכלה",
+          "position": 0.3,
+          "text": "שוק חופשי מתון, הקלה על מעמד הביניים והשקעה בחינוך ובבריאות."
+        },
+        {
+          "axis": "religion",
+          "topic": "דת ומדינה",
+          "position": -0.7,
+          "text": "גיוס שוויוני, ביטול הפטור הגורף, נישואין אזרחיים ותחבורה ציבורית בשבת."
+        },
+        {
+          "axis": "governance",
+          "topic": "משילות",
+          "position": -0.7,
+          "text": "התנגדות לרפורמה המשפטית ושמירה על עצמאות בית המשפט והיועמ\"ש."
+        },
+        {
+          "axis": "society",
+          "topic": "זהות",
+          "position": -0.5,
+          "text": "מדינה יהודית ודמוקרטית עם שוויון אזרחי מלא וחופש דת."
+        }
+      ],
+      "colorDark": "#00a3c4"
+    },
+    {
+      "id": "mamlachti",
+      "slug": "hamachane-hamamlachti",
+      "name": "המחנה הממלכתי",
+      "shortName": "הממלכתי",
+      "leader": "בני גנץ",
+      "bloc": "center",
+      "color": "#7048c9",
+      "sourceUrl": "https://he.wikipedia.org/wiki/המחנה_הממלכתי",
+      "sourceName": "ויקיפדיה",
+      "platformText": "מפלגת מרכז ביטחוניסטית המדגישה ממלכתיות, אחדות ושיקום האמון במוסדות. תומכת בהסדרה חוקתית מוסכמת במקום רפורמה חד-צדדית, בוועדת חקירה ממלכתית, ובמדיניות ביטחונית תקיפה לצד פתיחות להסדרים אזוריים.",
+      "planks": [
+        {
+          "axis": "security",
+          "topic": "מדיני-ביטחוני",
+          "position": 0.2,
+          "text": "מדיניות ביטחונית תקיפה לצד פתיחות להסדרים אזוריים ולנורמליזציה."
+        },
+        {
+          "axis": "economy",
+          "topic": "כלכלה",
+          "position": 0.1,
+          "text": "אחריות תקציבית לצד חיזוק שירותי הציבור והפריפריה."
+        },
+        {
+          "axis": "religion",
+          "topic": "דת ומדינה",
+          "position": -0.3,
+          "text": "הסדרת חוק גיוס שוויוני והימנעות מכפייה דתית."
+        },
+        {
+          "axis": "governance",
+          "topic": "משילות",
+          "position": -0.6,
+          "text": "הסדרה חוקתית מוסכמת, הקמת ועדת חקירה ממלכתית ושמירה על עצמאות המשפט."
+        },
+        {
+          "axis": "society",
+          "topic": "זהות",
+          "position": -0.3,
+          "text": "ממלכתיות ואחדות, מאבק בשיח המקטב וחיזוק החברה האזרחית."
+        }
+      ],
+      "colorDark": "#7b56d6"
+    },
+    {
+      "id": "religious-zionism",
+      "slug": "religious-zionism",
+      "name": "הציונות הדתית",
+      "shortName": "הציונות הדתית",
+      "leader": "בצלאל סמוטריץ'",
+      "bloc": "right",
+      "color": "#e08600",
+      "sourceUrl": "https://he.wikipedia.org/wiki/הציונות_הדתית_(מפלגה)",
+      "sourceName": "ויקיפדיה",
+      "platformText": "מפלגת ימין דתי-לאומי. תומכת בהחלת ריבונות ביהודה ושומרון, בהרחבת ההתיישבות, בחיזוק הזהות היהודית של המדינה ובשינוי מבני עמוק במערכת המשפט. בכלכלה מצדדת בשוק חופשי לצד תמיכה בהתיישבות ובמשפחות.",
+      "planks": [
+        {
+          "axis": "security",
+          "topic": "מדיני-ביטחוני",
+          "position": 0.95,
+          "text": "החלת ריבונות ביהודה ושומרון והרחבה משמעותית של ההתיישבות."
+        },
+        {
+          "axis": "economy",
+          "topic": "כלכלה",
+          "position": 0.4,
+          "text": "שוק חופשי לצד תמיכה ממוקדת בהתיישבות ובמשפחות ברוכות ילדים."
+        },
+        {
+          "axis": "religion",
+          "topic": "דת ומדינה",
+          "position": 0.85,
+          "text": "חיזוק מעמד הרבנות, שמירה על השבת במרחב הציבורי והתנגדות לנישואין אזרחיים."
+        },
+        {
+          "axis": "governance",
+          "topic": "משילות",
+          "position": 0.95,
+          "text": "שינוי מבני במערכת המשפט, פסקת התגברות וצמצום כוחו של היועמ\"ש."
+        },
+        {
+          "axis": "society",
+          "topic": "זהות",
+          "position": 0.95,
+          "text": "עדיפות לאופי היהודי של המדינה וחיזוק החינוך היהודי-ציוני."
+        }
+      ],
+      "colorDark": "#cf7a00"
+    },
+    {
+      "id": "otzma",
+      "slug": "otzma-yehudit",
+      "name": "עוצמה יהודית",
+      "shortName": "עוצמה יהודית",
+      "leader": "איתמר בן גביר",
+      "bloc": "right",
+      "color": "#b0442e",
+      "sourceUrl": "https://he.wikipedia.org/wiki/עוצמה_יהודית",
+      "sourceName": "ויקיפדיה",
+      "platformText": "מפלגת ימין קשיח המדגישה מלחמה בפשיעה, הרתעה ביטחונית מרבית, החלת ריבונות והקשחת הענישה. תומכת בשינוי עמוק במערכת המשפט ובחיזוק סמכויות המשטרה.",
+      "planks": [
+        {
+          "axis": "security",
+          "topic": "מדיני-ביטחוני",
+          "position": 1.0,
+          "text": "הרתעה מרבית, החלת ריבונות והקשחת הענישה כלפי מחבלים."
+        },
+        {
+          "axis": "economy",
+          "topic": "כלכלה",
+          "position": 0.2,
+          "text": "דגש על ביטחון אישי ותקציבי אכיפה יותר מאשר על מדיניות כלכלית מובחנת."
+        },
+        {
+          "axis": "religion",
+          "topic": "דת ומדינה",
+          "position": 0.8,
+          "text": "שמירה על צביון יהודי-מסורתי במרחב הציבורי."
+        },
+        {
+          "axis": "governance",
+          "topic": "משילות",
+          "position": 0.9,
+          "text": "צמצום התערבות בג\"ץ והרחבת סמכויות הדרג הנבחר."
+        },
+        {
+          "axis": "society",
+          "topic": "זהות",
+          "position": 1.0,
+          "text": "עדיפות לזהות יהודית-לאומית והקשחת מדיניות ההגירה."
+        }
+      ],
+      "colorDark": "#b0442e"
+    },
+    {
+      "id": "shas",
+      "slug": "shas",
+      "name": "ש\"ס",
+      "shortName": "ש\"ס",
+      "leader": "אריה דרעי",
+      "bloc": "haredi",
+      "color": "#8d6a00",
+      "sourceUrl": "https://he.wikipedia.org/wiki/ש\"ס",
+      "sourceName": "ויקיפדיה",
+      "platformText": "מפלגה חרדית-ספרדית המשלבת שמרנות דתית עם מדיניות חברתית-כלכלית מרחיבה. פועלת להרחבת קצבאות ותמיכה בשכבות החלשות, לשמירה על מעמד הרבנות ועל עולם התורה, ולהסדרת מעמד לומדי התורה.",
+      "planks": [
+        {
+          "axis": "security",
+          "topic": "מדיני-ביטחוני",
+          "position": 0.5,
+          "text": "עמדה ימנית מתונה, בכפוף לשיקולי פיקוח נפש והכרעות רבניות."
+        },
+        {
+          "axis": "economy",
+          "topic": "כלכלה",
+          "position": -0.6,
+          "text": "הרחבת קצבאות, סיוע בדיור ותמיכה במשפחות ובשכבות החלשות."
+        },
+        {
+          "axis": "religion",
+          "topic": "דת ומדינה",
+          "position": 1.0,
+          "text": "שמירה על עולם התורה, מעמד הרבנות והסטטוס-קוו, והסדרת מעמד לומדי התורה."
+        },
+        {
+          "axis": "governance",
+          "topic": "משילות",
+          "position": 0.7,
+          "text": "תמיכה בחיזוק הדרג הנבחר מול בית המשפט."
+        },
+        {
+          "axis": "society",
+          "topic": "זהות",
+          "position": 0.7,
+          "text": "חיזוק המסורת היהודית והזהות הספרדית-מסורתית."
+        }
+      ],
+      "colorDark": "#8d6a00"
+    },
+    {
+      "id": "yahadut-hatorah",
+      "slug": "yahadut-hatorah",
+      "name": "יהדות התורה",
+      "shortName": "יהדות התורה",
+      "leader": "יצחק גולדקנופף",
+      "bloc": "haredi",
+      "color": "#5f7a2e",
+      "sourceUrl": "https://he.wikipedia.org/wiki/יהדות_התורה",
+      "sourceName": "ויקיפדיה",
+      "platformText": "מפלגה חרדית-אשכנזית הפועלת לשמירה על עולם הישיבות, על מערכת החינוך העצמאית ועל הסטטוס-קוו הדתי, ולהרחבת התמיכה הכלכלית במשפחות ובמוסדות התורה.",
+      "planks": [
+        {
+          "axis": "security",
+          "topic": "מדיני-ביטחוני",
+          "position": 0.3,
+          "text": "עיסוק מועט בסוגיות מדיניות; הכרעות לפי מועצת גדולי התורה."
+        },
+        {
+          "axis": "economy",
+          "topic": "כלכלה",
+          "position": -0.5,
+          "text": "הרחבת תמיכות למשפחות, לאברכים ולמוסדות חינוך."
+        },
+        {
+          "axis": "religion",
+          "topic": "דת ומדינה",
+          "position": 1.0,
+          "text": "המשך הפטור מגיוס ללומדי תורה ותקצוב חינוך עצמאי ללא לימודי ליבה."
+        },
+        {
+          "axis": "governance",
+          "topic": "משילות",
+          "position": 0.6,
+          "text": "תמיכה בחקיקה שתגביל את התערבות בג\"ץ בענייני דת ומדינה."
+        },
+        {
+          "axis": "society",
+          "topic": "זהות",
+          "position": 0.6,
+          "text": "שמירה על אורח חיים חרדי ועל צביון יהודי במרחב הציבורי."
+        }
+      ],
+      "colorDark": "#5f7a2e"
+    },
+    {
+      "id": "yisrael-beitenu",
+      "slug": "yisrael-beitenu",
+      "name": "ישראל ביתנו",
+      "shortName": "ישראל ביתנו",
+      "leader": "אביגדור ליברמן",
+      "bloc": "right",
+      "color": "#0d9488",
+      "sourceUrl": "https://he.wikipedia.org/wiki/ישראל_ביתנו",
+      "sourceName": "ויקיפדיה",
+      "platformText": "מפלגת ימין חילוני. משלבת עמדה ביטחונית נצית עם התנגדות חריפה לכפייה דתית ולפטור מגיוס, ותומכת בכלכלת שוק חופשי, בנישואין אזרחיים ובהפרדת דת ממדינה.",
+      "planks": [
+        {
+          "axis": "security",
+          "topic": "מדיני-ביטחוני",
+          "position": 0.8,
+          "text": "מדיניות ביטחונית תקיפה והתנגדות לוויתורים מדיניים ללא הדדיות."
+        },
+        {
+          "axis": "economy",
+          "topic": "כלכלה",
+          "position": 0.7,
+          "text": "כלכלת שוק חופשי, הורדת מסים ועידוד תעסוקה."
+        },
+        {
+          "axis": "religion",
+          "topic": "דת ומדינה",
+          "position": -0.8,
+          "text": "חוק גיוס שוויוני, נישואין אזרחיים, תחבורה בשבת וביטול מונופול הכשרות."
+        },
+        {
+          "axis": "governance",
+          "topic": "משילות",
+          "position": 0.2,
+          "text": "תמיכה בשינויים מוסכמים במערכת המשפט, בהתנגדות למהלכים חד-צדדיים."
+        },
+        {
+          "axis": "society",
+          "topic": "זהות",
+          "position": 0.5,
+          "text": "מדינה יהודית חילונית ומדיניות הגירה מוקשחת."
+        }
+      ],
+      "colorDark": "#0d9488"
+    },
+    {
+      "id": "democrats",
+      "slug": "the-democrats",
+      "name": "הדמוקרטים",
+      "shortName": "הדמוקרטים",
+      "leader": "יאיר גולן",
+      "bloc": "center-left",
+      "color": "#d1417f",
+      "sourceUrl": "https://he.wikipedia.org/wiki/הדמוקרטים_(מפלגה)",
+      "sourceName": "ויקיפדיה",
+      "platformText": "מפלגת שמאל-מרכז שנוצרה מאיחוד העבודה ומרצ. תומכת בהסדר מדיני מבוסס שתי מדינות, במדינת רווחה מרחיבה, בהפרדת דת ממדינה, בשוויון זכויות מלא לכלל האזרחים ובהגנה על עצמאות מערכת המשפט.",
+      "planks": [
+        {
+          "axis": "security",
+          "topic": "מדיני-ביטחוני",
+          "position": -0.7,
+          "text": "הסדר מדיני מבוסס שתי מדינות והפסקת ההתרחבות ההתיישבותית."
+        },
+        {
+          "axis": "economy",
+          "topic": "כלכלה",
+          "position": -0.8,
+          "text": "מדינת רווחה, העלאת שכר מינימום, דיור בר-השגה וחיזוק שירותי הציבור."
+        },
+        {
+          "axis": "religion",
+          "topic": "דת ומדינה",
+          "position": -0.9,
+          "text": "הפרדת דת ממדינה, נישואין אזרחיים וגיוס שוויוני."
+        },
+        {
+          "axis": "governance",
+          "topic": "משילות",
+          "position": -0.9,
+          "text": "הגנה על עצמאות בית המשפט וחקיקת חוקה שתעגן זכויות אדם."
+        },
+        {
+          "axis": "society",
+          "topic": "זהות",
+          "position": -0.9,
+          "text": "שוויון אזרחי מלא, זכויות להט\"ב ומאבק בגזענות."
+        }
+      ],
+      "colorDark": "#d1417f"
+    },
+    {
+      "id": "hadash-taal",
+      "slug": "hadash-taal",
+      "name": "חד\"ש-תע\"ל",
+      "shortName": "חד\"ש-תע\"ל",
+      "leader": "איימן עודה",
+      "bloc": "arab",
+      "color": "#d13a3a",
+      "sourceUrl": "https://he.wikipedia.org/wiki/חד\"ש",
+      "sourceName": "ויקיפדיה",
+      "platformText": "רשימה משותפת יהודית-ערבית סוציאליסטית. תומכת בסיום הכיבוש ובהקמת מדינה פלסטינית לצד ישראל, בשוויון אזרחי ולאומי מלא לאזרחים הערבים, במדינת רווחה ובזכויות עובדים.",
+      "planks": [
+        {
+          "axis": "security",
+          "topic": "מדיני-ביטחוני",
+          "position": -1.0,
+          "text": "סיום הכיבוש והקמת מדינה פלסטינית בגבולות 1967 לצד ישראל."
+        },
+        {
+          "axis": "economy",
+          "topic": "כלכלה",
+          "position": -0.9,
+          "text": "מדינת רווחה, זכויות עובדים והשקעה ביישובים הערבים ובפריפריה."
+        },
+        {
+          "axis": "religion",
+          "topic": "דת ומדינה",
+          "position": -0.5,
+          "text": "מדינה אזרחית וחופש דת לכלל הקהילות."
+        },
+        {
+          "axis": "governance",
+          "topic": "משילות",
+          "position": -0.8,
+          "text": "הגנה על זכויות אדם ועל ביקורת שיפוטית חזקה."
+        },
+        {
+          "axis": "society",
+          "topic": "זהות",
+          "position": -1.0,
+          "text": "מדינת כל אזרחיה, שוויון לאומי ואזרחי מלא ומאבק בגזענות."
+        }
+      ],
+      "colorDark": "#d13a3a"
+    },
+    {
+      "id": "raam",
+      "slug": "raam",
+      "name": "רע\"ם",
+      "shortName": "רע\"ם",
+      "leader": "מנסור עבאס",
+      "bloc": "arab",
+      "color": "#2f9e4f",
+      "sourceUrl": "https://he.wikipedia.org/wiki/הרשימה_הערבית_המאוחדת",
+      "sourceName": "ויקיפדיה",
+      "platformText": "מפלגה ערבית אסלאמית פרגמטית. מתמקדת בהישגים אזרחיים מוחשיים לחברה הערבית — תקציבים, דיור ומאבק בפשיעה — מתוך נכונות לשתף פעולה עם כל ממשלה שתקדם אותם, לצד עמדות שמרניות בסוגיות דת וחברה.",
+      "planks": [
+        {
+          "axis": "security",
+          "topic": "מדיני-ביטחוני",
+          "position": -0.7,
+          "text": "תמיכה בהסדר מדיני והתנגדות למדיניות ההתנחלויות."
+        },
+        {
+          "axis": "economy",
+          "topic": "כלכלה",
+          "position": -0.4,
+          "text": "תקציבים ייעודיים לחברה הערבית, דיור, תשתיות ומאבק בפשיעה."
+        },
+        {
+          "axis": "religion",
+          "topic": "דת ומדינה",
+          "position": 0.4,
+          "text": "עמדות שמרניות בענייני דת ומשפחה ושמירה על מוסדות דת עצמאיים."
+        },
+        {
+          "axis": "governance",
+          "topic": "משילות",
+          "position": -0.4,
+          "text": "שמירה על מנגנוני ביקורת המגנים על זכויות מיעוטים."
+        },
+        {
+          "axis": "society",
+          "topic": "זהות",
+          "position": -0.7,
+          "text": "שוויון אזרחי מלא לצד שמרנות חברתית."
+        }
+      ],
+      "colorDark": "#2f9e4f"
+    },
+    {
+      "id": "bennett-2026",
+      "slug": "bennett-2026",
+      "name": "בנט 2026",
+      "shortName": "בנט",
+      "leader": "נפתלי בנט",
+      "bloc": "center",
+      "color": "#9b6ef3",
+      "sourceUrl": "https://he.wikipedia.org/wiki/נפתלי_בנט",
+      "sourceName": "ויקיפדיה",
+      "platformText": "מפלגת מרכז-ימין ממלכתית המציבה עצמה כחלופה לשלטון הקיים. משלבת עמדות ביטחוניות וכלכליות ימניות עם התנגדות למהלכים חד-צדדיים במערכת המשפט ועם דגש על תפקוד המדינה, אחדות ושיקום מוסדות.",
+      "planks": [
+        {
+          "axis": "security",
+          "topic": "מדיני-ביטחוני",
+          "position": 0.5,
+          "text": "עמדה ביטחונית ימנית ללא הסדר קבע בטווח הנראה לעין."
+        },
+        {
+          "axis": "economy",
+          "topic": "כלכלה",
+          "position": 0.5,
+          "text": "כלכלת שוק, עידוד יזמות והפחתת רגולציה."
+        },
+        {
+          "axis": "religion",
+          "topic": "דת ומדינה",
+          "position": -0.2,
+          "text": "הסדרת חוק גיוס והימנעות מכפייה דתית, תוך שמירה על צביון מסורתי."
+        },
+        {
+          "axis": "governance",
+          "topic": "משילות",
+          "position": -0.2,
+          "text": "התנגדות למהלכים חד-צדדיים במערכת המשפט; רפורמה בהסכמה רחבה."
+        },
+        {
+          "axis": "society",
+          "topic": "זהות",
+          "position": 0.1,
+          "text": "ממלכתיות, אחדות ותפקוד המדינה מעל מחלוקות זהות."
+        }
+      ],
+      "colorDark": "#9b6ef3"
+    }
+  ],
+  "_palette": "Chart colours are a validated categorical palette, not the parties' brand colours: they are re-stepped so that adjacent series stay distinguishable for colour-vision deficiency in both light and dark modes. Verified with the dataviz palette validator; the one pink/green pair in the 6-8 deltaE band is covered by the secondary encoding the charts always ship (legend, direct labels, table view)."
+}

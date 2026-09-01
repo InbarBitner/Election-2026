@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. Light is the base; dark redefines only the tokens, so no
+ * colour has its only definition inside a media query.
+ */
+:root {
+  --surface: #fcfcfb;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f4f4f2;
+  --border: #e2e2dd;
+  --border-strong: #c9c9c2;
+
+  --ink: #1a1a19;
+  --ink-secondary: #52524c;
+  --ink-muted: #7a7a72;
+
+  --accent: #2b6cb8;
+  --accent-soft: #e8f0fa;
+  --warning: #8a5a00;
+  --warning-soft: #fdf4e3;
+
+  --grid: #ebebe6;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface: #1a1a19;
+    --surface-raised: #232322;
+    --surface-sunken: #131312;
+    --border: #35352f;
+    --border-strong: #4a4a43;
+
+    --ink: #f0f0eb;
+    --ink-secondary: #b6b6ad;
+    --ink-muted: #85857c;
+
+    --accent: #6ca4e8;
+    --accent-soft: #1e2c3d;
+    --warning: #e0b25f;
+    --warning-soft: #2e2717;
+
+    --grid: #2c2c27;
+
+    color-scheme: dark;
+  }
+}
+
+body {
+  background: var(--surface);
+  color: var(--ink);
+  font-family:
+    "Segoe UI", "Noto Sans Hebrew", "Arial Hebrew", system-ui, -apple-system,
+    sans-serif;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Numbers stay left-to-right inside RTL text.
+   No `display` override here on purpose: this class is also applied to <td>
+   elements, and changing their display takes them out of the table layout. */
+.ltr-nums {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* Wide content scrolls inside its own box; the page never scrolls sideways. */
+.scroll-x {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+}
+
+/* Recharts injects inline SVG text that ignores the body font stack. */
+.recharts-text {
+  fill: var(--ink-muted);
+  font-size: 12px;
+}

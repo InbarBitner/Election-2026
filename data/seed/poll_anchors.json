@@ -1,0 +1,45 @@
+{
+  "_comment": "SYNTHETIC DEMO DATA. These are not real published polls. The seed generator (pipeline/seed.py) interpolates a daily series between these anchor points, adds a per-pollster house effect and deterministic sampling noise, and loads the result through the same transform/load path as the real scrapers. Replace with real polls by running `python -m pipeline.run_etl` once the pollster connectors are configured.",
+  "startDate": "2026-03-01",
+  "endDate": "2026-08-31",
+  "pollsters": [
+    { "name": "מדגם הדגמה א'", "sponsor": "ערוץ הדגמה 1", "sampleSize": 750, "marginOfError": 3.6, "houseEffect": { "likud": 1.0, "democrats": -0.5 } },
+    { "name": "מדגם הדגמה ב'", "sponsor": "ערוץ הדגמה 2", "sampleSize": 600, "marginOfError": 4.0, "houseEffect": { "likud": -1.0, "yesh-atid": 0.7 } },
+    { "name": "מדגם הדגמה ג'", "sponsor": "עיתון הדגמה", "sampleSize": 1100, "marginOfError": 3.0, "houseEffect": { "bennett-2026": 1.2, "mamlachti": -0.6 } },
+    { "name": "מדגם הדגמה ד'", "sponsor": "רדיו הדגמה", "sampleSize": 500, "marginOfError": 4.4, "houseEffect": { "otzma": 0.6, "shas": 0.4 } }
+  ],
+  "anchors": [
+    {
+      "date": "2026-03-01",
+      "seats": {
+        "likud": 25, "bennett-2026": 20, "democrats": 11, "yesh-atid": 10,
+        "shas": 10, "yahadut-hatorah": 7, "religious-zionism": 6, "otzma": 8,
+        "mamlachti": 8, "yisrael-beitenu": 6, "hadash-taal": 5, "raam": 4
+      }
+    },
+    {
+      "date": "2026-05-15",
+      "seats": {
+        "likud": 27, "bennett-2026": 17, "democrats": 12, "yesh-atid": 9,
+        "shas": 10, "yahadut-hatorah": 7, "religious-zionism": 5, "otzma": 9,
+        "mamlachti": 7, "yisrael-beitenu": 7, "hadash-taal": 5, "raam": 5
+      }
+    },
+    {
+      "date": "2026-07-01",
+      "seats": {
+        "likud": 29, "bennett-2026": 15, "democrats": 13, "yesh-atid": 8,
+        "shas": 11, "yahadut-hatorah": 7, "religious-zionism": 4, "otzma": 10,
+        "mamlachti": 6, "yisrael-beitenu": 7, "hadash-taal": 5, "raam": 5
+      }
+    },
+    {
+      "date": "2026-08-31",
+      "seats": {
+        "likud": 28, "bennett-2026": 16, "democrats": 14, "yesh-atid": 8,
+        "shas": 11, "yahadut-hatorah": 7, "religious-zionism": 3, "otzma": 11,
+        "mamlachti": 5, "yisrael-beitenu": 7, "hadash-taal": 5, "raam": 5
+      }
+    }
+  ]
+}
