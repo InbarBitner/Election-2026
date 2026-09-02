@@ -1,61 +1,223 @@
-@import "tailwindcss";
-
 /*
- * Design tokens. Light is the base; dark redefines only the tokens, so no
- * colour has its only definition inside a media query.
+ * "Industry" — the design system from the project's design canvas
+ * (Elections2026.dc.html), ported to the application.
+ *
+ * The light tokens below are the designer's values, unchanged. The dark set is
+ * derived from the same ramps rather than flipped mechanically: the ground goes
+ * to the dark end of the neutral ramp, and the accent moves *up* the accent
+ * ramp (400 instead of 600) so it keeps its contrast against a dark surface.
+ *
+ * The visual idea is a technical drawing: square corners, hairline rules,
+ * transparent panels with registration marks at their corners, condensed
+ * headings, and tabular numerals.
  */
+
 :root {
-  --surface: #fcfcfb;
-  --surface-raised: #ffffff;
-  --surface-sunken: #f4f4f2;
-  --border: #e2e2dd;
-  --border-strong: #c9c9c2;
+  --color-bg: #f2f2f3;
+  --color-surface: #e9e9ea;
+  --color-text: #1d1f20;
+  --color-accent: #5980a6;
+  --color-accent-2: #728fab;
+  --color-divider: color-mix(in srgb, #1d1f20 16%, transparent);
 
-  --ink: #1a1a19;
-  --ink-secondary: #52524c;
-  --ink-muted: #7a7a72;
+  /* Tonal ramps, generated in OKLCH on one shared lightness scale. */
+  --color-neutral-100: #f5f5f8;
+  --color-neutral-200: #e7e7ea;
+  --color-neutral-300: #d4d4d7;
+  --color-neutral-400: #b7b7ba;
+  --color-neutral-500: #98989b;
+  --color-neutral-600: #7a7a7d;
+  --color-neutral-700: #5d5d60;
+  --color-neutral-800: #424244;
+  --color-neutral-900: #2b2b2d;
 
-  --accent: #2b6cb8;
-  --accent-soft: #e8f0fa;
-  --warning: #8a5a00;
-  --warning-soft: #fdf4e3;
+  --color-accent-100: #eef6ff;
+  --color-accent-200: #d6ebff;
+  --color-accent-300: #b5d9fd;
+  --color-accent-400: #94bce3;
+  --color-accent-500: #749dc4;
+  --color-accent-600: #597ea3;
+  --color-accent-700: #416180;
+  --color-accent-800: #2c455d;
+  --color-accent-900: #1d2d3d;
 
-  --grid: #ebebe6;
+  --color-accent-2-100: #eef6ff;
+  --color-accent-2-200: #d6ebff;
+  --color-accent-2-300: #bdd8f2;
+  --color-accent-2-400: #9ebbd8;
+  --color-accent-2-500: #7e9cb8;
+  --color-accent-2-600: #627d98;
+  --color-accent-2-700: #486077;
+  --color-accent-2-800: #314457;
+  --color-accent-2-900: #1f2d3a;
+
+  /* Tag surfaces are named separately so dark mode can re-point them without
+     touching the ramps themselves. */
+  --tag-accent-bg: var(--color-accent-100);
+  --tag-accent-fg: var(--color-accent-800);
+  --tag-neutral-bg: var(--color-neutral-100);
+  --tag-neutral-fg: var(--color-neutral-800);
+
+  /* A warning tone the canvas did not define — needed for the demo-data
+     banner and the below-threshold notes. Kept muted so it never competes
+     with the accent. */
+  --color-warning: #8a5a00;
+  --color-warning-bg: #f7efdd;
+
+  /* The three families are loaded by next/font in app/layout.tsx, which
+     exposes them as these CSS variables. Heebo follows in each stack because
+     Barlow has no Hebrew glyphs — the browser falls through to it per
+     character, so Latin and numerals keep Barlow's character while Hebrew
+     text is set in Heebo. */
+  --font-heading: var(--font-barlow-condensed), var(--font-heebo), system-ui, sans-serif;
+  --font-heading-weight: 600;
+  --font-body: var(--font-barlow), var(--font-heebo), system-ui, sans-serif;
+
+  --space-1: 3.4px;
+  --space-2: 6.8px;
+  --space-3: 10.2px;
+  --space-4: 13.6px;
+  --space-6: 20.4px;
+  --space-8: 27.2px;
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 7px;
+
+  --shadow-sm: 0 1px 2px color-mix(in srgb, #2b2b2d 14%, transparent);
+  --shadow-md: 0 3px 10px color-mix(in srgb, #2b2b2d 16%, transparent);
+  --shadow-lg: 0 12px 32px color-mix(in srgb, #2b2b2d 22%, transparent);
+
+  /* Chart grid lines: recessive, never competing with the data. */
+  --chart-grid: color-mix(in srgb, var(--color-text) 10%, transparent);
 
   color-scheme: light;
 }
 
+/* Dark mode, derived from the same ramps. Defined twice — once for the
+   system preference, once for an explicit choice — so neither wins by
+   accident. No colour has its only definition in here. */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --surface: #1a1a19;
-    --surface-raised: #232322;
-    --surface-sunken: #131312;
-    --border: #35352f;
-    --border-strong: #4a4a43;
+  :root:not([data-theme="light"]) {
+    --color-bg: #1a1b1c;
+    --color-surface: #232426;
+    --color-text: #f2f2f3;
+    --color-accent: #94bce3;
+    --color-accent-2: #9ebbd8;
+    --color-divider: color-mix(in srgb, #f2f2f3 18%, transparent);
 
-    --ink: #f0f0eb;
-    --ink-secondary: #b6b6ad;
-    --ink-muted: #85857c;
+    --tag-accent-bg: var(--color-accent-900);
+    --tag-accent-fg: var(--color-accent-200);
+    --tag-neutral-bg: var(--color-neutral-900);
+    --tag-neutral-fg: var(--color-neutral-200);
 
-    --accent: #6ca4e8;
-    --accent-soft: #1e2c3d;
-    --warning: #e0b25f;
-    --warning-soft: #2e2717;
+    --color-warning: #e0b25f;
+    --color-warning-bg: #2e2717;
 
-    --grid: #2c2c27;
+    /* On a dark ground a cast shadow reads as dirt; depth comes from the
+       hairline edge instead. */
+    --shadow-sm: 0 0 0 1px color-mix(in srgb, #f2f2f3 8%, transparent);
+    --shadow-md: 0 4px 14px rgb(0 0 0 / 0.45);
+    --shadow-lg: 0 14px 40px rgb(0 0 0 / 0.6);
 
     color-scheme: dark;
   }
 }
 
+:root[data-theme="dark"] {
+  --color-bg: #1a1b1c;
+  --color-surface: #232426;
+  --color-text: #f2f2f3;
+  --color-accent: #94bce3;
+  --color-accent-2: #9ebbd8;
+  --color-divider: color-mix(in srgb, #f2f2f3 18%, transparent);
+
+  --tag-accent-bg: var(--color-accent-900);
+  --tag-accent-fg: var(--color-accent-200);
+  --tag-neutral-bg: var(--color-neutral-900);
+  --tag-neutral-fg: var(--color-neutral-200);
+
+  --color-warning: #e0b25f;
+  --color-warning-bg: #2e2717;
+
+  --shadow-sm: 0 0 0 1px color-mix(in srgb, #f2f2f3 8%, transparent);
+  --shadow-md: 0 4px 14px rgb(0 0 0 / 0.45);
+  --shadow-lg: 0 14px 40px rgb(0 0 0 / 0.6);
+
+  color-scheme: dark;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   Base
+   ═══════════════════════════════════════════════════════════════════════ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
-  background: var(--surface);
-  color: var(--ink);
-  font-family:
-    "Segoe UI", "Noto Sans Hebrew", "Arial Hebrew", system-ui, -apple-system,
-    sans-serif;
-  line-height: 1.6;
   margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 400;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  margin: 0 0 var(--space-2);
+}
+
+h1 { font-size: 42px; }
+h2 { font-size: 32px; }
+h3 { font-size: 25px; }
+h4 { font-size: 20px; }
+h5 { font-size: 16px; }
+h6 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+p { margin: 0 0 var(--space-3); }
+img { display: block; max-width: 100%; }
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+  text-underline-offset: 3px;
+}
+a:hover { text-decoration: underline; }
+
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+::selection { background: color-mix(in srgb, var(--color-accent) 30%, transparent); }
+
+.text-muted { color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+
+.hr {
+  height: 1px;
+  border: 0;
+  margin: var(--space-4) 0;
+  background: var(--color-divider);
+}
+
+/* Condensed tabular figures. Every number on the site wears this, so columns
+   of seat counts line up digit for digit. */
+.num {
+  font-family: var(--font-heading);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Numbers stay left-to-right inside RTL text.
@@ -64,6 +226,7 @@ body {
 .ltr-nums {
   direction: ltr;
   unicode-bidi: isolate;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Wide content scrolls inside its own box; the page never scrolls sideways. */
@@ -72,12 +235,244 @@ body {
   max-width: 100%;
 }
 
-a {
-  color: inherit;
+/* ═════════════════════════════════════════════════════════════════════════
+   Blueprint frame — the system's signature. Panels are wireframe objects:
+   square, transparent, hairline-bordered, with registration marks that sit
+   just outside the corners.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.blueprint {
+  position: relative;
+  border: 1px solid var(--color-divider);
+  border-radius: 0;
 }
+
+.blueprint > .corner {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+}
+.blueprint > .corner::before,
+.blueprint > .corner::after {
+  content: "";
+  position: absolute;
+  background: currentColor;
+}
+.blueprint > .corner::before { left: 5px; top: 0; width: 1px; height: 100%; }
+.blueprint > .corner::after { top: 5px; left: 0; width: 100%; height: 1px; }
+.blueprint > .corner.tl { top: -6px; left: -6px; }
+.blueprint > .corner.tr { top: -6px; right: -6px; }
+.blueprint > .corner.bl { bottom: -6px; left: -6px; }
+.blueprint > .corner.br { bottom: -6px; right: -6px; }
+
+/* ═════════════════════════════════════════════════════════════════════════
+   Components
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 14px;
+  line-height: 1.2;
+  color: var(--color-text);
+  background: transparent;
+  border: 1px solid var(--color-divider);
+  border-radius: 0;
+  padding: var(--space-2) calc(var(--space-3) * 1.2);
+}
+.btn:hover { text-decoration: none; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-primary {
+  background: var(--color-accent);
+  color: var(--color-bg);
+  border-color: var(--color-accent);
+}
+.btn-primary:hover { background: var(--color-accent-600); border-color: var(--color-accent-600); }
+.btn-primary:active { background: var(--color-accent-700); }
+.btn-secondary:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+.btn-secondary:active { background: color-mix(in srgb, var(--color-text) 14%, transparent); }
+.btn-ghost { color: var(--color-accent); border-color: transparent; padding-inline: var(--space-1); }
+.btn-ghost:hover { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
+.btn-block { width: 100%; }
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: 0;
+  background: transparent;
+  border: 1px solid var(--color-divider);
+}
+.card-kicker {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+.card-title {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 17px;
+  line-height: 1.2;
+}
+.card-body { margin: 0; font-size: 13px; opacity: 0.8; }
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: color-mix(in srgb, var(--color-text) 50%, transparent);
+}
+
+.elev-sm { box-shadow: var(--shadow-sm); }
+.elev-md { box-shadow: var(--shadow-md); }
+.elev-lg { box-shadow: var(--shadow-lg); }
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  padding: 3px 10px;
+  border-radius: 0;
+  white-space: nowrap;
+}
+.tag-accent { background: var(--tag-accent-bg); color: var(--tag-accent-fg); }
+.tag-neutral { background: var(--tag-neutral-bg); color: var(--tag-neutral-fg); }
+.tag-outline { border: 1px solid var(--color-accent); color: var(--color-accent); }
+.tag-warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 40%, transparent);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  padding: 12px 40px;
+}
+.nav-brand {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 18px;
+}
+.nav a {
+  color: inherit;
+  text-decoration: none;
+  font-size: 14px;
+  padding: 4px 2px;
+  border-bottom: 2px solid transparent;
+}
+.nav a:hover,
+.nav a[aria-current="page"] {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+.nav a[aria-current="page"] { border-bottom-color: var(--color-accent); }
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.table th {
+  text-align: start;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-divider);
+  white-space: nowrap;
+}
+.table td {
+  text-align: start;
+  padding: var(--space-2);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
+}
+.table tbody tr:hover { background: color-mix(in srgb, var(--color-text) 4%, transparent); }
+
+/* Segmented control — used for the poll-averaging window. */
+.seg {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid var(--color-divider);
+  border-radius: 0;
+}
+.seg-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font-family: inherit;
+}
+.seg-opt + .seg-opt { border-inline-start: 1px solid var(--color-divider); }
+.seg-opt[aria-pressed="true"] { background: var(--color-accent); color: var(--color-bg); }
+.seg-opt[aria-pressed="false"]:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+.seg-opt:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: color-mix(in srgb, var(--color-neutral-900) 55%, transparent);
+  z-index: 50;
+}
+.dialog {
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+  background: var(--color-bg);
+  border: 1px solid var(--color-divider);
+  box-shadow: var(--shadow-lg);
+}
+.dialog-title {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 20px;
+  margin: 0;
+}
+
+.field > label {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 5px;
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
+}
+.input {
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--color-text);
+  caret-color: var(--color-accent);
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: 0;
+}
+.input:hover { border-color: color-mix(in srgb, var(--color-text) 45%, transparent); }
+.input:focus-visible { border-color: var(--color-accent); outline-offset: 0; }
 
 /* Recharts injects inline SVG text that ignores the body font stack. */
 .recharts-text {
-  fill: var(--ink-muted);
+  fill: color-mix(in srgb, var(--color-text) 55%, transparent);
+  font-family: var(--font-heading);
   font-size: 12px;
 }

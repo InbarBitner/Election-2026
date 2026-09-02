@@ -1,6 +1,15 @@
 import Link from "next/link";
+import Countdown from "@/components/Countdown";
 import SeatProjectionTable from "@/components/SeatProjection";
-import { ButtonLink, Callout, Card, EmptyState, SectionTitle } from "@/components/ui";
+import {
+  ButtonLink,
+  Callout,
+  EmptyState,
+  Kicker,
+  Panel,
+  PartySwatch,
+  SectionTitle,
+} from "@/components/ui";
 import { formatDate } from "@/lib/format";
 import { getLatestBrief, getPollSnapshot, rankedParties } from "@/lib/queries";
 
@@ -13,7 +22,7 @@ export default async function HomePage() {
   if (snapshot.pollCount === 0) {
     return (
       <>
-        <h1>בחירות 2026</h1>
+        <h1>מצפן 2026</h1>
         <Callout tone="warning">
           אין עדיין נתונים במסד. הרץ <code>python -m pipeline.seed</code> כדי לטעון
           נתוני הדגמה, או <code>python -m pipeline.run_etl</code> כדי לשאוב נתונים
@@ -25,51 +34,99 @@ export default async function HomePage() {
 
   return (
     <>
-      <h1 style={{ marginBottom: "0.3rem" }}>מצב המערכה</h1>
-      <p style={{ color: "var(--ink-muted)", marginTop: 0, fontSize: "0.9rem" }}>
-        ממוצע נע של <span className="ltr-nums">{snapshot.windowDays}</span> ימים מתוך{" "}
-        <span className="ltr-nums">{snapshot.pollCount}</span> סקרים
-        {snapshot.asOf && <> · עודכן ל-{formatDate(snapshot.asOf)}</>}
-      </p>
+      {/* Hero — the design's opening statement, with the countdown beside it. */}
+      <section
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(20rem, 1fr))",
+          gap: "40px",
+          alignItems: "start",
+          marginBottom: "48px",
+        }}
+      >
+        <div>
+          <Kicker>בחירות לכנסת ה־26 · 27 באוקטובר 2026</Kicker>
+          <h1
+            style={{
+              fontSize: "clamp(40px, 6vw, 64px)",
+              lineHeight: 1.02,
+              margin: "0 0 18px",
+              maxWidth: "14ch",
+            }}
+          >
+            הנתונים לפני הדעות.
+          </h1>
+          <p
+            style={{
+              fontSize: "17px",
+              lineHeight: 1.6,
+              maxWidth: "46ch",
+              color: "color-mix(in srgb, var(--color-text) 75%, transparent)",
+            }}
+          >
+            אגרגטור סקרים, אינדקס מפלגות ומנוע התאמה — במקום אחד. כל מספר כאן מגיע
+            מסקר מפורסם, עם מקור, תאריך וטווח טעות.
+          </p>
+          <div style={{ display: "flex", gap: "10px", marginTop: "26px", flexWrap: "wrap" }}>
+            <ButtonLink href="/quiz" withCorners>
+              מצאו את ההתאמה שלכם
+            </ButtonLink>
+            <ButtonLink href="/polls" variant="secondary">
+              לגרפים המלאים
+            </ButtonLink>
+          </div>
+        </div>
+
+        <Countdown />
+      </section>
+
+      <Panel style={{ marginBottom: "44px" }}>
+        <SectionTitle
+          hint="הקצאת 120 המנדטים לפי ממוצע הסקרים, אחוז חסימה של 3.25% ושיטת בדר-עופר. אינה תחזית תוצאות."
+          aside={
+            <>
+              ממוצע נע של <span className="ltr-nums">{snapshot.windowDays}</span> ימים ·{" "}
+              <span className="ltr-nums">{snapshot.pollCount}</span> סקרים
+              {snapshot.asOf && <> · עודכן ל-{formatDate(snapshot.asOf)}</>}
+            </>
+          }
+        >
+          ממוצע הסקרים — מנדטים
+        </SectionTitle>
+
+        <SeatProjectionTable
+          parties={snapshot.parties}
+          projections={snapshot.projections}
+          averages={snapshot.latest}
+          changes={snapshot.changes}
+          blocSeats={snapshot.blocSeats}
+        />
+
+        <p style={{ marginTop: "20px", marginBottom: 0, fontSize: "14px" }}>
+          <Link href="/polls">לגרף המגמות ולרשימת הסקרים ←</Link>
+        </p>
+      </Panel>
 
       <div
         style={{
           display: "grid",
-          gap: "1.2rem",
-          gridTemplateColumns: "repeat(auto-fit, minmax(19rem, 1fr))",
-          alignItems: "start",
+          gap: "24px",
+          gridTemplateColumns: "repeat(auto-fit, minmax(20rem, 1fr))",
+          marginBottom: "44px",
         }}
       >
-        <Card style={{ gridColumn: "1 / -1" }}>
-          <SectionTitle hint="הקצאת 120 המנדטים לפי ממוצע הסקרים, אחוז חסימה של 3.25% ושיטת בדר-עופר. אינה תחזית תוצאות.">
-            תחזית מנדטים
-          </SectionTitle>
-          <SeatProjectionTable
-            parties={snapshot.parties}
-            projections={snapshot.projections}
-            averages={snapshot.latest}
-            changes={snapshot.changes}
-            blocSeats={snapshot.blocSeats}
-          />
-          <p style={{ marginTop: "1rem", marginBottom: 0 }}>
-            <Link href="/polls" style={{ fontSize: "0.88rem" }}>
-              לגרף המגמות ולרשימת הסקרים ←
-            </Link>
-          </p>
-        </Card>
-
-        <Card>
+        <Panel>
           <SectionTitle hint="נוצרת אוטומטית מנתוני היום שנאספו בצינור ה-ETL.">
             הסקירה היומית
           </SectionTitle>
           {brief ? (
             <>
-              <h3 style={{ fontSize: "1rem", margin: "0 0 0.4rem" }}>{brief.headline}</h3>
+              <h3 style={{ fontSize: "20px", margin: "0 0 8px" }}>{brief.headline}</h3>
               <p
                 style={{
-                  fontSize: "0.87rem",
-                  color: "var(--ink-secondary)",
-                  margin: "0 0 0.8rem",
+                  fontSize: "14px",
+                  color: "color-mix(in srgb, var(--color-text) 75%, transparent)",
+                  margin: "0 0 16px",
                 }}
               >
                 {firstParagraph(brief.bodyMarkdown)}
@@ -77,15 +134,14 @@ export default async function HomePage() {
               <div
                 style={{
                   display: "flex",
-                  gap: "0.8rem",
-                  alignItems: "center",
+                  gap: "12px",
+                  alignItems: "baseline",
                   flexWrap: "wrap",
+                  fontSize: "14px",
                 }}
               >
-                <Link href="/brief" style={{ fontSize: "0.88rem" }}>
-                  לסקירה המלאה ←
-                </Link>
-                <span style={{ fontSize: "0.76rem", color: "var(--ink-muted)" }}>
+                <Link href="/brief">לסקירה המלאה ←</Link>
+                <span className="text-muted" style={{ fontSize: "11px" }}>
                   {formatDate(brief.date)} ·{" "}
                   {brief.generator === "llm" ? "נוסחה במודל שפה" : "נוסחה אוטומטית"}
                 </span>
@@ -96,80 +152,81 @@ export default async function HomePage() {
               טרם נוצרה סקירה. הרץ <code>python -m pipeline.brief.generate</code>.
             </EmptyState>
           )}
-        </Card>
+        </Panel>
 
-        <Card>
+        <Panel>
           <SectionTitle hint="שאלון עמדות קצר שמשווה את תשובותיך למצעי המפלגות.">
             למי אני מתאים?
           </SectionTitle>
-          <p style={{ fontSize: "0.88rem", color: "var(--ink-secondary)" }}>
+          <p
+            style={{
+              fontSize: "14px",
+              color: "color-mix(in srgb, var(--color-text) 75%, transparent)",
+            }}
+          >
             עונים על עד 25 היגדים בחמישה תחומים, ומקבלים אחוזי התאמה לכל מפלגה ולכל
             גוש — יחד עם הסבר אילו נושאים הכריעו את התוצאה. התשובות נשמרות בדפדפן
             שלך בלבד.
           </p>
-          <ButtonLink href="/quiz">למילוי השאלון</ButtonLink>
-        </Card>
+          <div>
+            <ButtonLink href="/quiz" variant="secondary">
+              למילוי השאלון
+            </ButtonLink>
+          </div>
+        </Panel>
+      </div>
 
-        <Card style={{ gridColumn: "1 / -1" }}>
-          <SectionTitle hint="לחיצה על מפלגה פותחת את מצעה, רשימת מועמדיה ופיצ׳ר רנטגן מועמד.">
-            מפלגות
-          </SectionTitle>
-          <ul
-            style={{
-              listStyle: "none",
-              padding: 0,
-              margin: 0,
-              display: "grid",
-              gap: "0.5rem",
-              gridTemplateColumns: "repeat(auto-fill, minmax(13rem, 1fr))",
-            }}
-          >
-            {ranked.map((party) => (
-              <li key={party.id}>
-                <Link
-                  href={`/parties/${party.slug}`}
+      <Panel>
+        <SectionTitle hint="לחיצה על מפלגה פותחת את מצעה, רשימת מועמדיה ופיצ׳ר רנטגן מועמד.">
+          מפלגות
+        </SectionTitle>
+        <ul
+          style={{
+            listStyle: "none",
+            padding: 0,
+            margin: 0,
+            display: "grid",
+            gap: "1px",
+            gridTemplateColumns: "repeat(auto-fill, minmax(14rem, 1fr))",
+            background: "var(--color-divider)",
+            border: "1px solid var(--color-divider)",
+          }}
+        >
+          {ranked.map((party) => (
+            <li key={party.id} style={{ background: "var(--color-bg)" }}>
+              <Link
+                href={`/parties/${party.slug}`}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  padding: "12px 14px",
+                  textDecoration: "none",
+                  color: "inherit",
+                  fontSize: "14px",
+                }}
+              >
+                <PartySwatch color={party.color} />
+                <span
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                    padding: "0.45rem 0.6rem",
-                    border: "1px solid var(--border)",
-                    borderRadius: "0.4rem",
-                    textDecoration: "none",
-                    fontSize: "0.87rem",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
                   }}
                 >
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      width: 9,
-                      height: 9,
-                      borderRadius: 2,
-                      background: party.color,
-                      flexShrink: 0,
-                    }}
-                  />
-                  <span
-                    style={{
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {party.name}
-                  </span>
-                  <span
-                    className="ltr-nums"
-                    style={{ marginInlineStart: "auto", color: "var(--ink-muted)" }}
-                  >
-                    {(snapshot.latest.get(party.id)?.mean ?? 0).toFixed(1)}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      </div>
+                  {party.name}
+                </span>
+                <span
+                  className="num ltr-nums text-muted"
+                  style={{ marginInlineStart: "auto", fontSize: "16px" }}
+                >
+                  {(snapshot.latest.get(party.id)?.mean ?? 0).toFixed(1)}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </Panel>
     </>
   );
 }
@@ -180,5 +237,5 @@ function firstParagraph(markdown: string): string {
     .map((line) => line.trim())
     .find((line) => line.length > 0 && !line.startsWith("#") && !line.startsWith("-"));
   const plain = (paragraph ?? "").replace(/\*\*/g, "");
-  return plain.length > 220 ? `${plain.slice(0, 220)}…` : plain;
+  return plain.length > 200 ? `${plain.slice(0, 200)}…` : plain;
 }

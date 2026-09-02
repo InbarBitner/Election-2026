@@ -20,8 +20,8 @@ export default async function QuizPage() {
 
   return (
     <>
-      <h1 style={{ marginBottom: "0.3rem" }}>למי אני מתאים?</h1>
-      <p style={{ color: "var(--ink-muted)", marginTop: 0, fontSize: "0.9rem" }}>
+      <h1 style={{ fontSize: "44px", margin: "0 0 6px" }}>למי אני מתאים?</h1>
+      <p className="text-muted" style={{ marginTop: 0, fontSize: "13px" }}>
         <span className="ltr-nums">{questions.length}</span> היגדים בחמישה תחומים.
         אפשר לדלג על שאלות.
       </p>

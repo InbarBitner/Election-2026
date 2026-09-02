@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import CandidateXray from "@/components/CandidateXray";
-import { Card, PartySwatch, SectionTitle, SourceBadge, TrendPill } from "@/components/ui";
+import { Panel, PartySwatch, SectionTitle, SourceBadge, TrendPill } from "@/components/ui";
 import { AXIS_NAMES, BLOC_NAMES } from "@/lib/format";
 import { getPartyBySlug, getPollSnapshot } from "@/lib/queries";
 import { prisma } from "@/lib/db";
@@ -37,7 +37,7 @@ export default async function PartyPage({
   return (
     <>
       <p style={{ fontSize: "0.85rem", marginBottom: "0.5rem" }}>
-        <Link href="/parties" style={{ color: "var(--ink-muted)" }}>
+        <Link href="/parties" style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
           ← לכל המפלגות
         </Link>
       </p>
@@ -51,9 +51,9 @@ export default async function PartyPage({
         }}
       >
         <PartySwatch color={party.color} size={14} />
-        <h1 style={{ margin: 0 }}>{party.name}</h1>
+        <h1 style={{ margin: 0, fontSize: "52px" }}>{party.name}</h1>
       </div>
-      <p style={{ color: "var(--ink-muted)", marginTop: 0, fontSize: "0.9rem" }}>
+      <p style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)", marginTop: 0, fontSize: "0.9rem" }}>
         בראשות {party.leader} · {BLOC_NAMES[party.bloc] ?? party.bloc} ·{" "}
         <SourceBadge url={party.sourceUrl} name={party.sourceName} />
       </p>
@@ -66,14 +66,14 @@ export default async function PartyPage({
           alignItems: "start",
         }}
       >
-        <Card>
+        <Panel>
           <SectionTitle hint="לפי הממוצע הנע הנוכחי.">מצב בסקרים</SectionTitle>
           <div style={{ display: "flex", gap: "1.4rem", flexWrap: "wrap" }}>
             <div>
               <div style={{ fontSize: "1.9rem", fontWeight: 700 }} className="ltr-nums">
                 {average.toFixed(1)}
               </div>
-              <div style={{ fontSize: "0.8rem", color: "var(--ink-muted)" }}>
+              <div style={{ fontSize: "0.8rem", color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
                 ממוצע מנדטים
               </div>
             </div>
@@ -81,7 +81,7 @@ export default async function PartyPage({
               <div style={{ fontSize: "1.9rem", fontWeight: 700 }} className="ltr-nums">
                 {projection?.seats ?? 0}
               </div>
-              <div style={{ fontSize: "0.8rem", color: "var(--ink-muted)" }}>
+              <div style={{ fontSize: "0.8rem", color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
                 תחזית הקצאה
               </div>
             </div>
@@ -89,7 +89,7 @@ export default async function PartyPage({
               <div style={{ fontSize: "1.1rem", paddingTop: "0.6rem" }}>
                 <TrendPill change={change} />
               </div>
-              <div style={{ fontSize: "0.8rem", color: "var(--ink-muted)" }}>
+              <div style={{ fontSize: "0.8rem", color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
                 שינוי בשבוע
               </div>
             </div>
@@ -100,24 +100,24 @@ export default async function PartyPage({
                 marginBottom: 0,
                 marginTop: "0.8rem",
                 fontSize: "0.83rem",
-                color: "var(--warning)",
+                color: "var(--color-warning)",
               }}
             >
               בממוצע הנוכחי המפלגה אינה עוברת את אחוז החסימה, ולכן אינה מקבלת מנדטים
               בתחזית ההקצאה.
             </p>
           )}
-        </Card>
+        </Panel>
 
-        <Card>
+        <Panel>
           <SectionTitle>המצע בקצרה</SectionTitle>
-          <p style={{ fontSize: "0.88rem", color: "var(--ink-secondary)", margin: 0 }}>
+          <p style={{ fontSize: "0.88rem", color: "color-mix(in srgb, var(--color-text) 75%, transparent)", margin: 0 }}>
             {party.platformText || "לא נטען טקסט מצע."}
           </p>
-        </Card>
+        </Panel>
 
         {party.platform.length > 0 && (
-          <Card style={{ gridColumn: "1 / -1" }}>
+          <Panel style={{ gridColumn: "1 / -1" }}>
             <SectionTitle hint="העמדות שמהן נבנה וקטור ההתאמה בשאלון.">
               עמדות לפי תחום
             </SectionTitle>
@@ -127,7 +127,7 @@ export default async function PartyPage({
                   key={plank.id}
                   style={{
                     padding: "0.6rem 0",
-                    borderBottom: "1px solid var(--border)",
+                    borderBottom: "1px solid var(--color-divider)",
                   }}
                 >
                   <div
@@ -148,7 +148,7 @@ export default async function PartyPage({
                     style={{
                       margin: "0.2rem 0 0",
                       fontSize: "0.87rem",
-                      color: "var(--ink-secondary)",
+                      color: "color-mix(in srgb, var(--color-text) 75%, transparent)",
                     }}
                   >
                     {plank.text}
@@ -156,15 +156,15 @@ export default async function PartyPage({
                 </li>
               ))}
             </ul>
-          </Card>
+          </Panel>
         )}
 
-        <Card style={{ gridColumn: "1 / -1" }}>
+        <Panel style={{ gridColumn: "1 / -1" }}>
           <SectionTitle hint="לחיצה על ״רנטגן מועמד״ פותחת את היסטוריית ההצבעות, הצעות החוק, ההתבטאויות והקשרים הפוליטיים — כל פריט עם קישור למקורו.">
             רשימת המועמדים
           </SectionTitle>
           {party.candidates.length === 0 ? (
-            <p style={{ color: "var(--ink-muted)", fontSize: "0.88rem" }}>
+            <p style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)", fontSize: "0.88rem" }}>
               לא נטענו מועמדים למפלגה זו.
             </p>
           ) : (
@@ -177,14 +177,14 @@ export default async function PartyPage({
                     alignItems: "center",
                     gap: "0.7rem",
                     padding: "0.5rem 0",
-                    borderBottom: "1px solid var(--border)",
+                    borderBottom: "1px solid var(--color-divider)",
                     flexWrap: "wrap",
                   }}
                 >
                   <span
                     className="ltr-nums"
                     style={{
-                      color: "var(--ink-muted)",
+                      color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
                       fontSize: "0.85rem",
                       minWidth: "1.5rem",
                     }}
@@ -202,7 +202,7 @@ export default async function PartyPage({
               ))}
             </ol>
           )}
-        </Card>
+        </Panel>
       </div>
     </>
   );

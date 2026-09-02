@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import PollsChartSection from "@/components/PollsChartSection";
 import SeatProjectionTable from "@/components/SeatProjection";
-import { Callout, Card, SectionTitle, SourceBadge } from "@/components/ui";
+import { Callout, Panel, SectionTitle, SourceBadge } from "@/components/ui";
 import { formatDate } from "@/lib/format";
 import { DEFAULT_WINDOW_DAYS } from "@/lib/pollAverage";
 import { getPollSnapshot, getRecentPolls, rankedParties } from "@/lib/queries";
@@ -52,8 +52,8 @@ export default async function PollsPage({
 
   return (
     <>
-      <h1 style={{ marginBottom: "0.3rem" }}>אגרגטור סקרים</h1>
-      <p style={{ color: "var(--ink-muted)", marginTop: 0, fontSize: "0.9rem" }}>
+      <h1 style={{ fontSize: "44px", margin: "0 0 6px" }}>סקרים ומגמות</h1>
+      <p className="text-muted" style={{ marginTop: 0, fontSize: "13px" }}>
         <span className="ltr-nums">{snapshot.pollCount}</span> סקרים
         {snapshot.asOf && <> · עודכן ל-{formatDate(snapshot.asOf)}</>}
       </p>
@@ -65,20 +65,20 @@ export default async function PollsPage({
         טעות דגימה משלו, המוצגת בטבלה שלמטה.
       </Callout>
 
-      <Card style={{ marginBottom: "1.2rem" }}>
+      <Panel style={{ marginBottom: "24px" }}>
         <SectionTitle hint="מגמת הממוצע הנע לאורך זמן. אפשר לשנות את חלון הממוצע ולבחור אילו מפלגות להציג.">
           מגמות
         </SectionTitle>
-        <Suspense fallback={<p style={{ color: "var(--ink-muted)" }}>טוען גרף…</p>}>
+        <Suspense fallback={<p style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>טוען גרף…</p>}>
           <PollsChartSection
             rows={snapshot.chartRows}
             parties={chartParties}
             windowDays={windowDays}
           />
         </Suspense>
-      </Card>
+      </Panel>
 
-      <Card style={{ marginBottom: "1.2rem" }}>
+      <Panel style={{ marginBottom: "24px" }}>
         <SectionTitle hint="הקצאת 120 המנדטים לפי הממוצע הנוכחי.">
           תחזית מנדטים
         </SectionTitle>
@@ -89,30 +89,23 @@ export default async function PollsPage({
           changes={snapshot.changes}
           blocSeats={snapshot.blocSeats}
         />
-      </Card>
+      </Panel>
 
-      <Card>
+      <Panel>
         <SectionTitle hint="הסקרים הגולמיים שמהם מחושב הממוצע, מהחדש לישן.">
           הסקרים שנכללו
         </SectionTitle>
         <div className="scroll-x">
-          <table
-            style={{
-              borderCollapse: "collapse",
-              fontSize: "0.82rem",
-              minWidth: "44rem",
-              width: "100%",
-            }}
-          >
+          <table className="table" style={{ minWidth: "44rem" }}>
             <thead>
               <tr>
-                <th style={th}>בית סקרים</th>
-                <th style={th}>מזמין</th>
-                <th style={th}>תאריך סיום</th>
-                <th style={th}>מדגם</th>
-                <th style={th}>טעות דגימה</th>
-                <th style={th}>שלוש הגדולות</th>
-                <th style={th}>מקור</th>
+                <th>בית סקרים</th>
+                <th>מזמין</th>
+                <th>תאריך סיום</th>
+                <th>מדגם</th>
+                <th>טעות דגימה</th>
+                <th>שלוש הגדולות</th>
+                <th>מקור</th>
               </tr>
             </thead>
             <tbody>
@@ -122,16 +115,16 @@ export default async function PollsPage({
                   .slice(0, 3);
                 return (
                   <tr key={poll.id}>
-                    <td style={td}>{poll.pollster}</td>
-                    <td style={td}>{poll.sponsor}</td>
-                    <td style={td}>{formatDate(poll.fieldDateEnd)}</td>
-                    <td style={td} className="ltr-nums">
+                    <td>{poll.pollster}</td>
+                    <td>{poll.sponsor}</td>
+                    <td>{formatDate(poll.fieldDateEnd)}</td>
+                    <td className="ltr-nums">
                       {poll.sampleSize}
                     </td>
-                    <td style={td} className="ltr-nums">
+                    <td className="ltr-nums">
                       ±{poll.marginOfError.toFixed(1)}%
                     </td>
-                    <td style={td}>
+                    <td>
                       {top
                         .map(
                           (result) =>
@@ -139,7 +132,7 @@ export default async function PollsPage({
                         )
                         .join(" · ")}
                     </td>
-                    <td style={td}>
+                    <td>
                       <SourceBadge
                         url={poll.sourceUrl}
                         name={poll.sourceName}
@@ -152,24 +145,8 @@ export default async function PollsPage({
             </tbody>
           </table>
         </div>
-      </Card>
+      </Panel>
     </>
   );
 }
 
-const th: React.CSSProperties = {
-  textAlign: "start",
-  padding: "0.4rem 0.6rem",
-  borderBottom: "1px solid var(--border-strong)",
-  color: "var(--ink-secondary)",
-  fontWeight: 600,
-  whiteSpace: "nowrap",
-};
-
-const td: React.CSSProperties = {
-  textAlign: "start",
-  padding: "0.35rem 0.6rem",
-  borderBottom: "1px solid var(--border)",
-  color: "var(--ink-secondary)",
-  whiteSpace: "nowrap",
-};

@@ -127,10 +127,10 @@ export default function CandidateXray({
         }}
         aria-haspopup="dialog"
         style={{
-          border: "1px solid var(--border-strong)",
+          border: "1px solid var(--color-divider)",
           background: "transparent",
-          color: "var(--accent)",
-          borderRadius: "0.35rem",
+          color: "var(--color-accent)",
+          borderRadius: 0,
           padding: "0.2rem 0.6rem",
           fontSize: "0.78rem",
           cursor: "pointer",
@@ -165,9 +165,9 @@ export default function CandidateXray({
             aria-label={`רנטגן מועמד: ${candidateName}`}
             tabIndex={-1}
             style={{
-              background: "var(--surface-raised)",
-              border: "1px solid var(--border)",
-              borderRadius: "0.7rem",
+              background: "var(--color-bg)",
+              border: "1px solid var(--color-divider)",
+              borderRadius: 0,
               maxWidth: "42rem",
               width: "100%",
               maxHeight: "85vh",
@@ -183,7 +183,7 @@ export default function CandidateXray({
                 alignItems: "flex-start",
                 gap: "1rem",
                 padding: "1rem 1.2rem 0.7rem",
-                borderBottom: "1px solid var(--border)",
+                borderBottom: "1px solid var(--color-divider)",
               }}
             >
               <div>
@@ -193,7 +193,7 @@ export default function CandidateXray({
                     style={{
                       margin: "0.15rem 0 0",
                       fontSize: "0.82rem",
-                      color: "var(--ink-muted)",
+                      color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
                     }}
                   >
                     {data.candidate.party.name} · מקום{" "}
@@ -212,7 +212,7 @@ export default function CandidateXray({
                   fontSize: "1.3rem",
                   lineHeight: 1,
                   cursor: "pointer",
-                  color: "var(--ink-muted)",
+                  color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
                 }}
               >
                 ×
@@ -220,9 +220,9 @@ export default function CandidateXray({
             </div>
 
             <div style={{ overflowY: "auto", padding: "0.9rem 1.2rem 1.2rem" }}>
-              {error && <p style={{ color: "var(--warning)" }}>{error}</p>}
+              {error && <p style={{ color: "var(--color-warning)" }}>{error}</p>}
               {!data && !error && (
-                <p style={{ color: "var(--ink-muted)" }}>טוען…</p>
+                <p style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>טוען…</p>
               )}
 
               {data && (
@@ -230,10 +230,10 @@ export default function CandidateXray({
                   {data.candidate.provenance === "seed" && (
                     <p
                       style={{
-                        background: "var(--warning-soft)",
-                        color: "var(--warning)",
-                        border: "1px solid var(--border)",
-                        borderRadius: "0.45rem",
+                        background: "var(--color-warning-bg)",
+                        color: "var(--color-warning)",
+                        border: "1px solid var(--color-divider)",
+                        borderRadius: 0,
                         padding: "0.6rem 0.8rem",
                         fontSize: "0.82rem",
                         margin: "0 0 0.9rem",
@@ -279,7 +279,7 @@ export default function CandidateXray({
                       display: "flex",
                       gap: "0.3rem",
                       flexWrap: "wrap",
-                      borderBottom: "1px solid var(--border)",
+                      borderBottom: "1px solid var(--color-divider)",
                       marginBottom: "0.9rem",
                     }}
                   >
@@ -293,11 +293,11 @@ export default function CandidateXray({
                         style={{
                           border: "none",
                           borderBottom: `2px solid ${
-                            tab === entry.id ? "var(--accent)" : "transparent"
+                            tab === entry.id ? "var(--color-accent)" : "transparent"
                           }`,
                           background: "transparent",
                           color:
-                            tab === entry.id ? "var(--accent)" : "var(--ink-secondary)",
+                            tab === entry.id ? "var(--color-accent)" : "color-mix(in srgb, var(--color-text) 75%, transparent)",
                           padding: "0.4rem 0.7rem",
                           fontSize: "0.85rem",
                           cursor: "pointer",
@@ -326,7 +326,7 @@ export default function CandidateXray({
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <span>
-      <span style={{ color: "var(--ink-muted)" }}>{label}: </span>
+      <span style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>{label}: </span>
       <strong className="ltr-nums">{value}</strong>
     </span>
   );
@@ -340,9 +340,9 @@ function Source({ url, name }: { url: string; name: string }) {
       rel="noopener noreferrer"
       style={{
         fontSize: "0.74rem",
-        color: "var(--ink-muted)",
+        color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
         textDecoration: "none",
-        borderBottom: "1px dotted var(--border-strong)",
+        borderBottom: "1px dotted var(--color-divider)",
       }}
     >
       {name} ↗
@@ -352,7 +352,7 @@ function Source({ url, name }: { url: string; name: string }) {
 
 function Empty({ children }: { children: React.ReactNode }) {
   return (
-    <p style={{ color: "var(--ink-muted)", fontSize: "0.88rem" }}>{children}</p>
+    <p style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)", fontSize: "0.88rem" }}>{children}</p>
   );
 }
 
@@ -369,7 +369,7 @@ function Votes({ data }: { data: XrayData }) {
               style={{
                 captionSide: "top",
                 textAlign: "start",
-                color: "var(--ink-muted)",
+                color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
                 paddingBottom: "0.4rem",
               }}
             >
@@ -403,7 +403,7 @@ function Votes({ data }: { data: XrayData }) {
         {data.votes.map((vote) => (
           <li
             key={vote.id}
-            style={{ padding: "0.5rem 0", borderBottom: "1px solid var(--border)" }}
+            style={{ padding: "0.5rem 0", borderBottom: "1px solid var(--color-divider)" }}
           >
             <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "baseline" }}>
               <strong style={{ fontSize: "0.88rem" }}>
@@ -414,9 +414,9 @@ function Votes({ data }: { data: XrayData }) {
                 <span
                   style={{
                     fontSize: "0.72rem",
-                    color: "var(--warning)",
-                    border: "1px solid var(--warning)",
-                    borderRadius: "1rem",
+                    color: "var(--color-warning)",
+                    border: "1px solid var(--color-warning)",
+                    borderRadius: 0,
                     padding: "0 0.45rem",
                   }}
                 >
@@ -430,7 +430,7 @@ function Votes({ data }: { data: XrayData }) {
                 gap: "0.7rem",
                 flexWrap: "wrap",
                 fontSize: "0.76rem",
-                color: "var(--ink-muted)",
+                color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
                 marginTop: "0.15rem",
               }}
             >
@@ -453,16 +453,16 @@ function Bills({ data }: { data: XrayData }) {
       {data.bills.map((bill) => (
         <li
           key={bill.id}
-          style={{ padding: "0.55rem 0", borderBottom: "1px solid var(--border)" }}
+          style={{ padding: "0.55rem 0", borderBottom: "1px solid var(--color-divider)" }}
         >
           <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "baseline" }}>
             <strong style={{ fontSize: "0.88rem" }}>{bill.title}</strong>
             {bill.isLeadSponsor && (
-              <span style={{ fontSize: "0.72rem", color: "var(--accent)" }}>יוזם/ת ראשי/ת</span>
+              <span style={{ fontSize: "0.72rem", color: "var(--color-accent)" }}>יוזם/ת ראשי/ת</span>
             )}
           </div>
           {bill.summary && (
-            <p style={{ margin: "0.2rem 0", fontSize: "0.83rem", color: "var(--ink-secondary)" }}>
+            <p style={{ margin: "0.2rem 0", fontSize: "0.83rem", color: "color-mix(in srgb, var(--color-text) 75%, transparent)" }}>
               {bill.summary}
             </p>
           )}
@@ -472,7 +472,7 @@ function Bills({ data }: { data: XrayData }) {
               gap: "0.7rem",
               flexWrap: "wrap",
               fontSize: "0.76rem",
-              color: "var(--ink-muted)",
+              color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
             }}
           >
             <span>{BILL_STATUSES[bill.status] ?? bill.status}</span>
@@ -492,12 +492,12 @@ function Quotes({ data }: { data: XrayData }) {
   return (
     <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
       {data.quotes.map((quote) => (
-        <li key={quote.id} style={{ padding: "0.6rem 0", borderBottom: "1px solid var(--border)" }}>
+        <li key={quote.id} style={{ padding: "0.6rem 0", borderBottom: "1px solid var(--color-divider)" }}>
           <blockquote
             style={{
               margin: 0,
               paddingInlineStart: "0.8rem",
-              borderInlineStart: "3px solid var(--border-strong)",
+              borderInlineStart: "3px solid var(--color-divider)",
               fontSize: "0.9rem",
             }}
           >
@@ -509,7 +509,7 @@ function Quotes({ data }: { data: XrayData }) {
               gap: "0.7rem",
               flexWrap: "wrap",
               fontSize: "0.76rem",
-              color: "var(--ink-muted)",
+              color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
               marginTop: "0.3rem",
             }}
           >
@@ -531,10 +531,10 @@ function Connections({ data }: { data: XrayData }) {
       {data.connections.map((connection) => (
         <li
           key={connection.id}
-          style={{ padding: "0.5rem 0", borderBottom: "1px solid var(--border)" }}
+          style={{ padding: "0.5rem 0", borderBottom: "1px solid var(--color-divider)" }}
         >
           <div style={{ fontSize: "0.88rem" }}>
-            <span style={{ color: "var(--ink-muted)" }}>
+            <span style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
               {CONNECTION_KINDS[connection.kind] ?? connection.kind}:{" "}
             </span>
             <strong>{connection.targetName}</strong>
@@ -545,7 +545,7 @@ function Connections({ data }: { data: XrayData }) {
               gap: "0.7rem",
               flexWrap: "wrap",
               fontSize: "0.76rem",
-              color: "var(--ink-muted)",
+              color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
             }}
           >
             {connection.description && <span>{connection.description}</span>}
@@ -560,8 +560,8 @@ function Connections({ data }: { data: XrayData }) {
 const th: React.CSSProperties = {
   textAlign: "start",
   padding: "0.3rem 0.6rem",
-  borderBottom: "1px solid var(--border-strong)",
-  color: "var(--ink-secondary)",
+  borderBottom: "1px solid var(--color-divider)",
+  color: "color-mix(in srgb, var(--color-text) 75%, transparent)",
   fontWeight: 600,
   whiteSpace: "nowrap",
 };
@@ -569,8 +569,8 @@ const th: React.CSSProperties = {
 const td: React.CSSProperties = {
   textAlign: "start",
   padding: "0.28rem 0.6rem",
-  borderBottom: "1px solid var(--border)",
-  color: "var(--ink-secondary)",
+  borderBottom: "1px solid var(--color-divider)",
+  color: "color-mix(in srgb, var(--color-text) 75%, transparent)",
 };
 
 // Counts are centred over their heading so the columns read as a grid rather

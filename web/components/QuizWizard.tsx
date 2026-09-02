@@ -117,9 +117,9 @@ export default function QuizWizard({ questions }: { questions: Question[] }) {
         style={{
           position: "sticky",
           top: 0,
-          background: "var(--surface)",
+          background: "var(--color-bg)",
           padding: "0.6rem 0",
-          borderBottom: "1px solid var(--border)",
+          borderBottom: "1px solid var(--color-divider)",
           marginBottom: "1rem",
           zIndex: 5,
         }}
@@ -136,7 +136,7 @@ export default function QuizWizard({ questions }: { questions: Question[] }) {
               style={{
                 border: "none",
                 background: "transparent",
-                color: "var(--ink-muted)",
+                color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
                 cursor: "pointer",
                 font: "inherit",
                 fontSize: "0.82rem",
@@ -149,7 +149,7 @@ export default function QuizWizard({ questions }: { questions: Question[] }) {
         <div
           style={{
             height: "0.3rem",
-            background: "var(--surface-sunken)",
+            background: "color-mix(in srgb, var(--color-text) 6%, transparent)",
             borderRadius: "4px",
             marginTop: "0.4rem",
           }}
@@ -158,7 +158,7 @@ export default function QuizWizard({ questions }: { questions: Question[] }) {
             style={{
               width: `${(answered / questions.length) * 100}%`,
               height: "100%",
-              background: "var(--accent)",
+              background: "var(--color-accent)",
               borderRadius: "4px",
             }}
           />
@@ -176,11 +176,11 @@ export default function QuizWizard({ questions }: { questions: Question[] }) {
               <fieldset
                 key={question.id}
                 style={{
-                  border: "1px solid var(--border)",
-                  borderRadius: "0.5rem",
+                  border: "1px solid var(--color-divider)",
+                  borderRadius: 0,
                   padding: "0.8rem 1rem",
                   marginBottom: "0.7rem",
-                  background: "var(--surface-raised)",
+                  background: "var(--color-bg)",
                 }}
               >
                 <legend style={{ fontSize: "0.9rem", padding: "0 0.3rem" }}>
@@ -204,11 +204,11 @@ export default function QuizWizard({ questions }: { questions: Question[] }) {
                         aria-pressed={selected}
                         style={{
                           border: `1px solid ${
-                            selected ? "var(--accent)" : "var(--border-strong)"
+                            selected ? "var(--color-accent)" : "var(--color-divider)"
                           }`,
-                          background: selected ? "var(--accent-soft)" : "transparent",
-                          color: selected ? "var(--accent)" : "var(--ink-secondary)",
-                          borderRadius: "0.35rem",
+                          background: selected ? "var(--tag-accent-bg)" : "transparent",
+                          color: selected ? "var(--color-accent)" : "color-mix(in srgb, var(--color-text) 75%, transparent)",
+                          borderRadius: 0,
                           padding: "0.3rem 0.65rem",
                           fontSize: "0.82rem",
                           cursor: "pointer",
@@ -226,7 +226,7 @@ export default function QuizWizard({ questions }: { questions: Question[] }) {
                         alignItems: "center",
                         gap: "0.35rem",
                         fontSize: "0.8rem",
-                        color: "var(--ink-muted)",
+                        color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
                         marginInlineStart: "0.4rem",
                       }}
                     >
@@ -246,7 +246,7 @@ export default function QuizWizard({ questions }: { questions: Question[] }) {
       ))}
 
       {error && (
-        <p style={{ color: "var(--warning)", fontSize: "0.85rem" }}>{error}</p>
+        <p style={{ color: "var(--color-warning)", fontSize: "0.85rem" }}>{error}</p>
       )}
 
       <button
@@ -254,10 +254,10 @@ export default function QuizWizard({ questions }: { questions: Question[] }) {
         onClick={submit}
         disabled={answered === 0 || busy}
         style={{
-          background: answered === 0 ? "var(--border-strong)" : "var(--accent)",
+          background: answered === 0 ? "var(--color-divider)" : "var(--color-accent)",
           color: "#fff",
           border: "none",
-          borderRadius: "0.4rem",
+          borderRadius: 0,
           padding: "0.6rem 1.4rem",
           fontSize: "0.95rem",
           cursor: answered === 0 ? "not-allowed" : "pointer",
@@ -267,7 +267,7 @@ export default function QuizWizard({ questions }: { questions: Question[] }) {
         {busy ? "מחשב…" : "הצג את ההתאמה שלי"}
       </button>
       {answered > 0 && answered < questions.length && (
-        <p style={{ fontSize: "0.8rem", color: "var(--ink-muted)", marginTop: "0.5rem" }}>
+        <p style={{ fontSize: "0.8rem", color: "color-mix(in srgb, var(--color-text) 55%, transparent)", marginTop: "0.5rem" }}>
           אפשר לחשב גם בלי לענות על הכול — שאלות שלא נענו פשוט לא נספרות.
         </p>
       )}
@@ -287,20 +287,20 @@ function Results({
     <div>
       <div
         style={{
-          background: "var(--surface-raised)",
-          border: "1px solid var(--border)",
-          borderRadius: "0.6rem",
+          background: "var(--color-bg)",
+          border: "1px solid var(--color-divider)",
+          borderRadius: 0,
           padding: "1.2rem",
           marginBottom: "1.2rem",
         }}
       >
-        <p style={{ margin: 0, color: "var(--ink-muted)", fontSize: "0.85rem" }}>
+        <p style={{ margin: 0, color: "color-mix(in srgb, var(--color-text) 55%, transparent)", fontSize: "0.85rem" }}>
           ההתאמה הגבוהה ביותר על בסיס{" "}
           <span className="ltr-nums">{result.answered}</span> תשובות
         </p>
         <p style={{ margin: "0.3rem 0 0", fontSize: "1.5rem", fontWeight: 700 }}>
           {best.name}{" "}
-          <span className="ltr-nums" style={{ color: "var(--accent)" }}>
+          <span className="ltr-nums" style={{ color: "var(--color-accent)" }}>
             {best.score}%
           </span>
         </p>
@@ -313,7 +313,7 @@ function Results({
             key={party.id}
             style={{
               padding: "0.7rem 0",
-              borderBottom: "1px solid var(--border)",
+              borderBottom: "1px solid var(--color-divider)",
             }}
           >
             <div
@@ -352,7 +352,7 @@ function Results({
             <div
               style={{
                 height: "0.4rem",
-                background: "var(--surface-sunken)",
+                background: "color-mix(in srgb, var(--color-text) 6%, transparent)",
                 borderRadius: "4px",
                 margin: "0.4rem 0",
               }}
@@ -368,16 +368,16 @@ function Results({
             </div>
 
             {/* The explanation is the point: a bare percentage is not an answer. */}
-            <div style={{ fontSize: "0.8rem", color: "var(--ink-secondary)" }}>
+            <div style={{ fontSize: "0.8rem", color: "color-mix(in srgb, var(--color-text) 75%, transparent)" }}>
               {party.agreements.length > 0 && (
                 <div>
-                  <span style={{ color: "var(--ink-muted)" }}>מסכימים בעיקר על: </span>
+                  <span style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>מסכימים בעיקר על: </span>
                   {party.agreements.map((a) => a.label).join(", ")}
                 </div>
               )}
               {party.disagreements.length > 0 && (
                 <div>
-                  <span style={{ color: "var(--ink-muted)" }}>חלוקים בעיקר על: </span>
+                  <span style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>חלוקים בעיקר על: </span>
                   {party.disagreements.map((a) => a.label).join(", ")}
                 </div>
               )}
@@ -389,7 +389,7 @@ function Results({
       {result.blocs.length > 0 && (
         <>
           <h2 style={{ fontSize: "1.05rem" }}>התאמה לפי גוש</h2>
-          <p style={{ fontSize: "0.82rem", color: "var(--ink-muted)", marginTop: 0 }}>
+          <p style={{ fontSize: "0.82rem", color: "color-mix(in srgb, var(--color-text) 55%, transparent)", marginTop: 0 }}>
             ממוצע ההתאמה למפלגות הגוש, משוקלל לפי המנדטים החזויים שלהן.
           </p>
           <ul style={{ listStyle: "none", padding: 0, margin: "0 0 1.5rem" }}>
@@ -400,7 +400,7 @@ function Results({
                   display: "flex",
                   justifyContent: "space-between",
                   padding: "0.4rem 0",
-                  borderBottom: "1px solid var(--border)",
+                  borderBottom: "1px solid var(--color-divider)",
                   fontSize: "0.9rem",
                 }}
               >
@@ -414,12 +414,12 @@ function Results({
 
       <p
         style={{
-          background: "var(--surface-sunken)",
-          border: "1px solid var(--border)",
-          borderRadius: "0.5rem",
+          background: "color-mix(in srgb, var(--color-text) 6%, transparent)",
+          border: "1px solid var(--color-divider)",
+          borderRadius: 0,
           padding: "0.8rem 1rem",
           fontSize: "0.83rem",
-          color: "var(--ink-secondary)",
+          color: "color-mix(in srgb, var(--color-text) 75%, transparent)",
         }}
       >
         ההתאמה מחושבת כדמיון קוסינוס בין העמדות שסימנת לבין וקטור העמדות של כל
@@ -432,10 +432,10 @@ function Results({
         onClick={onRestart}
         style={{
           marginTop: "1rem",
-          border: "1px solid var(--border-strong)",
+          border: "1px solid var(--color-divider)",
           background: "transparent",
-          color: "var(--ink-secondary)",
-          borderRadius: "0.4rem",
+          color: "color-mix(in srgb, var(--color-text) 75%, transparent)",
+          borderRadius: 0,
           padding: "0.5rem 1rem",
           cursor: "pointer",
           font: "inherit",

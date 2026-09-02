@@ -83,43 +83,27 @@ export default function PollTrendChart({
           marginBottom: "0.9rem",
         }}
       >
-        <span style={{ fontSize: "0.82rem", color: "var(--ink-muted)" }}>
+        <span className="text-muted" style={{ fontSize: "12px" }}>
           חלון הממוצע:
         </span>
-        {windowOptions.map((days) => (
-          <button
-            key={days}
-            type="button"
-            onClick={() => onWindowChange?.(days)}
-            aria-pressed={days === windowDays}
-            style={{
-              border: "1px solid var(--border-strong)",
-              background: days === windowDays ? "var(--accent-soft)" : "transparent",
-              color: days === windowDays ? "var(--accent)" : "var(--ink-secondary)",
-              borderRadius: "0.35rem",
-              padding: "0.25rem 0.6rem",
-              fontSize: "0.82rem",
-              cursor: onWindowChange ? "pointer" : "default",
-              font: "inherit",
-            }}
-          >
-            {days} ימים
-          </button>
-        ))}
+        <span className="seg">
+          {windowOptions.map((days) => (
+            <button
+              key={days}
+              type="button"
+              className="seg-opt"
+              onClick={() => onWindowChange?.(days)}
+              aria-pressed={days === windowDays}
+            >
+              {days} ימים
+            </button>
+          ))}
+        </span>
         <button
           type="button"
+          className="btn btn-secondary"
           onClick={() => setShowTable((v) => !v)}
-          style={{
-            marginInlineStart: "auto",
-            border: "1px solid var(--border-strong)",
-            background: "transparent",
-            color: "var(--ink-secondary)",
-            borderRadius: "0.35rem",
-            padding: "0.25rem 0.6rem",
-            fontSize: "0.82rem",
-            cursor: "pointer",
-            font: "inherit",
-          }}
+          style={{ marginInlineStart: "auto" }}
         >
           {showTable ? "הצג גרף" : "הצג טבלה"}
         </button>
@@ -127,29 +111,18 @@ export default function PollTrendChart({
 
       {showTable ? (
         <div className="scroll-x">
-          <table
-            style={{
-              borderCollapse: "collapse",
-              fontSize: "0.82rem",
-              minWidth: "34rem",
-              width: "100%",
-            }}
-          >
+          <table className="table" style={{ minWidth: "34rem" }}>
             <caption
-              style={{
-                captionSide: "top",
-                textAlign: "start",
-                color: "var(--ink-muted)",
-                paddingBottom: "0.5rem",
-              }}
+              className="text-muted"
+              style={{ captionSide: "top", textAlign: "start", paddingBottom: "8px", fontSize: "12px" }}
             >
               ממוצע נע במנדטים, לפי תאריך
             </caption>
             <thead>
               <tr>
-                <th style={cellHead}>תאריך</th>
+                <th>תאריך</th>
                 {shown.map((party) => (
-                  <th key={party.id} style={cellHead}>
+                  <th key={party.id}>
                     {party.name}
                   </th>
                 ))}
@@ -158,9 +131,9 @@ export default function PollTrendChart({
             <tbody>
               {rows.slice(-30).map((row) => (
                 <tr key={String(row.date)}>
-                  <td style={cell}>{String(row.date)}</td>
+                  <td>{String(row.date)}</td>
                   {shown.map((party) => (
-                    <td key={party.id} style={cell} className="ltr-nums">
+                    <td key={party.id} className="ltr-nums">
                       {typeof row[party.id] === "number"
                         ? (row[party.id] as number).toFixed(1)
                         : "—"}
@@ -175,7 +148,7 @@ export default function PollTrendChart({
         <div style={{ width: "100%", height: 340 }}>
           <ResponsiveContainer>
             <LineChart data={rows} margin={{ top: 8, right: 8, bottom: 4, left: 8 }}>
-              <CartesianGrid stroke="var(--grid)" vertical={false} />
+              <CartesianGrid stroke="var(--chart-grid)" vertical={false} />
               {/*
                 The time axis deliberately stays left-to-right even though the
                 page is RTL: a time series reading oldest-left is the universal
@@ -185,12 +158,12 @@ export default function PollTrendChart({
               <XAxis
                 dataKey="date"
                 tickFormatter={(value: string) => formatShortDate(value)}
-                stroke="var(--border-strong)"
+                stroke="var(--color-divider)"
                 tickLine={false}
                 minTickGap={40}
               />
               <YAxis
-                stroke="var(--border-strong)"
+                stroke="var(--color-divider)"
                 tickLine={false}
                 axisLine={false}
                 width={34}
@@ -199,12 +172,12 @@ export default function PollTrendChart({
               />
               <Tooltip
                 contentStyle={{
-                  background: "var(--surface-raised)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "0.4rem",
+                  background: "var(--color-bg)",
+                  border: "1px solid var(--color-divider)",
+                  borderRadius: 0,
                   direction: "rtl",
-                  fontSize: "0.82rem",
-                  color: "var(--ink)",
+                  fontSize: "13px",
+                  color: "var(--color-text)",
                 }}
                 labelFormatter={(label) => `נכון ל-${String(label)}`}
                 formatter={(value, name) => [
@@ -221,7 +194,7 @@ export default function PollTrendChart({
                   stroke={colorOf(party)}
                   strokeWidth={2}
                   dot={false}
-                  activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--surface-raised)" }}
+                  activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--color-bg)" }}
                   isAnimationActive={false}
                 />
               ))}
@@ -256,13 +229,15 @@ export default function PollTrendChart({
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "0.4rem",
-                border: `1px solid ${on ? "var(--border-strong)" : "var(--border)"}`,
-                background: on ? "var(--surface-sunken)" : "transparent",
+                border: "1px solid var(--color-divider)",
+                background: on
+                  ? "color-mix(in srgb, var(--color-text) 7%, transparent)"
+                  : "transparent",
                 opacity: disabled ? 0.45 : 1,
-                borderRadius: "1rem",
-                padding: "0.25rem 0.7rem",
-                fontSize: "0.8rem",
-                color: "var(--ink-secondary)",
+                borderRadius: 0,
+                padding: "5px 10px",
+                fontSize: "13px",
+                color: "inherit",
                 cursor: disabled ? "not-allowed" : "pointer",
                 font: "inherit",
               }}
@@ -272,20 +247,19 @@ export default function PollTrendChart({
                 style={{
                   width: 9,
                   height: 9,
-                  borderRadius: 2,
                   background: colorOf(party),
-                  opacity: on ? 1 : 0.35,
+                  opacity: on ? 1 : 0.3,
                 }}
               />
               {party.name}
-              <span className="ltr-nums" style={{ color: "var(--ink-muted)" }}>
+              <span className="num ltr-nums text-muted">
                 {party.average.toFixed(1)}
               </span>
             </button>
           );
         })}
       </div>
-      <p style={{ fontSize: "0.78rem", color: "var(--ink-muted)", marginTop: "0.6rem" }}>
+      <p className="text-muted" style={{ fontSize: "11px", marginTop: "10px" }}>
         ניתן להציג עד {MAX_SERIES} מפלגות בו-זמנית — מעבר לכך הגרף מפסיק להיות קריא.
         לחיצה על שם מפלגה מוסיפה או מסירה אותה.
       </p>
@@ -293,19 +267,3 @@ export default function PollTrendChart({
   );
 }
 
-const cellHead: React.CSSProperties = {
-  textAlign: "start",
-  padding: "0.35rem 0.6rem",
-  borderBottom: "1px solid var(--border-strong)",
-  color: "var(--ink-secondary)",
-  fontWeight: 600,
-  whiteSpace: "nowrap",
-};
-
-const cell: React.CSSProperties = {
-  textAlign: "start",
-  padding: "0.3rem 0.6rem",
-  borderBottom: "1px solid var(--border)",
-  color: "var(--ink-secondary)",
-  whiteSpace: "nowrap",
-};

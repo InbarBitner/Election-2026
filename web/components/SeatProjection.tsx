@@ -12,9 +12,9 @@ type Props = {
 };
 
 /**
- * Seats are shown as a bar per party rather than as a Knesset semicircle: the
- * question a reader has is "how many, and who is near the threshold", and a
- * ranked bar answers it directly.
+ * Seats as a ranked bar per party rather than a Knesset semicircle: the
+ * question a reader actually has is "how many, and who is near the threshold",
+ * and a ranked bar answers it directly.
  */
 export default function SeatProjectionTable({
   parties,
@@ -35,7 +35,14 @@ export default function SeatProjectionTable({
 
   return (
     <div>
-      <ol style={{ listStyle: "none", padding: 0, margin: 0 }}>
+      <ol
+        style={{
+          listStyle: "none",
+          padding: 0,
+          margin: 0,
+          borderTop: "1px solid var(--color-divider)",
+        }}
+      >
         {passed.map((projection) => {
           const party = byId.get(projection.partyId);
           if (!party) return null;
@@ -45,18 +52,19 @@ export default function SeatProjectionTable({
               key={projection.partyId}
               style={{
                 display: "grid",
-                gridTemplateColumns: "minmax(7rem, 10rem) 1fr auto",
-                gap: "0.6rem",
+                gridTemplateColumns: "minmax(7.5rem, 11rem) 1fr auto",
+                gap: "14px",
                 alignItems: "center",
-                padding: "0.35rem 0",
+                padding: "9px 0",
+                borderBottom: "1px solid color-mix(in srgb, var(--color-text) 8%, transparent)",
               }}
             >
               <span
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "0.45rem",
-                  fontSize: "0.88rem",
+                  gap: "8px",
+                  fontSize: "14px",
                   minWidth: 0,
                 }}
               >
@@ -74,10 +82,10 @@ export default function SeatProjectionTable({
 
               <span
                 style={{
-                  background: "var(--surface-sunken)",
-                  borderRadius: "0 4px 4px 0",
-                  height: "0.85rem",
+                  background: "color-mix(in srgb, var(--color-text) 6%, transparent)",
+                  height: "0.7rem",
                   position: "relative",
+                  minWidth: "3rem",
                 }}
               >
                 <span
@@ -86,7 +94,6 @@ export default function SeatProjectionTable({
                     width: `${(projection.seats / max) * 100}%`,
                     height: "100%",
                     background: party.color,
-                    borderRadius: "4px 0 0 4px",
                   }}
                 />
               </span>
@@ -94,14 +101,15 @@ export default function SeatProjectionTable({
               <span
                 style={{
                   display: "flex",
-                  gap: "0.6rem",
+                  gap: "12px",
                   alignItems: "baseline",
-                  fontSize: "0.85rem",
                   whiteSpace: "nowrap",
                 }}
               >
-                <strong className="ltr-nums">{projection.seats}</strong>
-                <span className="ltr-nums" style={{ color: "var(--ink-muted)" }}>
+                <strong className="num ltr-nums" style={{ fontSize: "20px", minWidth: "2ch" }}>
+                  {projection.seats}
+                </strong>
+                <span className="ltr-nums text-muted" style={{ fontSize: "12px" }}>
                   ({average.toFixed(1)})
                 </span>
                 <TrendPill change={changes.get(projection.partyId) ?? 0} />
@@ -112,20 +120,8 @@ export default function SeatProjectionTable({
       </ol>
 
       {failed.length > 0 && (
-        <div
-          style={{
-            marginTop: "0.9rem",
-            paddingTop: "0.8rem",
-            borderTop: "1px dashed var(--border-strong)",
-          }}
-        >
-          <p
-            style={{
-              margin: "0 0 0.4rem",
-              fontSize: "0.82rem",
-              color: "var(--ink-muted)",
-            }}
-          >
+        <div style={{ marginTop: "18px" }}>
+          <p className="text-muted" style={{ margin: "0 0 8px", fontSize: "12px" }}>
             מתחת לאחוז החסימה ({(THRESHOLD * 100).toFixed(2)}% ≈{" "}
             <span className="ltr-nums">{thresholdSeats.toFixed(1)}</span> מנדטים) —
             אינן מקבלות מנדטים, וקולותיהן מתחלקים בין שאר הרשימות:
@@ -137,7 +133,7 @@ export default function SeatProjectionTable({
               margin: 0,
               display: "flex",
               flexWrap: "wrap",
-              gap: "0.5rem 1.1rem",
+              gap: "8px 20px",
             }}
           >
             {failed.map((projection) => {
@@ -149,14 +145,13 @@ export default function SeatProjectionTable({
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: "0.4rem",
-                    fontSize: "0.83rem",
-                    color: "var(--ink-secondary)",
+                    gap: "8px",
+                    fontSize: "13px",
                   }}
                 >
                   <PartySwatch color={party.color} size={8} />
                   {party.name}
-                  <span className="ltr-nums" style={{ color: "var(--ink-muted)" }}>
+                  <span className="num ltr-nums text-muted">
                     {(averages.get(projection.partyId)?.mean ?? 0).toFixed(1)}
                   </span>
                 </li>
@@ -166,24 +161,34 @@ export default function SeatProjectionTable({
         </div>
       )}
 
+      {/* Bloc totals as a divided strip — the design's three-column figure. */}
       <div
         style={{
-          marginTop: "1.1rem",
-          paddingTop: "0.8rem",
-          borderTop: "1px solid var(--border)",
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "0.5rem 1.4rem",
-          fontSize: "0.85rem",
+          marginTop: "22px",
+          display: "grid",
+          gridTemplateColumns: `repeat(auto-fit, minmax(8rem, 1fr))`,
+          border: "1px solid var(--color-divider)",
         }}
       >
-        {blocSeats.map((bloc) => (
-          <span key={bloc.bloc}>
-            <span style={{ color: "var(--ink-muted)" }}>
-              {BLOC_NAMES[bloc.bloc] ?? bloc.bloc}:{" "}
-            </span>
-            <strong className="ltr-nums">{bloc.seats}</strong>
-          </span>
+        {blocSeats.map((bloc, index) => (
+          <div
+            key={bloc.bloc}
+            style={{
+              padding: "12px 14px",
+              borderInlineStart:
+                index === 0 ? undefined : "1px solid var(--color-divider)",
+            }}
+          >
+            <div className="num ltr-nums" style={{ fontSize: "28px", lineHeight: 1 }}>
+              {bloc.seats}
+            </div>
+            <div
+              className="text-muted"
+              style={{ fontSize: "11px", marginTop: "5px" }}
+            >
+              {BLOC_NAMES[bloc.bloc] ?? bloc.bloc}
+            </div>
+          </div>
         ))}
       </div>
     </div>

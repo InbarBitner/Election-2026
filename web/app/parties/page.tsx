@@ -44,15 +44,15 @@ export default async function PartiesPage() {
 
   return (
     <>
-      <h1 style={{ marginBottom: "0.3rem" }}>מפלגות ומועמדים</h1>
-      <p style={{ color: "var(--ink-muted)", marginTop: 0, fontSize: "0.9rem" }}>
+      <h1 style={{ fontSize: "44px", margin: "0 0 6px" }}>מפלגות ומועמדים</h1>
+      <p className="text-muted" style={{ marginTop: 0, fontSize: "13px" }}>
         <span className="ltr-nums">{snapshot.parties.length}</span> רשימות, מקובצות
         לפי גוש ומסודרות לפי ממוצע הסקרים.
       </p>
 
       {blocs.map((bloc) => (
         <section key={bloc} style={{ marginBottom: "1.6rem" }}>
-          <h2 style={{ fontSize: "1rem", marginBottom: "0.6rem" }}>
+          <h2 style={{ fontSize: "20px", marginBottom: "12px" }}>
             {BLOC_NAMES[bloc] ?? bloc}
           </h2>
           <div
@@ -78,7 +78,8 @@ export default async function PartiesPage() {
                     <PartySwatch color={party.color} />
                     <Link
                       href={`/parties/${party.slug}`}
-                      style={{ fontWeight: 600, fontSize: "1rem" }}
+                      className="card-title"
+                      style={{ color: "inherit" }}
                     >
                       {party.name}
                     </Link>
@@ -87,7 +88,7 @@ export default async function PartiesPage() {
                     style={{
                       margin: "0 0 0.6rem",
                       fontSize: "0.85rem",
-                      color: "var(--ink-muted)",
+                      color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
                     }}
                   >
                     בראשות {party.leader}
@@ -102,11 +103,11 @@ export default async function PartiesPage() {
                     }}
                   >
                     <span>
-                      <span style={{ color: "var(--ink-muted)" }}>ממוצע: </span>
+                      <span style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>ממוצע: </span>
                       <strong className="ltr-nums">{average.toFixed(1)}</strong>
                     </span>
                     <span>
-                      <span style={{ color: "var(--ink-muted)" }}>תחזית: </span>
+                      <span style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>תחזית: </span>
                       <strong className="ltr-nums">{projection?.seats ?? 0}</strong>
                     </span>
                     <TrendPill change={snapshot.changes.get(party.id) ?? 0} />
@@ -116,7 +117,7 @@ export default async function PartiesPage() {
                       style={{
                         margin: "0 0 0.6rem",
                         fontSize: "0.78rem",
-                        color: "var(--warning)",
+                        color: "var(--color-warning)",
                       }}
                     >
                       מתחת לאחוז החסימה בממוצע הנוכחי.
@@ -131,7 +132,7 @@ export default async function PartiesPage() {
                       flexWrap: "wrap",
                     }}
                   >
-                    <span style={{ fontSize: "0.8rem", color: "var(--ink-muted)" }}>
+                    <span style={{ fontSize: "0.8rem", color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
                       <span className="ltr-nums">
                         {candidateCount.get(party.id) ?? 0}
                       </span>{" "}

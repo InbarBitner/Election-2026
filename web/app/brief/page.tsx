@@ -1,4 +1,4 @@
-import { Callout, Card, SectionTitle } from "@/components/ui";
+import { Callout, Panel, SectionTitle } from "@/components/ui";
 import { prisma } from "@/lib/db";
 import { formatDate } from "@/lib/format";
 
@@ -27,8 +27,8 @@ export default async function BriefPage() {
 
   return (
     <>
-      <h1 style={{ marginBottom: "0.3rem" }}>סקירת בחירות יומית</h1>
-      <p style={{ color: "var(--ink-muted)", marginTop: 0, fontSize: "0.9rem" }}>
+      <h1 style={{ fontSize: "46px", margin: "0 0 6px", maxWidth: "20ch" }}>סקירת בחירות יומית</h1>
+      <p className="text-muted" style={{ marginTop: 0, fontSize: "13px" }}>
         {formatDate(latest.date)} ·{" "}
         {latest.generator === "llm"
           ? "נוסחה במודל שפה מתוך עובדות שנשלפו מהנתונים"
@@ -41,13 +41,13 @@ export default async function BriefPage() {
         אך ורק את העובדות שזוהו — הן מוצגות במלואן בתחתית העמוד.
       </Callout>
 
-      <Card style={{ marginBottom: "1.4rem" }}>
-        <h2 style={{ marginTop: 0, fontSize: "1.2rem" }}>{latest.headline}</h2>
+      <Panel style={{ marginBottom: "24px" }}>
+        <h2 style={{ marginTop: 0, fontSize: "34px", lineHeight: 1.1 }}>{latest.headline}</h2>
         <Markdown source={latest.bodyMarkdown} />
-      </Card>
+      </Panel>
 
       {facts && (
-        <Card style={{ marginBottom: "1.4rem" }}>
+        <Panel style={{ marginBottom: "24px" }}>
           <SectionTitle hint="בדיוק המידע שעמד בבסיס הסקירה שלמעלה — לבדיקה עצמאית של כל טענה בה.">
             העובדות שמהן נוצרה הסקירה
           </SectionTitle>
@@ -59,9 +59,9 @@ export default async function BriefPage() {
               dir="ltr"
               className="scroll-x"
               style={{
-                background: "var(--surface-sunken)",
-                border: "1px solid var(--border)",
-                borderRadius: "0.4rem",
+                background: "color-mix(in srgb, var(--color-text) 6%, transparent)",
+                border: "1px solid var(--color-divider)",
+                borderRadius: 0,
                 padding: "0.8rem",
                 fontSize: "0.75rem",
                 marginTop: "0.6rem",
@@ -70,26 +70,26 @@ export default async function BriefPage() {
               {JSON.stringify(facts, null, 2)}
             </pre>
           </details>
-        </Card>
+        </Panel>
       )}
 
       {archive.length > 0 && (
-        <Card>
+        <Panel>
           <SectionTitle>סקירות קודמות</SectionTitle>
           <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
             {archive.map((brief) => (
               <li
                 key={brief.date}
-                style={{ padding: "0.5rem 0", borderBottom: "1px solid var(--border)" }}
+                style={{ padding: "0.5rem 0", borderBottom: "1px solid var(--color-divider)" }}
               >
-                <div style={{ fontSize: "0.78rem", color: "var(--ink-muted)" }}>
+                <div style={{ fontSize: "0.78rem", color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
                   {formatDate(brief.date)}
                 </div>
                 <div style={{ fontSize: "0.9rem" }}>{brief.headline}</div>
               </li>
             ))}
           </ul>
-        </Card>
+        </Panel>
       )}
     </>
   );
