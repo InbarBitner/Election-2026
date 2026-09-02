@@ -31,6 +31,26 @@ def _source_stats() -> dict:
     return {"fetched": 0, "loaded": 0, "rejected": 0, "error": None, "note": None}
 
 
+def silent_sources(stats: dict) -> list[str]:
+    """Sources that returned nothing, raised nothing, and gave no reason.
+
+    A source that fetches zero rows without an error is the most dangerous
+    outcome there is: the run goes green and the warehouse quietly stops being
+    updated. It is not the same as a source that is deliberately switched off —
+    those set `note` to say so — nor as one that failed loudly. Anything left
+    over is a source that believes it succeeded while returning nothing, and it
+    is reported rather than trusted.
+    """
+    return [
+        name
+        for name, source in stats.items()
+        if source["fetched"] == 0
+        and not source["error"]
+        and not source["note"]
+        and not source.get("unmapped")
+    ]
+
+
 def _candidates_by_knesset_id(connection) -> dict[str, str]:
     candidates = table("Candidate")
     rows = connection.execute(
@@ -90,6 +110,12 @@ def run(dry_run: bool = False, since_days: int = 7, knesset_number: int = 25) ->
         log.info("--- dry-run, לא נכתב דבר ---")
         for source, source_stats in stats.items():
             log.info("  %-8s %s", source, source_stats)
+        for name in silent_sources(stats):
+            log.warning(
+                "  מקור %s החזיר אפס רשומות בלי שגיאה — ייתכן שהשאילתה או מבנה "
+                "התשובה השתנו",
+                name,
+            )
         log.info("  סקרים שהיו נטענים: %d", len(cleaned.polls))
         log.info("  אירועים שהיו נטענים: %d", len(news_result["events"]))
         return 0
@@ -125,13 +151,27 @@ def run(dry_run: bool = False, since_days: int = 7, knesset_number: int = 25) ->
         if news_result["events"]:
             stats["news"]["loaded"] = loader.load_events(connection, news_result["events"])
 
+        silent = silent_sources(stats)
+        for name in silent:
+            stats[name]["note"] = (
+                "המקור החזיר אפס רשומות בלי שגיאה — ייתכן שהשאילתה או מבנה "
+                "התשובה השתנו. יש לבדוק את המקור, לא להניח שאין נתונים."
+            )
+
         failed = [name for name, s in stats.items() if s["error"]]
-        status = "failed" if len(failed) == len(stats) else ("partial" if failed else "success")
+        if len(failed) == len(stats):
+            status = "failed"
+        elif failed or silent:
+            status = "partial"
+        else:
+            status = "success"
         loader.finish_run(connection, run_id, status, stats)
 
     for source, source_stats in stats.items():
         log.info("%-8s נשלפו=%s נטענו=%s שגיאה=%s",
                  source, source_stats["fetched"], source_stats["loaded"], source_stats["error"])
+    for name in silent:
+        log.warning("מקור %s החזיר אפס רשומות בלי שגיאה — %s", name, stats[name]["note"])
     log.info("ריצה %s הסתיימה בסטטוס %s", run_id, status)
     return 0 if status != "failed" else 1
 

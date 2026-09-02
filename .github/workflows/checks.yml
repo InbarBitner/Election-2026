@@ -71,6 +71,9 @@ jobs:
         working-directory: web
       - run: pip install -r requirements.txt
 
+      - name: בדיקות הצינור
+        run: python -m unittest discover -s pipeline -t . -p 'test_*.py' -v
+
       - name: הכנת מסד הנתונים
         working-directory: web
         run: |
