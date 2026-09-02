@@ -23,6 +23,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
+    env:
+      # Falls back to a local SQLite file when no warehouse is configured, so
+      # the scheduled run still exercises every step end to end.
+      DATABASE_URL: ${{ secrets.DATABASE_URL || 'file:../../data/election.db' }}
+      # The `secrets` context is NOT available in `if:` conditionals, so the
+      # question "is a warehouse configured?" is answered once here, into the
+      # `env` context, which `if:` can read.
+      USE_LOCAL_DB: ${{ secrets.DATABASE_URL == '' }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -44,30 +53,19 @@ jobs:
 
       - name: הכנת מסד הנתונים
         working-directory: web
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL || 'file:../../data/election.db' }}
         run: |
           npx prisma generate
           npx prisma db push --skip-generate
 
-      # Without a configured warehouse the run works against a fresh local
-      # database, which still exercises every step end to end.
       - name: טעינת נתוני בסיס
-        if: ${{ !secrets.DATABASE_URL }}
-        env:
-          DATABASE_URL: file:../../data/election.db
+        if: env.USE_LOCAL_DB == 'true'
         run: python -m pipeline.seed
 
       - name: הרצת ETL
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL || 'file:../../data/election.db' }}
-        run: |
-          python -m pipeline.run_etl ${{ inputs.dry_run && '--dry-run' || '' }}
+        run: python -m pipeline.run_etl ${{ inputs.dry_run && '--dry-run' || '' }}
 
       - name: בניית וקטורי מפלגות
         if: ${{ !inputs.dry_run }}
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL || 'file:../../data/election.db' }}
         run: python -m pipeline.ml.build_vectors
 
       # Falls back to the deterministic template when no key is configured,
@@ -75,13 +73,10 @@ jobs:
       - name: יצירת הסקירה היומית
         if: ${{ !inputs.dry_run }}
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL || 'file:../../data/election.db' }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python -m pipeline.brief.generate --date today
 
       - name: הצגת הסקירה בסיכום הריצה
         if: ${{ !inputs.dry_run }}
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL || 'file:../../data/election.db' }}
         run: |
           python -m pipeline.brief.generate --date today --print >> "$GITHUB_STEP_SUMMARY"
