@@ -21,8 +21,31 @@ PARTIES_FILE = REPO_ROOT / "data" / "seed" / "parties.json"
 # up in the sources rather than adding special cases to the scrapers.
 ALIASES: dict[str, list[str]] = {
     "likud": ["ליכוד", "הליכוד בהנהגת נתניהו", "likud"],
-    "yesh-atid": ["יש עתיד", "יש עתיד בראשות לפיד", "yesh atid"],
-    "mamlachti": ["המחנה הממלכתי", "מחנה ממלכתי", "כחול לבן", "גנץ", "national unity"],
+    # ביחד היא רשימה משותפת של בנט 2026 ויש עתיד (אפריל 2026). בתי סקרים עשויים
+    # עדיין לפרסם תחת אחד השמות הישנים, ולכן כולם ממופים לרשימה המשותפת.
+    "yachad": [
+        "ביחד",
+        "ביחד בראשות בנט",
+        "בנט",
+        "בנט 2026",
+        "מפלגת בנט",
+        "יש עתיד",
+        "לפיד",
+        "bennett",
+        "yesh atid",
+        "beyachad",
+    ],
+    "yashar": ["ישר", "ישר!", "ישר בראשות איזנקוט", "איזנקוט", "yashar", "eisenkot"],
+    "kachol-lavan": [
+        "כחול לבן",
+        "כחול-לבן",
+        "גנץ",
+        # "המחנה הממלכתי" היה השם הקודם של אותה רשימה, לפני פרישת איזנקוט.
+        "המחנה הממלכתי",
+        "מחנה ממלכתי",
+        "blue and white",
+        "national unity",
+    ],
     "religious-zionism": [
         "הציונות הדתית",
         "ציונות דתית",
@@ -33,17 +56,11 @@ ALIASES: dict[str, list[str]] = {
     "shas": ["שס", "ש ס", "shas"],
     "yahadut-hatorah": ["יהדות התורה", "אגודת ישראל", "דגל התורה", "utj"],
     "yisrael-beitenu": ["ישראל ביתנו", "ישראל ביתנו בראשות ליברמן", "yisrael beitenu"],
-    "democrats": [
-        "הדמוקרטים",
-        "העבודה",
-        "מרצ",
-        "העבודה מרצ",
-        "the democrats",
-    ],
+    "democrats": ["הדמוקרטים", "העבודה", "מרצ", "העבודה מרצ", "the democrats"],
     "hadash-taal": ["חדש תעל", "חדש-תעל", "חדש", "תעל", "hadash taal"],
     "raam": ["רעם", "רע ם", "הרשימה הערבית המאוחדת", "raam"],
-    "bennett-2026": ["בנט", "בנט 2026", "מפלגת בנט", "bennett"],
 }
+
 
 
 def _strip_marks(value: str) -> str:

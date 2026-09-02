@@ -1,5 +1,5 @@
 {
-  "_comment": "Party names, leaders and blocs are public facts and each row carries a source. The `position` value on every plank (-1..1) is an editorial characterisation used to bootstrap the recommendation engine; pipeline/ml/build_vectors.py refines it from the platform text, and a real deployment should replace these numbers with positions extracted from the parties' own published platforms.",
+  "_comment": "Party names, leaders and blocs reflect the roster as of September 2026, researched from the Israel Democracy Institute's election pages and corroborating coverage; each row links to its source. They were gathered through web search rather than read from the source pages directly (the development environment's proxy blocks those domains), so they warrant a human check against the IDI page before publication. The `position` value on every plank (-1..1) is an editorial characterisation used to bootstrap the recommendation engine, not a sourced fact; pipeline/ml/build_vectors.py refines it from the platform text.",
   "blocs": [
     {
       "id": "right",
@@ -66,187 +66,120 @@
           "text": "חיזוק אופייה היהודי של המדינה וחוק הלאום."
         }
       ],
-      "colorDark": "#2b6cb8"
+      "colorDark": "#2b6cb8",
+      "provenance": "seed"
     },
     {
-      "id": "yesh-atid",
-      "slug": "yesh-atid",
-      "name": "יש עתיד",
-      "shortName": "יש עתיד",
-      "leader": "יאיר לפיד",
-      "bloc": "center-left",
-      "color": "#00a3c4",
-      "sourceUrl": "https://he.wikipedia.org/wiki/יש_עתיד",
-      "sourceName": "ויקיפדיה",
-      "platformText": "מפלגת מרכז ליברלית המתמקדת במעמד הביניים החילוני. תומכת בהפרדת דת ממדינה, בגיוס שוויוני ובביטול הפטור הגורף לבחורי ישיבות; מתנגדת לרפורמה המשפטית ותומכת בחיזוק עצמאות מערכת המשפט; במישור המדיני תומכת בהיפרדות מהפלסטינים בהסדר מוסכם; בכלכלה מצדדת בשוק חופשי מתון לצד השקעה בחינוך ובבריאות.",
-      "planks": [
-        {
-          "axis": "security",
-          "topic": "מדיני-ביטחוני",
-          "position": -0.1,
-          "text": "היפרדות מהפלסטינים בהסדר מוסכם תוך שמירה על עליונות ביטחונית."
-        },
-        {
-          "axis": "economy",
-          "topic": "כלכלה",
-          "position": 0.3,
-          "text": "שוק חופשי מתון, הקלה על מעמד הביניים והשקעה בחינוך ובבריאות."
-        },
-        {
-          "axis": "religion",
-          "topic": "דת ומדינה",
-          "position": -0.7,
-          "text": "גיוס שוויוני, ביטול הפטור הגורף, נישואין אזרחיים ותחבורה ציבורית בשבת."
-        },
-        {
-          "axis": "governance",
-          "topic": "משילות",
-          "position": -0.7,
-          "text": "התנגדות לרפורמה המשפטית ושמירה על עצמאות בית המשפט והיועמ\"ש."
-        },
-        {
-          "axis": "society",
-          "topic": "זהות",
-          "position": -0.5,
-          "text": "מדינה יהודית ודמוקרטית עם שוויון אזרחי מלא וחופש דת."
-        }
-      ],
-      "colorDark": "#00a3c4"
-    },
-    {
-      "id": "mamlachti",
-      "slug": "hamachane-hamamlachti",
-      "name": "המחנה הממלכתי",
-      "shortName": "הממלכתי",
-      "leader": "בני גנץ",
+      "id": "yashar",
+      "slug": "yashar",
+      "name": "ישר!",
+      "shortName": "ישר!",
+      "leader": "גדי איזנקוט",
       "bloc": "center",
-      "color": "#7048c9",
-      "sourceUrl": "https://he.wikipedia.org/wiki/המחנה_הממלכתי",
-      "sourceName": "ויקיפדיה",
-      "platformText": "מפלגת מרכז ביטחוניסטית המדגישה ממלכתיות, אחדות ושיקום האמון במוסדות. תומכת בהסדרה חוקתית מוסכמת במקום רפורמה חד-צדדית, בוועדת חקירה ממלכתית, ובמדיניות ביטחונית תקיפה לצד פתיחות להסדרים אזוריים.",
+      "sourceUrl": "https://www.idi.org.il/policy/parties-and-elections/elections/2026-1/",
+      "sourceName": "המכון הישראלי לדמוקרטיה",
+      "platformText": "מפלגה חדשה בראשות הרמטכ\"ל לשעבר גדי איזנקוט, שפרש מהמחנה הממלכתי והתפטר מהכנסת ביולי 2026 והכריז על הקמתה. בין מייסדיה האלוף במילואים טל רוסו, הכלכלן מנואל טרכטנברג ויואב הורוביץ. מציבה עצמה כמפלגת מרכז ממלכתית עם דגש ביטחוני, שיקום מוסדות המדינה ואחריות ציבורית.",
       "planks": [
         {
           "axis": "security",
           "topic": "מדיני-ביטחוני",
-          "position": 0.2,
-          "text": "מדיניות ביטחונית תקיפה לצד פתיחות להסדרים אזוריים ולנורמליזציה."
+          "position": 0.35,
+          "text": "מדיניות ביטחונית תקיפה מבית מדרשה של הצמרת הביטחונית, לצד פתיחות להסדרים אזוריים.",
+          "sourceUrl": "https://www.idi.org.il/policy/parties-and-elections/elections/2026-1/",
+          "sourceName": "המכון הישראלי לדמוקרטיה"
         },
         {
           "axis": "economy",
           "topic": "כלכלה",
-          "position": 0.1,
-          "text": "אחריות תקציבית לצד חיזוק שירותי הציבור והפריפריה."
+          "position": 0.15,
+          "text": "אחריות תקציבית לצד חיזוק שירותי הציבור והפריפריה.",
+          "sourceUrl": "https://www.idi.org.il/policy/parties-and-elections/elections/2026-1/",
+          "sourceName": "המכון הישראלי לדמוקרטיה"
         },
         {
           "axis": "religion",
           "topic": "דת ומדינה",
-          "position": -0.3,
-          "text": "הסדרת חוק גיוס שוויוני והימנעות מכפייה דתית."
+          "position": -0.35,
+          "text": "חוק גיוס שוויוני והימנעות מכפייה דתית.",
+          "sourceUrl": "https://www.idi.org.il/policy/parties-and-elections/elections/2026-1/",
+          "sourceName": "המכון הישראלי לדמוקרטיה"
         },
         {
           "axis": "governance",
           "topic": "משילות",
           "position": -0.6,
-          "text": "הסדרה חוקתית מוסכמת, הקמת ועדת חקירה ממלכתית ושמירה על עצמאות המשפט."
+          "text": "שיקום מוסדות המדינה, ועדת חקירה ממלכתית ושמירה על עצמאות המשפט.",
+          "sourceUrl": "https://www.idi.org.il/policy/parties-and-elections/elections/2026-1/",
+          "sourceName": "המכון הישראלי לדמוקרטיה"
         },
         {
           "axis": "society",
           "topic": "זהות",
-          "position": -0.3,
-          "text": "ממלכתיות ואחדות, מאבק בשיח המקטב וחיזוק החברה האזרחית."
+          "position": -0.2,
+          "text": "ממלכתיות ואחדות, והורדת עוצמת השיח המקטב.",
+          "sourceUrl": "https://www.idi.org.il/policy/parties-and-elections/elections/2026-1/",
+          "sourceName": "המכון הישראלי לדמוקרטיה"
         }
       ],
-      "colorDark": "#7b56d6"
+      "provenance": "seed",
+      "color": "#9b6ef3",
+      "colorDark": "#9b6ef3"
     },
     {
-      "id": "religious-zionism",
-      "slug": "religious-zionism",
-      "name": "הציונות הדתית",
-      "shortName": "הציונות הדתית",
-      "leader": "בצלאל סמוטריץ'",
-      "bloc": "right",
-      "color": "#e08600",
-      "sourceUrl": "https://he.wikipedia.org/wiki/הציונות_הדתית_(מפלגה)",
-      "sourceName": "ויקיפדיה",
-      "platformText": "מפלגת ימין דתי-לאומי. תומכת בהחלת ריבונות ביהודה ושומרון, בהרחבת ההתיישבות, בחיזוק הזהות היהודית של המדינה ובשינוי מבני עמוק במערכת המשפט. בכלכלה מצדדת בשוק חופשי לצד תמיכה בהתיישבות ובמשפחות.",
+      "id": "yachad",
+      "slug": "beyachad",
+      "name": "ביחד",
+      "shortName": "ביחד",
+      "leader": "נפתלי בנט",
+      "bloc": "center",
+      "color": "#00a3c4",
+      "sourceUrl": "https://www.idi.org.il/policy/parties-and-elections/parties/beyachad/",
+      "sourceName": "המכון הישראלי לדמוקרטיה",
+      "platformText": "רשימה משותפת של בנט 2026 בראשות נפתלי בנט ושל יש עתיד בראשות יאיר לפיד, שהוקמה באפריל 2026. שתי המפלגות נותרות ישויות נפרדות ורצות יחד. הרשימה מציבה עצמה כחלופת שלטון ממלכתית: עמדות ביטחוניות וכלכליות ימניות-מרכזיות לצד התנגדות למהלכים חד-צדדיים במערכת המשפט, דגש על תפקוד המדינה ושיקום המוסדות, והסדרת חוק גיוס והימנעות מכפייה דתית.",
       "planks": [
         {
           "axis": "security",
           "topic": "מדיני-ביטחוני",
-          "position": 0.95,
-          "text": "החלת ריבונות ביהודה ושומרון והרחבה משמעותית של ההתיישבות."
-        },
-        {
-          "axis": "economy",
-          "topic": "כלכלה",
           "position": 0.4,
-          "text": "שוק חופשי לצד תמיכה ממוקדת בהתיישבות ובמשפחות ברוכות ילדים."
-        },
-        {
-          "axis": "religion",
-          "topic": "דת ומדינה",
-          "position": 0.85,
-          "text": "חיזוק מעמד הרבנות, שמירה על השבת במרחב הציבורי והתנגדות לנישואין אזרחיים."
-        },
-        {
-          "axis": "governance",
-          "topic": "משילות",
-          "position": 0.95,
-          "text": "שינוי מבני במערכת המשפט, פסקת התגברות וצמצום כוחו של היועמ\"ש."
-        },
-        {
-          "axis": "society",
-          "topic": "זהות",
-          "position": 0.95,
-          "text": "עדיפות לאופי היהודי של המדינה וחיזוק החינוך היהודי-ציוני."
-        }
-      ],
-      "colorDark": "#cf7a00"
-    },
-    {
-      "id": "otzma",
-      "slug": "otzma-yehudit",
-      "name": "עוצמה יהודית",
-      "shortName": "עוצמה יהודית",
-      "leader": "איתמר בן גביר",
-      "bloc": "right",
-      "color": "#b0442e",
-      "sourceUrl": "https://he.wikipedia.org/wiki/עוצמה_יהודית",
-      "sourceName": "ויקיפדיה",
-      "platformText": "מפלגת ימין קשיח המדגישה מלחמה בפשיעה, הרתעה ביטחונית מרבית, החלת ריבונות והקשחת הענישה. תומכת בשינוי עמוק במערכת המשפט ובחיזוק סמכויות המשטרה.",
-      "planks": [
-        {
-          "axis": "security",
-          "topic": "מדיני-ביטחוני",
-          "position": 1.0,
-          "text": "הרתעה מרבית, החלת ריבונות והקשחת הענישה כלפי מחבלים."
+          "text": "עמדה ביטחונית תקיפה, ללא הסדר קבע בטווח הנראה לעין.",
+          "sourceUrl": "https://www.idi.org.il/policy/parties-and-elections/parties/beyachad/",
+          "sourceName": "המכון הישראלי לדמוקרטיה"
         },
         {
           "axis": "economy",
           "topic": "כלכלה",
-          "position": 0.2,
-          "text": "דגש על ביטחון אישי ותקציבי אכיפה יותר מאשר על מדיניות כלכלית מובחנת."
+          "position": 0.45,
+          "text": "כלכלת שוק, עידוד יזמות והפחתת רגולציה, לצד השקעה בחינוך ובבריאות.",
+          "sourceUrl": "https://www.idi.org.il/policy/parties-and-elections/parties/beyachad/",
+          "sourceName": "המכון הישראלי לדמוקרטיה"
         },
         {
           "axis": "religion",
           "topic": "דת ומדינה",
-          "position": 0.8,
-          "text": "שמירה על צביון יהודי-מסורתי במרחב הציבורי."
+          "position": -0.45,
+          "text": "הסדרת חוק גיוס שוויוני והימנעות מכפייה דתית.",
+          "sourceUrl": "https://www.idi.org.il/policy/parties-and-elections/parties/beyachad/",
+          "sourceName": "המכון הישראלי לדמוקרטיה"
         },
         {
           "axis": "governance",
           "topic": "משילות",
-          "position": 0.9,
-          "text": "צמצום התערבות בג\"ץ והרחבת סמכויות הדרג הנבחר."
+          "position": -0.5,
+          "text": "התנגדות למהלכים חד-צדדיים במערכת המשפט; שינוי בהסכמה רחבה בלבד.",
+          "sourceUrl": "https://www.idi.org.il/policy/parties-and-elections/parties/beyachad/",
+          "sourceName": "המכון הישראלי לדמוקרטיה"
         },
         {
           "axis": "society",
           "topic": "זהות",
-          "position": 1.0,
-          "text": "עדיפות לזהות יהודית-לאומית והקשחת מדיניות ההגירה."
+          "position": -0.15,
+          "text": "ממלכתיות, אחדות ותפקוד המדינה מעל מחלוקות זהות.",
+          "sourceUrl": "https://www.idi.org.il/policy/parties-and-elections/parties/beyachad/",
+          "sourceName": "המכון הישראלי לדמוקרטיה"
         }
       ],
-      "colorDark": "#b0442e"
+      "colorDark": "#00a3c4",
+      "provenance": "seed"
     },
     {
       "id": "shas",
@@ -291,7 +224,8 @@
           "text": "חיזוק המסורת היהודית והזהות הספרדית-מסורתית."
         }
       ],
-      "colorDark": "#8d6a00"
+      "colorDark": "#8d6a00",
+      "provenance": "seed"
     },
     {
       "id": "yahadut-hatorah",
@@ -336,7 +270,100 @@
           "text": "שמירה על אורח חיים חרדי ועל צביון יהודי במרחב הציבורי."
         }
       ],
-      "colorDark": "#5f7a2e"
+      "colorDark": "#5f7a2e",
+      "provenance": "seed"
+    },
+    {
+      "id": "otzma",
+      "slug": "otzma-yehudit",
+      "name": "עוצמה יהודית",
+      "shortName": "עוצמה יהודית",
+      "leader": "איתמר בן גביר",
+      "bloc": "right",
+      "color": "#b0442e",
+      "sourceUrl": "https://he.wikipedia.org/wiki/עוצמה_יהודית",
+      "sourceName": "ויקיפדיה",
+      "platformText": "מפלגת ימין קשיח המדגישה מלחמה בפשיעה, הרתעה ביטחונית מרבית, החלת ריבונות והקשחת הענישה. תומכת בשינוי עמוק במערכת המשפט ובחיזוק סמכויות המשטרה.",
+      "planks": [
+        {
+          "axis": "security",
+          "topic": "מדיני-ביטחוני",
+          "position": 1.0,
+          "text": "הרתעה מרבית, החלת ריבונות והקשחת הענישה כלפי מחבלים."
+        },
+        {
+          "axis": "economy",
+          "topic": "כלכלה",
+          "position": 0.2,
+          "text": "דגש על ביטחון אישי ותקציבי אכיפה יותר מאשר על מדיניות כלכלית מובחנת."
+        },
+        {
+          "axis": "religion",
+          "topic": "דת ומדינה",
+          "position": 0.8,
+          "text": "שמירה על צביון יהודי-מסורתי במרחב הציבורי."
+        },
+        {
+          "axis": "governance",
+          "topic": "משילות",
+          "position": 0.9,
+          "text": "צמצום התערבות בג\"ץ והרחבת סמכויות הדרג הנבחר."
+        },
+        {
+          "axis": "society",
+          "topic": "זהות",
+          "position": 1.0,
+          "text": "עדיפות לזהות יהודית-לאומית והקשחת מדיניות ההגירה."
+        }
+      ],
+      "colorDark": "#b0442e",
+      "provenance": "seed"
+    },
+    {
+      "id": "religious-zionism",
+      "slug": "religious-zionism",
+      "name": "הציונות הדתית",
+      "shortName": "הציונות הדתית",
+      "leader": "בצלאל סמוטריץ'",
+      "bloc": "right",
+      "color": "#e08600",
+      "sourceUrl": "https://he.wikipedia.org/wiki/הציונות_הדתית_(מפלגה)",
+      "sourceName": "ויקיפדיה",
+      "platformText": "מפלגת ימין דתי-לאומי. תומכת בהחלת ריבונות ביהודה ושומרון, בהרחבת ההתיישבות, בחיזוק הזהות היהודית של המדינה ובשינוי מבני עמוק במערכת המשפט. בכלכלה מצדדת בשוק חופשי לצד תמיכה בהתיישבות ובמשפחות.",
+      "planks": [
+        {
+          "axis": "security",
+          "topic": "מדיני-ביטחוני",
+          "position": 0.95,
+          "text": "החלת ריבונות ביהודה ושומרון והרחבה משמעותית של ההתיישבות."
+        },
+        {
+          "axis": "economy",
+          "topic": "כלכלה",
+          "position": 0.4,
+          "text": "שוק חופשי לצד תמיכה ממוקדת בהתיישבות ובמשפחות ברוכות ילדים."
+        },
+        {
+          "axis": "religion",
+          "topic": "דת ומדינה",
+          "position": 0.85,
+          "text": "חיזוק מעמד הרבנות, שמירה על השבת במרחב הציבורי והתנגדות לנישואין אזרחיים."
+        },
+        {
+          "axis": "governance",
+          "topic": "משילות",
+          "position": 0.95,
+          "text": "שינוי מבני במערכת המשפט, פסקת התגברות וצמצום כוחו של היועמ\"ש."
+        },
+        {
+          "axis": "society",
+          "topic": "זהות",
+          "position": 0.95,
+          "text": "עדיפות לאופי היהודי של המדינה וחיזוק החינוך היהודי-ציוני."
+        }
+      ],
+      "colorDark": "#cf7a00",
+      "provenance": "seed"
     },
     {
       "id": "yisrael-beitenu",
@@ -381,7 +408,8 @@
           "text": "מדינה יהודית חילונית ומדיניות הגירה מוקשחת."
         }
       ],
-      "colorDark": "#0d9488"
+      "colorDark": "#0d9488",
+      "provenance": "seed"
     },
     {
       "id": "democrats",
@@ -426,7 +454,64 @@
           "text": "שוויון אזרחי מלא, זכויות להט\"ב ומאבק בגזענות."
         }
       ],
-      "colorDark": "#d1417f"
+      "colorDark": "#d1417f",
+      "provenance": "seed"
+    },
+    {
+      "id": "kachol-lavan",
+      "slug": "kachol-lavan",
+      "name": "כחול לבן",
+      "shortName": "כחול לבן",
+      "leader": "בני גנץ",
+      "bloc": "center",
+      "color": "#7048c9",
+      "sourceUrl": "https://www.idi.org.il/policy/parties-and-elections/elections/2026-1/",
+      "sourceName": "המכון הישראלי לדמוקרטיה",
+      "platformText": "מפלגת מרכז ביטחוניסטית בראשות בני גנץ, לאחר שגדי איזנקוט פרש ממנה ביולי 2026 והקים רשימה נפרדת. מדגישה ממלכתיות, אחדות ושיקום האמון במוסדות, הסדרה חוקתית מוסכמת במקום רפורמה חד-צדדית, וועדת חקירה ממלכתית.",
+      "planks": [
+        {
+          "axis": "security",
+          "topic": "מדיני-ביטחוני",
+          "position": 0.2,
+          "text": "מדיניות ביטחונית תקיפה לצד פתיחות להסדרים אזוריים ולנורמליזציה.",
+          "sourceUrl": "https://www.idi.org.il/policy/parties-and-elections/elections/2026-1/",
+          "sourceName": "המכון הישראלי לדמוקרטיה"
+        },
+        {
+          "axis": "economy",
+          "topic": "כלכלה",
+          "position": 0.1,
+          "text": "אחריות תקציבית לצד חיזוק שירותי הציבור והפריפריה.",
+          "sourceUrl": "https://www.idi.org.il/policy/parties-and-elections/elections/2026-1/",
+          "sourceName": "המכון הישראלי לדמוקרטיה"
+        },
+        {
+          "axis": "religion",
+          "topic": "דת ומדינה",
+          "position": -0.3,
+          "text": "הסדרת חוק גיוס שוויוני והימנעות מכפייה דתית.",
+          "sourceUrl": "https://www.idi.org.il/policy/parties-and-elections/elections/2026-1/",
+          "sourceName": "המכון הישראלי לדמוקרטיה"
+        },
+        {
+          "axis": "governance",
+          "topic": "משילות",
+          "position": -0.6,
+          "text": "הסדרה חוקתית מוסכמת, הקמת ועדת חקירה ממלכתית ושמירה על עצמאות המשפט.",
+          "sourceUrl": "https://www.idi.org.il/policy/parties-and-elections/elections/2026-1/",
+          "sourceName": "המכון הישראלי לדמוקרטיה"
+        },
+        {
+          "axis": "society",
+          "topic": "זהות",
+          "position": -0.3,
+          "text": "ממלכתיות ואחדות, מאבק בשיח המקטב וחיזוק החברה האזרחית.",
+          "sourceUrl": "https://www.idi.org.il/policy/parties-and-elections/elections/2026-1/",
+          "sourceName": "המכון הישראלי לדמוקרטיה"
+        }
+      ],
+      "colorDark": "#7b56d6",
+      "provenance": "seed"
     },
     {
       "id": "hadash-taal",
@@ -471,7 +556,8 @@
           "text": "מדינת כל אזרחיה, שוויון לאומי ואזרחי מלא ומאבק בגזענות."
         }
       ],
-      "colorDark": "#d13a3a"
+      "colorDark": "#d13a3a",
+      "provenance": "seed"
     },
     {
       "id": "raam",
@@ -516,52 +602,8 @@
           "text": "שוויון אזרחי מלא לצד שמרנות חברתית."
         }
       ],
-      "colorDark": "#2f9e4f"
-    },
-    {
-      "id": "bennett-2026",
-      "slug": "bennett-2026",
-      "name": "בנט 2026",
-      "shortName": "בנט",
-      "leader": "נפתלי בנט",
-      "bloc": "center",
-      "color": "#9b6ef3",
-      "sourceUrl": "https://he.wikipedia.org/wiki/נפתלי_בנט",
-      "sourceName": "ויקיפדיה",
-      "platformText": "מפלגת מרכז-ימין ממלכתית המציבה עצמה כחלופה לשלטון הקיים. משלבת עמדות ביטחוניות וכלכליות ימניות עם התנגדות למהלכים חד-צדדיים במערכת המשפט ועם דגש על תפקוד המדינה, אחדות ושיקום מוסדות.",
-      "planks": [
-        {
-          "axis": "security",
-          "topic": "מדיני-ביטחוני",
-          "position": 0.5,
-          "text": "עמדה ביטחונית ימנית ללא הסדר קבע בטווח הנראה לעין."
-        },
-        {
-          "axis": "economy",
-          "topic": "כלכלה",
-          "position": 0.5,
-          "text": "כלכלת שוק, עידוד יזמות והפחתת רגולציה."
-        },
-        {
-          "axis": "religion",
-          "topic": "דת ומדינה",
-          "position": -0.2,
-          "text": "הסדרת חוק גיוס והימנעות מכפייה דתית, תוך שמירה על צביון מסורתי."
-        },
-        {
-          "axis": "governance",
-          "topic": "משילות",
-          "position": -0.2,
-          "text": "התנגדות למהלכים חד-צדדיים במערכת המשפט; רפורמה בהסכמה רחבה."
-        },
-        {
-          "axis": "society",
-          "topic": "זהות",
-          "position": 0.1,
-          "text": "ממלכתיות, אחדות ותפקוד המדינה מעל מחלוקות זהות."
-        }
-      ],
-      "colorDark": "#9b6ef3"
+      "colorDark": "#2f9e4f",
+      "provenance": "seed"
     }
   ],
   "_palette": "Chart colours are a validated categorical palette, not the parties' brand colours: they are re-stepped so that adjacent series stay distinguishable for colour-vision deficiency in both light and dark modes. Verified with the dataviz palette validator; the one pink/green pair in the 6-8 deltaE band is covered by the secondary encoding the charts always ship (legend, direct labels, table view)."
