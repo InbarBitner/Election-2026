@@ -1,8 +1,12 @@
 name: צינור נתונים יומי
 
-# Runs the pipeline once a day and again on demand. The three steps are
-# separate so that a failure in one is visible in the run log rather than
-# hidden behind a single opaque "pipeline failed".
+# Runs the live data pipeline once a day and on demand. The steps are separate
+# so that a failure in one is visible in the run log rather than hidden behind
+# a single opaque "pipeline failed".
+#
+# Tests, typecheck and lint are NOT here — they run on every push and pull
+# request from checks.yml. Keeping them apart matters: a news site changing its
+# markup should never read as a failing test suite.
 on:
   schedule:
     # 04:15 UTC — after the previous evening's polls are published in Israel.
@@ -81,20 +85,3 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'file:../../data/election.db' }}
         run: |
           python -m pipeline.brief.generate --date today --print >> "$GITHUB_STEP_SUMMARY"
-
-  checks:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: web/package-lock.json
-      - run: npm ci --prefix web
-      - run: npx prisma generate
-        working-directory: web
-      - run: npm run typecheck --prefix web
-      - run: npm run test --prefix web
-      - run: npm run lint --prefix web
