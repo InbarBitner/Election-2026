@@ -188,12 +188,19 @@ export default async function HomePage() {
             display: "grid",
             gap: "1px",
             gridTemplateColumns: "repeat(auto-fill, minmax(14rem, 1fr))",
-            background: "var(--color-divider)",
-            border: "1px solid var(--color-divider)",
           }}
         >
+          {/*
+            The hairline grid is drawn with an outline on each cell rather than
+            by showing a coloured parent through 1px gaps: with an odd number of
+            lists the last row is incomplete, and the gap trick paints those
+            empty cells as a solid block.
+          */}
           {ranked.map((party) => (
-            <li key={party.id} style={{ background: "var(--color-bg)" }}>
+            <li
+              key={party.id}
+              style={{ outline: "1px solid var(--color-divider)" }}
+            >
               <Link
                 href={`/parties/${party.slug}`}
                 style={{

@@ -36,6 +36,7 @@ ALIASES: dict[str, list[str]] = {
         "beyachad",
     ],
     "yashar": ["ישר", "ישר!", "ישר בראשות איזנקוט", "איזנקוט", "yashar", "eisenkot"],
+    "amcha-israel": ["עמך ישראל", "עמך", "וינטר", "עופר וינטר", "amcha israel", "winter"],
     "kachol-lavan": [
         "כחול לבן",
         "כחול-לבן",

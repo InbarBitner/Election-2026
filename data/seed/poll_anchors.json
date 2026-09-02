@@ -59,13 +59,14 @@
         "democrats": 10,
         "kachol-lavan": 6,
         "hadash-taal": 5,
-        "raam": 2
+        "raam": 2,
+        "amcha-israel": 0
       }
     },
     {
       "date": "2026-05-15",
       "seats": {
-        "likud": 25,
+        "likud": 24,
         "yashar": 18,
         "yachad": 20,
         "shas": 10,
@@ -76,16 +77,35 @@
         "democrats": 10,
         "kachol-lavan": 4,
         "hadash-taal": 5,
-        "raam": 1
+        "raam": 1,
+        "amcha-israel": 1
       }
     },
     {
       "date": "2026-07-01",
       "seats": {
-        "likud": 24,
+        "likud": 22,
         "yashar": 23,
         "yachad": 18,
         "shas": 9,
+        "yahadut-hatorah": 7,
+        "otzma": 7,
+        "religious-zionism": 5,
+        "yisrael-beitenu": 7,
+        "democrats": 9,
+        "kachol-lavan": 3,
+        "hadash-taal": 5,
+        "raam": 2,
+        "amcha-israel": 3
+      }
+    },
+    {
+      "date": "2026-08-31",
+      "seats": {
+        "likud": 21,
+        "yashar": 24,
+        "yachad": 17,
+        "shas": 8,
         "yahadut-hatorah": 7,
         "otzma": 8,
         "religious-zionism": 5,
@@ -93,24 +113,8 @@
         "democrats": 9,
         "kachol-lavan": 3,
         "hadash-taal": 5,
-        "raam": 2
-      }
-    },
-    {
-      "date": "2026-08-31",
-      "seats": {
-        "likud": 24,
-        "yashar": 24,
-        "yachad": 17,
-        "shas": 8,
-        "yahadut-hatorah": 7,
-        "otzma": 9,
-        "religious-zionism": 5,
-        "yisrael-beitenu": 7,
-        "democrats": 9,
-        "kachol-lavan": 3,
-        "hadash-taal": 5,
-        "raam": 2
+        "raam": 2,
+        "amcha-israel": 4
       }
     }
   ]

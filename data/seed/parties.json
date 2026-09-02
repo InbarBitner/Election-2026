@@ -70,6 +70,62 @@
       "provenance": "seed"
     },
     {
+      "id": "amcha-israel",
+      "slug": "amcha-israel",
+      "name": "עמך ישראל",
+      "shortName": "עמך ישראל",
+      "leader": "עופר וינטר",
+      "bloc": "right",
+      "color": "#b5642e",
+      "colorDark": "#b5642e",
+      "sourceUrl": "https://www.ynet.co.il/news/elections2026/article/s13ku7jdzg",
+      "sourceName": "ynet",
+      "platformText": "רשימה חדשה בראשות אלוף (מיל.) עופר וינטר, מפקד חטיבת גבעתי לשעבר, שהושקה בירושלים לקראת הבחירות לכנסת ה-26. המסר המרכזי הוא חידוש המערכת הפוליטית אחרי ה-7 באוקטובר. הרשימה מציגה הרכב מגוון של אנשי מילואים, דמויות ציבור ותקשורת ונציגים מהחברה היהודית והערבית — במקום השני יוסף חדאד, ולצידו נטעלי שם טוב וללי דראי. וינטר מזוהה עם העדפת נתניהו לראשות הממשלה, ולכן הרשימה משויכת לגוש הימין.",
+      "planks": [
+        {
+          "axis": "security",
+          "topic": "מדיני-ביטחוני",
+          "position": 0.75,
+          "text": "עמדה ביטחונית ימנית מובהקת, מתוך רקע פיקודי בצה\"ל ולקחי ה-7 באוקטובר.",
+          "sourceUrl": "https://www.ynet.co.il/news/elections2026/article/s13ku7jdzg",
+          "sourceName": "ynet"
+        },
+        {
+          "axis": "economy",
+          "topic": "כלכלה",
+          "position": 0.1,
+          "text": "טרם פורסם מצע כלכלי מפורט; מוצג כאן כעמדה ניטרלית עד לפרסום.",
+          "sourceUrl": "https://www.ynet.co.il/news/elections2026/article/s13ku7jdzg",
+          "sourceName": "ynet"
+        },
+        {
+          "axis": "religion",
+          "topic": "דת ומדינה",
+          "position": 0.0,
+          "text": "הרכב הרשימה מתואר כבעל רוב חילוני לצד מנהיג דתי; טרם פורסמה עמדה מוצהרת.",
+          "sourceUrl": "https://www.ynet.co.il/news/elections2026/article/s13ku7jdzg",
+          "sourceName": "ynet"
+        },
+        {
+          "axis": "governance",
+          "topic": "משילות",
+          "position": 0.3,
+          "text": "מסר של חידוש המערכת הפוליטית והחלפת מי שהוביל עד היום, בלי עמדה מוצהרת על הרפורמה המשפטית.",
+          "sourceUrl": "https://www.ynet.co.il/news/elections2026/article/s13ku7jdzg",
+          "sourceName": "ynet"
+        },
+        {
+          "axis": "society",
+          "topic": "זהות",
+          "position": 0.4,
+          "text": "זהות יהודית-ביטחונית, לצד שילוב מוצהר של נציגים מהחברה הערבית ברשימה.",
+          "sourceUrl": "https://www.ynet.co.il/news/elections2026/article/s13ku7jdzg",
+          "sourceName": "ynet"
+        }
+      ],
+      "provenance": "seed"
+    },
+    {
       "id": "yashar",
       "slug": "yashar",
       "name": "ישר!",
