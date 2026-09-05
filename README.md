@@ -14,20 +14,28 @@
 ```bash
 # 1. תלויות
 npm install --prefix web
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 
 # 2. מסד נתונים
 cp .env.example web/.env
 npm run db:push --prefix web
 
 # 3. נתוני הדגמה + וקטורי מפלגות + סקירה יומית
-python -m pipeline.seed
-python -m pipeline.ml.build_vectors
-python -m pipeline.brief.generate --date today --no-llm
+python3 -m pipeline.seed
+python3 -m pipeline.ml.build_vectors
+python3 -m pipeline.brief.generate --date today --no-llm
 
 # 4. הרצה
 npm run dev --prefix web        # http://localhost:3000
 ```
+
+> הפקודות כתובות `python3`/`pip3` בכוונה: ב-macOS אין `python` בלי הספרה,
+> ופקודה שנכתבת בלעדיה נכשלת ב-`command not found` — כולל השלבים שכותבים
+> למסד, כך שהאתר ימשיך להציג נתונים ישנים בלי שום הודעת שגיאה גלויה.
+
+**שינוי ב-`data/seed/` נכנס לאתר רק אחרי הרצה חוזרת של שלב 3.** `git pull`
+מעדכן את קבצי ה-JSON; מי שכותב אותם למסד הוא ה-seed, וללא הרצה חוזרת שלו האתר
+יציג את הרוסטר הקודם. ה-seed מוחק ומחליף ולא מוסיף, כך שאין סכנת כפילויות.
 
 ## ארכיטקטורה
 
@@ -95,8 +103,8 @@ npm run dev --prefix web        # http://localhost:3000
 ### ETL
 
 ```bash
-python -m pipeline.run_etl --dry-run   # שליפה וניקוי בלי כתיבה
-python -m pipeline.run_etl             # ריצה מלאה
+python3 -m pipeline.run_etl --dry-run   # שליפה וניקוי בלי כתיבה
+python3 -m pipeline.run_etl             # ריצה מלאה
 ```
 
 - **Extract** — מודול לכל מקור: `knesset_api.py` (Knesset OData / data.gov.il),
@@ -131,9 +139,9 @@ python -m pipeline.run_etl             # ריצה מלאה
 ## חטיבה 3 — הסקירה היומית
 
 ```bash
-python -m pipeline.brief.generate --date today            # Claude, עם נפילה לתבנית
-python -m pipeline.brief.generate --date today --no-llm   # תבנית בלבד
-python -m pipeline.brief.generate --print                 # הדפסה בלי שמירה
+python3 -m pipeline.brief.generate --date today            # Claude, עם נפילה לתבנית
+python3 -m pipeline.brief.generate --date today --no-llm   # תבנית בלבד
+python3 -m pipeline.brief.generate --print                 # הדפסה בלי שמירה
 ```
 
 שני שלבים מופרדים בכוונה:
@@ -163,7 +171,7 @@ python -m pipeline.brief.generate --print                 # הדפסה בלי ש
 
 **המועמדים בנתוני ההדגמה הם אנשים בדויים, בכוונה.** ייחוס הצבעות או התבטאויות
 שלא נאמרו לפוליטיקאים אמיתיים אינו מקובל גם בנתוני דמה, ולכן ההדגמה מייחסת אותם
-לאנשים שאינם קיימים. `python -m pipeline.run_etl` מחליף אותם ברשומות אמיתיות
+לאנשים שאינם קיימים. `python3 -m pipeline.run_etl` מחליף אותם ברשומות אמיתיות
 ומתועדות מנתוני הכנסת הפתוחים.
 
 כל שורה נושאת `provenance` (`seed` או `etl`), וכל עוד קיימת שורת `seed` אחת
@@ -188,7 +196,7 @@ python -m pipeline.brief.generate --print                 # הדפסה בלי ש
 cp data/sources/polls.example.json      data/sources/polls.json
 cp data/sources/news_feeds.example.json data/sources/news_feeds.json
 # ערכו את הקבצים, סמנו "enabled": true במקורות שמותר לכם להשתמש בהם
-python -m pipeline.run_etl --dry-run
+python3 -m pipeline.run_etl --dry-run
 ```
 
 בדקו את תנאי השימוש של כל אתר לפני הפעלתו. לקוח ה-HTTP מסרב לכל כתובת ש-`robots.txt`
