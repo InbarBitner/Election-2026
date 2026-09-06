@@ -50,6 +50,8 @@ ALIASES: dict[str, list[str]] = {
         "blue and white",
         "national unity",
         "blue & white", "blue white", "gantz",
+        # The English article's column header is the bare word.
+        "unity",
     ],
     "religious-zionism": [
         "הציונות הדתית",
@@ -134,6 +136,21 @@ def _strip_marks(value: str) -> str:
 
 def canonical_key(value: str) -> str:
     return re.sub(r"\s+", " ", _strip_marks(value)).strip().lower()
+
+
+# Columns that hold real seats but name no party: the residual bucket a poll
+# uses for the lists too small to print. They must keep counting towards the
+# 120, or every row carrying one is rejected as short — but they are not
+# missing aliases, and listing them as such invites someone to invent a party
+# to satisfy the report.
+RESIDUAL_NAMES = frozenset(
+    {"other parties", "others", "other", "אחרות", "מפלגות אחרות", "אחרים"}
+)
+
+
+def is_residual(name: str) -> bool:
+    """Whether a column is a known catch-all rather than an unknown party."""
+    return canonical_key(name) in RESIDUAL_NAMES
 
 
 @lru_cache(maxsize=1)

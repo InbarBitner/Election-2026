@@ -17,7 +17,7 @@ import hashlib
 from dataclasses import dataclass, field
 from datetime import date, datetime
 
-from .party_mapping import resolve_party
+from .party_mapping import is_residual, resolve_party
 
 TOTAL_SEATS = 120
 # Pollsters round to whole seats, so the total drifts a little either way.
@@ -115,7 +115,10 @@ def clean_polls(raw_polls: list[RawPoll]) -> TransformResult:
             party_id = resolve_party(raw_name)
             if party_id is None:
                 unmapped_in_poll.append(raw_name)
-                result.unmapped_parties.add(raw_name)
+                # A residual column still counts towards the 120 below, but it
+                # is not an alias anyone should add.
+                if not is_residual(raw_name):
+                    result.unmapped_parties.add(raw_name)
                 continue
             # Two spellings of the same party in one poll are summed rather
             # than one overwriting the other.
