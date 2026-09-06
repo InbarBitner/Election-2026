@@ -287,6 +287,16 @@ jobs:
           report = wp.parse_tables(html)
           print(f"\n{report.summary()}\n")
           print(f"ציטוטים שנפתרו לכתובת הפרסום: {report.citations_resolved}/{len(report.polls)}")
+          # Zero resolved means either the table has no citation links, or the
+          # reference list is not shaped the way _citation_urls expects. These
+          # three counts say which.
+          import re as _re
+
+          table_refs = _re.findall(r'href="#(cite[^"]+)"', html)
+          list_items = _re.findall(r'<li id="(cite[^"]+)"', html)
+          print(f"  קישורי הערות בדף: {len(table_refs)}; דוגמאות: {table_refs[:3]}")
+          print(f"  רשומות ברשימת המקורות: {len(list_items)}; דוגמאות: {list_items[:3]}")
+          print(f"  נפתרו במפה: {len(wp._citation_urls(html))}")
           # Most skipped rows are legitimately not polls; a spike would be the
           # parser losing rows it should keep, so show what is being dropped.
           for reason, rows in report.examples.items():
