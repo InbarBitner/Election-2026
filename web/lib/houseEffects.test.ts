@@ -83,9 +83,38 @@ describe("estimateHouseEffects", () => {
     const effects = estimateHouseEffects(leaningField(), ["p1", "p2", "p3"]);
     const leaner = effects.get("Leaner")!;
 
-    expect(leaner.get("p1")!).toBeGreaterThan(3);
-    expect(leaner.get("p2")!).toBeLessThan(-3);
+    expect(leaner.get("p1")!).toBeGreaterThan(2);
+    expect(leaner.get("p2")!).toBeLessThan(-2);
     expect(Math.abs(leaner.get("p3")!)).toBeLessThan(0.5);
+  });
+
+  it("recovers the true lean before shrinkage, not an inflated one", () => {
+    // Leaner sits 6 seats above the two firms that agree, so the field of
+    // three averages 42 and its true lean is +4 — not the +6 it appears to be
+    // when measured against the others alone. Shrinkage (12 polls, λ=5) then
+    // knowingly keeps 12/17 of that.
+    //
+    // The number is pinned because the two adjustments pull in opposite
+    // directions: an inflated estimate and an over-strong shrinkage can cancel
+    // and look correct, which is how the wrong version of this passed review
+    // in my own head.
+    const effects = estimateHouseEffects(leaningField(), ["p1", "p2", "p3"]);
+    expect(effects.get("Leaner")!.get("p1")!).toBeCloseTo(4 * (12 / 17), 2);
+  });
+
+  it("does not inflate the lean when only two firms are in the field", () => {
+    // The worst case for measuring a firm against the others: with k firms the
+    // observed gap is k/(k-1) times the true lean, so at k=2 it is doubled.
+    const polls: RawPoll[] = [];
+    for (let day = 1; day <= 9; day += 1) {
+      const date = `2026-06-0${day}`;
+      polls.push(poll(`a${day}`, "Low", date, 500, { p1: 40, p2: 80 }));
+      polls.push(poll(`b${day}`, "High", date, 500, { p1: 46, p2: 74 }));
+    }
+    // They straddle a midpoint of 43, so each is 3 seats from the field.
+    const effects = estimateHouseEffects(polls, ["p1", "p2"]);
+    expect(effects.get("High")!.get("p1")!).toBeCloseTo(3 * (9 / 14), 2);
+    expect(effects.get("Low")!.get("p1")!).toBeCloseTo(-3 * (9 / 14), 2);
   });
 
   it("names the leaning firm as the one furthest from the field", () => {
@@ -193,8 +222,15 @@ describe("estimateHouseEffects", () => {
     // The leaner's fresh polls dominate the decayed window and drag the raw
     // average up towards its own 46.
     // Nothing moved in the electorate, so the truthful answer is still 42.
+    // The correction closes most of that gap but deliberately not all of it:
+    // shrinkage keeps 12/17 of the measured lean, so roughly a quarter of the
+    // distortion survives. Under-correcting is the right direction to err in —
+    // over-correcting would move real figures further than the evidence
+    // supports, which is the same failure as not correcting, reversed.
     expect(raw).toBeGreaterThan(43);
-    expect(corrected).toBeLessThan(42.1);
-    expect(raw - corrected).toBeGreaterThan(1);
+    const rawError = raw - 42;
+    const correctedError = corrected - 42;
+    expect(correctedError).toBeGreaterThan(0);
+    expect(correctedError).toBeLessThan(rawError * 0.4);
   });
 });

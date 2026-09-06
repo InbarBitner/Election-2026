@@ -15,7 +15,11 @@
  * pollsters agree with each other; it does not make them right.
  */
 
-import { dedupePolls, seatsOf, startOfDayMs, type RawPoll } from "./pollAverage";
+// The extension is required, not stylistic: scripts/ runs these modules under
+// bare `node`, whose TypeScript support resolves specifiers literally and will
+// not try `.ts` for an extensionless path. Vitest and Next both resolve it
+// either way, so leaving it off failed only outside the test suite.
+import { dedupePolls, seatsOf, startOfDayMs, type RawPoll } from "./pollAverage.ts";
 
 /** pollster -> partyId -> seats to subtract from that firm's figures. */
 export type HouseEffects = Map<string, Map<string, number>>;
@@ -149,9 +153,21 @@ export function estimateHouseEffects(
       if (theirs.length === 0) continue;
 
       const consensus = theirs.reduce((sum, seats) => sum + seats, 0) / theirs.length;
+
+      // Leaving a firm out of its own benchmark is necessary, but it overstates
+      // the gap and the overstatement has to be undone. Leans sum to zero
+      // across k firms, so the others average to -b/(k-1) when this firm's true
+      // lean is b, and the observed residual is b·k/(k-1) rather than b. In a
+      // three-firm field that is 50% too large; the fix scales it back by
+      // (k-1)/k. Without it every published figure moves further than the
+      // evidence supports, which is the same failure as not correcting at all,
+      // pointed the other way.
+      const others = new Set(reference.map((other) => other.pollster)).size;
+      const deflate = others / (others + 1);
+
       const byParty = total.get(poll.pollster) ?? new Map<string, number>();
       total.set(poll.pollster, byParty);
-      byParty.set(partyId, (byParty.get(partyId) ?? 0) + (mine - consensus));
+      byParty.set(partyId, (byParty.get(partyId) ?? 0) + (mine - consensus) * deflate);
 
       const counts = seen.get(poll.pollster) ?? new Map<string, number>();
       seen.set(poll.pollster, counts);
