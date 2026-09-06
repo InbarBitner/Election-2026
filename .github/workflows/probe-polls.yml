@@ -401,5 +401,21 @@ jobs:
           print(f"החריג ביותר: {worst['pollster']} · סטייה {worst['rms']}")
           if worst["rms"] > 4:
               sys.exit(f"סטייה של {worst['rms']} מנדטים אינה הטיית בית סקרים אלא באג.")
+
+          # The overall figure can stay calm while one party is wildly off, and
+          # a single party's lean is the largest correction actually applied to
+          # a published number — so it gets its own bound. Israeli firms really
+          # do differ by several seats on Likud, so this is set to catch a
+          # parsing failure rather than to police disagreement.
+          biggest = max(
+              ((abs(v), name, r["pollster"]) for r in rows for name, v in r["leans"].items()),
+              default=(0, "", ""),
+          )
+          print(f"ההטיה הגדולה ביותר למפלגה בודדת: {biggest[2]} / {biggest[1]} · {biggest[0]}")
+          if biggest[0] > 8:
+              sys.exit(
+                  f"הטיה של {biggest[0]} מנדטים ב{biggest[1]} אצל {biggest[2]} "
+                  "אינה הטיית בית סקרים אלא באג בקריאת הטבלה."
+              )
           print("ההטיות בטווח סביר.")
           PY
