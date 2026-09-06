@@ -122,6 +122,87 @@ jobs:
               text = text.replace("&#160;", " ").replace("&nbsp;", " ").replace("&amp;", "&")
               return " ".join(text.split())
 
+          # Round 2 questions, all raised by round 1's output.
+          #
+          # 1. Which party columns exist across every table. The site's roster
+          #    has 13 lists and the tables clearly carry names it does not
+          #    (Zionist Home, Unity, Zehut, Balad, Joint List). Unmapped names
+          #    are reported rather than guessed, but a dropped column breaks
+          #    the "seats sum to ~120" validation and would reject the whole
+          #    poll — so the full set has to be known before any parsing.
+          # 2. Whether footnote markers can be resolved to the publication's
+          #    real URL. The provenance rule wants sourceUrl pointing at the
+          #    poll, not at an encyclopedia's summary of it.
+          # 3. What a below-threshold cell looks like exactly: round 1 showed
+          #    "(0.7%)" where seats normally are, and reading that as 0.7 seats
+          #    would be silently, plausibly wrong.
+
+          print("\n" + "=" * 70)
+          print("כל שמות עמודות המפלגות בכל הטבלאות")
+          print("=" * 70)
+          NON_PARTY = {
+              "fieldwork date", "polling firm", "publisher", "sample size",
+              "date", "pollster", "lead", "others", "government", "opposition",
+              "n/a", "", "sample",
+          }
+          seen = {}
+          for table in tables:
+              rows = re.findall(r"<tr[^>]*>(.*?)</tr>", table, flags=re.S)
+              if not rows:
+                  continue
+              header = re.findall(r"<t[hd][^>]*>(.*?)</t[hd]>", rows[0], flags=re.S)
+              if len(header) < 8:
+                  continue
+              for cell in header:
+                  name = strip_tags(cell)
+                  name = re.sub(r"\s*\[\s*\d+\s*\]\s*", "", name).strip()
+                  if name.lower() in NON_PARTY:
+                      continue
+                  seen[name] = seen.get(name, 0) + 1
+          for name, count in sorted(seen.items(), key=lambda kv: -kv[1]):
+              print(f"    {count:3d}x  {name}")
+
+          print("\n" + "=" * 70)
+          print("האם אפשר לפתור הערת שוליים לכתובת הפרסום המקורי")
+          print("=" * 70)
+          # Reference targets look like href="#cite_note-foo-22"; the matching
+          # <li id="cite_note-foo-22"> at the foot of the page holds the real
+          # external link.
+          poll_table = None
+          for table in tables:
+              if "Fieldwork date" in table and "Sample size" in table:
+                  poll_table = table
+                  break
+          if poll_table is None:
+              print("    לא נמצאה טבלת סקרים לבדיקה")
+          else:
+              notes = re.findall(r'href="#(cite_note[^"]+)"', poll_table)
+              print(f"    הפניות בטבלה: {len(notes)}; דוגמאות: {notes[:3]}")
+              for note in notes[:3]:
+                  block = re.search(
+                      r'<li id="%s".*?</li>' % re.escape(note), html, flags=re.S
+                  )
+                  if not block:
+                      print(f"    {note}: לא נמצאה רשומה תואמת")
+                      continue
+                  external = re.findall(r'href="(https?://[^"]+)"', block.group(0))
+                  print(f"    {note} -> {external[:2] if external else 'אין קישור חיצוני'}")
+
+          print("\n" + "=" * 70)
+          print("איך נראה תא של מפלגה מתחת לאחוז החסימה")
+          print("=" * 70)
+          if poll_table:
+              rows = re.findall(r"<tr[^>]*>(.*?)</tr>", poll_table, flags=re.S)
+              shown = 0
+              for row in rows:
+                  cells = [strip_tags(c) for c in re.findall(r"<t[hd][^>]*>(.*?)</t[hd]>", row, flags=re.S)]
+                  odd = [c for c in cells if c and not re.fullmatch(r"\d+", c)]
+                  if len(cells) > 12 and any("%" in c for c in cells):
+                      print(f"    {' | '.join(cells[:22])}")
+                      shown += 1
+                      if shown >= 3:
+                          break
+
           for index, table in enumerate(tables[:4]):
               rows = re.findall(r"<tr[^>]*>(.*?)</tr>", table, flags=re.S)
               print(f"\n  --- טבלה {index}: {len(rows)} שורות ---")
