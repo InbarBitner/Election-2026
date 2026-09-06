@@ -167,6 +167,19 @@ def run(dry_run: bool = False, since_days: int = 7, knesset_number: int = 25) ->
     with engine.begin() as connection:
         if cleaned.polls:
             stats["polls"]["loaded"] = loader.load_polls(connection, cleaned.polls)
+            # Synthetic seed polls must not survive alongside real ones. The
+            # site does not filter by provenance — it only uses it to decide
+            # whether to show the demo banner — so leaving both in place would
+            # average invented polls together with published ones and present
+            # the result as a real figure. Removed only once real polls have
+            # actually loaded, so a failed run leaves the demo data intact
+            # rather than emptying the site.
+            removed = loader.delete_seed_polls(connection)
+            if removed:
+                log.info("הוסרו %d סקרי הדגמה שהוחלפו בסקרים אמיתיים", removed)
+                stats["polls"]["note"] = " · ".join(
+                    filter(None, [stats["polls"]["note"], f"הוסרו {removed} סקרי הדגמה"])
+                )
 
         # Knesset records attach to candidates already linked to a member id;
         # records for anyone else are dropped rather than creating orphans.

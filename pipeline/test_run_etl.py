@@ -112,3 +112,44 @@ class PollPrecedenceTest(unittest.TestCase):
         self.assertEqual(len(cleaned.polls), 1)
         self.assertEqual(cleaned.polls[0].source_name, "wikipedia")
         self.assertEqual(len(cleaned.rejected), 1)
+
+
+class SeedReplacementTest(unittest.TestCase):
+    """Real polls must replace the synthetic ones, not join them.
+
+    The site does not filter polls by provenance — it only reads provenance to
+    decide whether to show the demo banner — so seed and ETL polls left in the
+    same table would be averaged together and presented as a real figure. That
+    is worse than showing only demo data, because it looks real.
+    """
+
+    def test_seed_polls_go_once_real_polls_load(self):
+        from unittest import mock
+
+        from pipeline.etl.load import loader
+
+        connection = mock.Mock()
+        with mock.patch.object(loader, "delete_where") as delete, \
+             mock.patch.object(loader, "select"), \
+             mock.patch.object(loader, "table"):
+            connection.execute.return_value.scalar_one.return_value = 142
+            removed = loader.delete_seed_polls(connection)
+
+        self.assertEqual(removed, 142)
+        delete.assert_called_once_with(connection, "Poll", provenance="seed")
+
+    def test_nothing_is_deleted_when_there_are_no_seed_polls(self):
+        """A second run must not report a deletion it did not make."""
+        from unittest import mock
+
+        from pipeline.etl.load import loader
+
+        connection = mock.Mock()
+        with mock.patch.object(loader, "delete_where") as delete, \
+             mock.patch.object(loader, "select"), \
+             mock.patch.object(loader, "table"):
+            connection.execute.return_value.scalar_one.return_value = 0
+            removed = loader.delete_seed_polls(connection)
+
+        self.assertEqual(removed, 0)
+        delete.assert_not_called()

@@ -11,6 +11,8 @@ from __future__ import annotations
 import hashlib
 import json
 
+from sqlalchemy import func, select
+
 from ...db import delete_where, now_ms, table, to_db_datetime, upsert
 from ..transform.normalize import CleanPoll, require_source
 
@@ -301,3 +303,19 @@ def clear_seed_data(connection) -> None:
     """Remove rows that came from the seed, leaving real ETL data untouched."""
     for table_name in ("Poll", "Candidate", "Party", "Event"):
         delete_where(connection, table_name, provenance="seed")
+
+
+def delete_seed_polls(connection) -> int:
+    """Drop the synthetic polls, returning how many went.
+
+    Called once real polls have loaded. Only the polls: the seeded parties are
+    genuine public facts and stay, and the seeded quiz has no real counterpart
+    to replace it.
+    """
+    polls = table("Poll")
+    existing = connection.execute(
+        select(func.count()).select_from(polls).where(polls.c.provenance == "seed")
+    ).scalar_one()
+    if existing:
+        delete_where(connection, "Poll", provenance="seed")
+    return int(existing)
