@@ -34,9 +34,12 @@ ALIASES: dict[str, list[str]] = {
         "bennett",
         "yesh atid",
         "beyachad",
+        "together", "beyachad natzliach",
     ],
     "yashar": ["ישר", "ישר!", "ישר בראשות איזנקוט", "איזנקוט", "yashar", "eisenkot"],
-    "amcha-israel": ["עמך ישראל", "עמך", "וינטר", "עופר וינטר", "amcha israel", "winter"],
+    "amcha-israel": ["עמך ישראל", "עמך", "וינטר", "עופר וינטר", "amcha israel", "winter",
+        "amcha yisrael", "winter party",
+    ],
     "kachol-lavan": [
         "כחול לבן",
         "כחול-לבן",
@@ -46,6 +49,7 @@ ALIASES: dict[str, list[str]] = {
         "מחנה ממלכתי",
         "blue and white",
         "national unity",
+        "blue & white", "blue white", "gantz",
     ],
     "religious-zionism": [
         "הציונות הדתית",
@@ -56,11 +60,68 @@ ALIASES: dict[str, list[str]] = {
     "otzma": ["עוצמה יהודית", "עוצמה יהודית בראשות בן גביר", "otzma yehudit"],
     "shas": ["שס", "ש ס", "shas"],
     "yahadut-hatorah": ["יהדות התורה", "אגודת ישראל", "דגל התורה", "utj"],
-    "yisrael-beitenu": ["ישראל ביתנו", "ישראל ביתנו בראשות ליברמן", "yisrael beitenu"],
-    "democrats": ["הדמוקרטים", "העבודה", "מרצ", "העבודה מרצ", "the democrats"],
-    "hadash-taal": ["חדש תעל", "חדש-תעל", "חדש", "תעל", "hadash taal"],
+    "yisrael-beitenu": ["ישראל ביתנו", "ישראל ביתנו בראשות ליברמן", "yisrael beitenu",
+        "yisrael beiteinu", "liberman", "ליברמן",
+    ],
+    "democrats": ["הדמוקרטים", "העבודה", "מרצ", "העבודה מרצ", "the democrats",
+        "dems", "labor", "meretz", "golan", "גולן",
+    ],
+    # חד"ש, תע"ל ובל"ד רצות ברשימה אחת מאוגוסט 2026. סקרים שפורסמו קודם לכן
+    # מפרידים ביניהן, ולכן כל השמות הישנים ממופים לרשימה המשותפת.
+    "joint-list": [
+        "הרשימה המשותפת",
+        "המשותפת",
+        "חדש תעל",
+        "חדש-תעל",
+        "חדש",
+        "תעל",
+        "בלד",
+        "טיבי",
+        "אחמד טיבי",
+        "עודה",
+        "איימן עודה",
+        "גבארין",
+        "hadash taal",
+        "hadash",
+        "taal",
+        "balad",
+        "joint list",
+        "the joint list",
+    ],
     "raam": ["רעם", "רע ם", "הרשימה הערבית המאוחדת", "raam"],
+    "zionist-home": [
+        "הבית הציוני",
+        "הבית הציוני המילואימניקים",
+        "המילואימניקים",
+        "הנדל",
+        "יועז הנדל",
+        "טרופר",
+        "חילי טרופר",
+        "zionist home",
+        "zionist home the reservists",
+        "reservists",
+        "reserv",
+        "hendel",
+        "tropper",
+    ],
 }
+
+# Names that appear in poll tables but are NOT separate lists in this election.
+# Mapping them to the list they actually run on is the difference between a
+# poll that validates and one rejected for not summing to 120.
+ALIASES["religious-zionism"] += [
+    # זהות חתמה על בלוק טכני עם הציונות הדתית ב-1 בספטמבר 2026 וקיבלה את
+    # מקומות 2, 8, 10 ו-11 ברשימה; היא אינה רשימה נפרדת.
+    "זהות",
+    "פייגלין",
+    "משה פייגלין",
+    "zehut",
+    "rzp zehut",
+    "rzp - zehut",
+    "rzp",
+    "נעם",
+    "noam",
+]
 
 
 
