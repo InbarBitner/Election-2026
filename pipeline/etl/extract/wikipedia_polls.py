@@ -230,8 +230,44 @@ def _rows(table_html: str) -> list[str]:
     return re.findall(r"<tr[^>]*>(.*?)</tr>", table_html, flags=re.S)
 
 
-def _cells(row_html: str) -> list[str]:
-    return re.findall(r"<t[hd][^>]*>(.*?)</t[hd]>", row_html, flags=re.S)
+def _raw_cells(row_html: str) -> list[tuple[str, int]]:
+    """Each cell as (inner HTML, colspan)."""
+    cells = []
+    for match in re.finditer(r"<t[hd]\b([^>]*)>(.*?)</t[hd]>", row_html, flags=re.S):
+        span = re.search(r'colspan\s*=\s*"?\'?(\d+)', match.group(1))
+        cells.append((match.group(2), max(1, int(span.group(1)) if span else 1)))
+    return cells
+
+
+def _cells(row_html: str, width: int | None = None) -> list[str | None]:
+    """Cells laid out by column position, honouring colspan.
+
+    Without this the parser silently mislabels data. Where the header names
+    two parties that ran together — "RZP" and "Zehut" as separate columns —
+    the data row carries one cell spanning both, so every value after it lands
+    on the next party along. Yashar's 23 seats were filed under The Democrats,
+    and the seat total still came to exactly 120, so the sum check could not
+    see it: the same numbers, against the wrong names.
+
+    A spanning cell's value is placed at the first position it covers and the
+    rest are left empty, so a combined figure is counted once rather than
+    duplicated across every party in the span.
+    """
+    positions: list[str | None] = []
+    for inner, span in _raw_cells(row_html):
+        positions.append(inner)
+        positions.extend([None] * (span - 1))
+    if width is not None and len(positions) < width:
+        positions.extend([None] * (width - len(positions)))
+    return positions
+
+
+def _header_cells(row_html: str) -> list[str]:
+    """Header names by column position; a spanning name covers each position."""
+    names: list[str] = []
+    for inner, span in _raw_cells(row_html):
+        names.extend([inner] * span)
+    return names
 
 
 def parse_tables(html: str, today: date | None = None) -> ParseReport:
@@ -246,7 +282,8 @@ def parse_tables(html: str, today: date | None = None) -> ParseReport:
         if not rows:
             continue
 
-        headers = [_strip_tags(c).lower() for c in _cells(rows[0])]
+        header_cells = _header_cells(rows[0])
+        headers = [_strip_tags(c).lower() for c in header_cells]
         if not all(any(h.startswith(req) for h in headers) for req in REQUIRED_HEADERS):
             # Preferred-PM, coalition-scenario and hypothetical-party tables all
             # land here, which is the point.
@@ -260,18 +297,32 @@ def parse_tables(html: str, today: date | None = None) -> ParseReport:
         size_at = next(i for h, i in index.items() if h.startswith("sample size"))
         party_at = {
             i: _strip_tags(c)
-            for i, c in enumerate(_cells(rows[0]))
+            for i, c in enumerate(header_cells)
             if _is_party_column(headers[i]) and _strip_tags(c)
         }
 
         for row_html in rows[1:]:
-            raw_cells = _cells(row_html)
+            positions = _cells(row_html)
             # Event rows ("8 Sep | Deadline for submission") and spacer rows
             # have far fewer cells than the header.
-            if len(raw_cells) < len(headers) - 2:
+            if len(_raw_cells(row_html)) < len(headers) - 2:
                 continue
             report.rows_seen += 1
-            cells = [_strip_tags(c) for c in raw_cells]
+
+            # A row whose columns do not line up with the header is the one
+            # failure the seat-sum check cannot see: the values are all valid
+            # numbers adding to 120, just filed against the wrong parties.
+            # Since every cell now occupies its true column, a width that
+            # disagrees with the header means something about the row is not
+            # understood, and a poll read against the wrong names is worse
+            # than a poll not read at all.
+            if len(positions) != len(headers):
+                report.skip(
+                    f"רוחב שורה ({len(positions)}) אינו תואם לכותרת ({len(headers)})",
+                    " | ".join(_strip_tags(c or "") for c in positions[:5]),
+                )
+                continue
+            cells = [_strip_tags(c) if c is not None else "" for c in positions]
 
             span = _parse_date_range(cells[date_at], today)
             if span is None:
@@ -303,7 +354,7 @@ def parse_tables(html: str, today: date | None = None) -> ParseReport:
 
             # The publisher's own article is the source; the encyclopedia's
             # summary of it is the fallback when the citation has no link.
-            note = re.search(r'href="#(cite_note[^"]+)"', raw_cells[pub_at])
+            note = re.search(r'href="#(cite_note[^"]+)"', positions[pub_at] or "")
             source_url = citations.get(note.group(1)) if note else None
             if source_url:
                 report.citations_resolved += 1

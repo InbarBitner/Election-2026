@@ -289,3 +289,88 @@ class CitationResolutionTest(unittest.TestCase):
     def test_a_reference_with_no_external_link_is_not_invented(self):
         refs = '<ol><li id="cite_note-c14-24">Channel 14 broadcast</li></ol>'
         self.assertEqual(wp._citation_urls(refs), {})
+
+
+class ColspanTest(unittest.TestCase):
+    """A merged data cell must not shift every value after it by one column.
+
+    Reported from the live site: the Maariv poll showed 23 seats against The
+    Democrats when 23 belonged to Yashar. Likud and Together were right, so it
+    was not a whole-table shift — it began at "RZP | Zehut", two header
+    columns that the data row covers with one cell because the two ran
+    together. Everything after that landed one party along.
+
+    The seat-sum check is blind to this: the same numbers, against the wrong
+    names, still add to 120.
+    """
+
+    # Two separate party headers, one spanning data cell — the real shape.
+    SPLIT_HEADER = [
+        "Fieldwork date", "Polling firm", "Publisher", "Sample size",
+        "Likud", "Together", "RZP", "Zehut", "Otzma", "Shas", "UTJ",
+        "Yisrael Beiteinu", "Ra'am", "Joint List", "Dems", "Yashar",
+    ]
+
+    def _row_with_merged_cell(self):
+        cells = [
+            "<td>3– 4 Sep</td>", "<td>Lazar</td>", "<td>Maariv</td>",
+            "<td>600</td>", "<td>20</td>", "<td>15</td>",
+            '<td colspan="2">5</td>',   # RZP and Zehut together
+            "<td>8</td>", "<td>7</td>", "<td>7</td>", "<td>9</td>",
+            "<td>5</td>", "<td>7</td>", "<td>10</td>", "<td>23</td>",
+        ]
+        header = "<tr>" + "".join(f"<th>{h}</th>" for h in self.SPLIT_HEADER) + "</tr>"
+        return f'<table class="wikitable">{header}<tr>{"".join(cells)}</tr></table>'
+
+    def test_values_after_a_merged_cell_keep_their_own_party(self):
+        report = wp.parse_tables(self._row_with_merged_cell(), today=TODAY)
+        seats = report.polls[0].seats
+
+        self.assertEqual(seats["Yashar"], 23.0)
+        self.assertEqual(seats["Dems"], 10.0)
+        self.assertEqual(seats["Likud"], 20.0)
+        self.assertEqual(seats["Together"], 15.0)
+        self.assertEqual(seats["Otzma"], 8.0)
+
+    def test_a_merged_figure_is_counted_once_not_per_column(self):
+        """RZP and Zehut ran together; their 5 seats are 5, not 10."""
+        seats = wp.parse_tables(self._row_with_merged_cell(), today=TODAY).polls[0].seats
+        self.assertEqual(seats["RZP"], 5.0)
+        self.assertNotIn("Zehut", seats)
+        # 20+15+5+8+7+7+9+5+7+10+23 — the merged 5 counted once, not twice.
+        self.assertEqual(sum(seats.values()), 116.0)
+
+    def test_a_spanning_header_names_every_column_it_covers(self):
+        header = (
+            "<tr><th>Fieldwork date</th><th>Polling firm</th><th>Publisher</th>"
+            '<th>Sample size</th><th>Likud</th><th colspan="2">RZP - Zehut</th></tr>'
+        )
+        names = wp._header_cells(header)
+        self.assertEqual(names[-2:], ["RZP - Zehut", "RZP - Zehut"])
+
+
+class RowWidthTest(unittest.TestCase):
+    """A row that does not line up with its header is refused, not guessed at.
+
+    This is the guard the seat-sum check could not be: mislabelled values are
+    still valid numbers adding to 120. Column alignment is the only structural
+    signal that a row was actually understood.
+    """
+
+    def test_a_row_wider_than_its_header_is_skipped_and_counted(self):
+        header = ["Fieldwork date", "Polling firm", "Publisher", "Sample size",
+                  "Likud", "Together", "Yashar"]
+        wide = ["3 Sep", "Lazar", "Maariv", "600", "20", "15", "23", "9"]
+        report = wp.parse_tables(_table([header, wide]), today=TODAY)
+
+        self.assertEqual(report.polls, [])
+        self.assertEqual(list(report.skipped)[0][:10], "רוחב שורה ")
+
+    def test_a_row_matching_its_header_is_read(self):
+        header = ["Fieldwork date", "Polling firm", "Publisher", "Sample size",
+                  "Likud", "Together", "Yashar"]
+        good = ["3 Sep", "Lazar", "Maariv", "600", "20", "15", "23"]
+        report = wp.parse_tables(_table([header, good]), today=TODAY)
+
+        self.assertEqual(len(report.polls), 1)
+        self.assertEqual(report.polls[0].seats["Yashar"], 23.0)
