@@ -149,10 +149,19 @@ jobs:
           #     same number decides whether the two services can be joined at
           #     all, so check one known id in both directions rather than
           #     assuming they line up.
+          # …and they are not: PersonID 12 does not exist, while Votes.svc has
+          # mk_individual_id 12. The two services number people differently, so
+          # a bridge table is required. KNS_MkSiteCode is the candidate.
           show(
               "האם mk_individual_id זהה ל-PersonID? (12 = בנימין אלון לפי Votes.svc)",
               "KNS_Person",
               **{"$filter": "PersonID eq 12"},
+          )
+          show("גשר בין מרחבי המזהים", "KNS_MkSiteCode", **{"$top": "3"})
+          show(
+              "אלון ב-KNS_Person — לאיזה PersonID הוא ממופה",
+              "KNS_Person",
+              **{"$filter": "LastName eq 'אלון'", "$top": "5"},
           )
 
           # 6. How many people hold each candidate MK position in this Knesset —
