@@ -61,6 +61,11 @@ jobs:
         if: env.USE_LOCAL_DB == 'true'
         run: python -m pipeline.seed
 
+      # This is the one place that touches the live sources on a schedule, and
+      # it is slow on purpose: the HTTP client waits 1.5s between requests to
+      # the same host, so walking every member takes several minutes. That is
+      # the cost of being a well-behaved client of a public service, not a
+      # problem to tune away.
       - name: הרצת ETL
         run: python -m pipeline.run_etl ${{ inputs.dry_run && '--dry-run' || '' }}
 

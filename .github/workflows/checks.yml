@@ -118,5 +118,14 @@ jobs:
       - name: יצירת סקירה יומית (מסלול fallback)
         run: python -m pipeline.brief.generate --date today --no-llm
 
-      - name: הרצה יבשה של ה-ETL
-        run: python -m pipeline.run_etl --dry-run
+      # No live-source dry run here, deliberately. `run_etl --dry-run` fetches
+      # for real — that is what makes it a dry run of the load rather than of
+      # the fetch — and now that the Knesset connector works it walks 151
+      # members, which is some 300 requests at the client's 1.5s-per-host rate
+      # limit. Running that on every push would mean hundreds of requests to a
+      # government service every time anyone commits, which is not a
+      # reasonable thing to point at someone else's server.
+      #
+      # The orchestration logic is covered by pipeline/test_run_etl.py above;
+      # the live connector is covered by probe-knesset.yml on demand and by
+      # daily.yml on its schedule, where hitting the sources is the point.
