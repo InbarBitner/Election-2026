@@ -178,3 +178,75 @@ jobs:
                   },
               )
           PY
+
+  verify:
+    name: הקונקטור מול השירות החי
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # The unit tests use fixtures chosen by the same author who chose the
+    # wrong field names, so they cannot prove the connector works. This runs
+    # the real functions against the real service on a small sample.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: שליפה אמיתית של ח"כים, הצבעות והצעות חוק
+        env:
+          KNESSET_NUMBER: ${{ inputs.knesset_number }}
+        run: |
+          python - <<'PY'
+          import logging
+          import os
+          import sys
+
+          from pipeline.etl.extract import knesset_api
+
+          logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+          knesset = int(os.environ.get("KNESSET_NUMBER") or 25)
+
+          members = knesset_api.fetch_members(knesset)
+          print(f"\nח\"כים: {len(members)}")
+          for member in members[:5]:
+              print(f"  {member['knessetMemberId']:>6}  {member['name']}  [{member['factionName']}]")
+
+          if not members:
+              sys.exit("fetch_members החזירה אפס — הבדיקה נכשלת במקום לדווח הצלחה.")
+
+          # A real Knesset has 120 seats; replacements push the count a little
+          # higher. Anything far outside that means the query is wrong even
+          # though it returned rows.
+          if not 100 <= len(members) <= 200:
+              sys.exit(f"מספר ח\"כים חריג: {len(members)}")
+
+          headers = knesset_api._vote_headers(knesset)
+          results = knesset_api._vote_result_names()
+          statuses = knesset_api._bill_statuses()
+          print(f"כותרות הצבעות: {len(headers)} · סוגי תוצאה: {results} · סטטוסים: {len(statuses)}")
+
+          if not headers:
+              sys.exit("לא נשלפו כותרות הצבעות.")
+
+          checked = 0
+          for member in members[:3]:
+              person_id = member["knessetMemberId"]
+              votes = knesset_api.fetch_votes(
+                  person_id, knesset_number=knesset, headers=headers, results=results
+              )
+              bills = knesset_api.fetch_bills(person_id, statuses=statuses)
+              print(f"\n{member['name']} — {len(votes)} הצבעות, {len(bills)} הצעות חוק")
+              for vote in votes[:2]:
+                  print(f"    [{vote['position']:>7}] {vote['date']}  {vote['billTitle'][:60]}")
+              for bill in bills[:2]:
+                  print(f"    [{bill['status']}] {bill['date']}  {bill['title'][:60]}")
+              checked += len(votes) + len(bills)
+
+          if checked == 0:
+              sys.exit("אף הצבעה ואף הצעת חוק לא נשלפו עבור שלושת הח\"כים הראשונים.")
+          print(f"\nסה\"כ {checked} רשומות נשלפו ונותחו בהצלחה.")
+          PY
