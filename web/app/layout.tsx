@@ -42,12 +42,23 @@ const NAV = [
 ];
 
 /**
- * Whether any of the data on screen is seeded demo data. Checked once here, in
- * the layout, so the badge cannot be forgotten on an individual page.
+ * Whether the polls on screen are the synthetic ones.
+ *
+ * Keyed on polls, because the polls are what the banner is about. It used to
+ * ask whether any *party* was seed-loaded, which stayed true forever: parties
+ * come from a hand-maintained file rather than a connector, so once the ETL
+ * had replaced the demo polls with published ones the banner went on telling
+ * readers that real polls from Maariv and Israel Hayom were invented. A false
+ * warning is worse than none — it teaches people to ignore the true ones.
+ *
+ * The parties being hand-maintained is disclosed on the party pages, where
+ * each row carries its source, rather than by a site-wide warning.
+ *
+ * Checked once here in the layout so an individual page cannot forget it.
  */
-async function hasSeedData(): Promise<boolean> {
+async function hasSyntheticPolls(): Promise<boolean> {
   try {
-    return (await prisma.party.findFirst({ where: { provenance: "seed" } })) !== null;
+    return (await prisma.poll.findFirst({ where: { provenance: "seed" } })) !== null;
   } catch {
     // Before the first `prisma db push` there is no table to query.
     return false;
@@ -59,7 +70,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const showDemoBadge = await hasSeedData();
+  const showDemoBadge = await hasSyntheticPolls();
 
   return (
     <html
@@ -114,9 +125,9 @@ export default async function RootLayout({
             <span
               className="tag tag-outline"
               style={{ fontSize: "10px", letterSpacing: "0.06em", marginInlineStart: "auto" }}
-              title="הסקרים המוצגים נוצרו לצורך הדגמה ואינם אמיתיים"
+              title="הסקרים המוצגים נוצרו לצורך הדגמה ואינם סקרים אמיתיים"
             >
-              נתוני הדגמה
+              סקרי הדגמה
             </span>
           )}
         </header>
@@ -133,9 +144,9 @@ export default async function RootLayout({
               borderTop: 0,
             }}
           >
-            <strong>נתוני הדגמה.</strong> הסקרים המוצגים כאן נוצרו לצורך הדגמה ואינם
-            אמיתיים. המפלגות והיו״רים אמיתיים ומתועדים; רשימות המועמדים יוצגו רק
-            לאחר פרסומן הרשמי. הרצת צינור ה-ETL תחליף את הסקרים בנתונים מקוריים.
+            <strong>סקרי הדגמה.</strong> הסקרים המוצגים כאן נוצרו לצורך הדגמה ואינם
+            סקרים אמיתיים. המפלגות והיו״רים אמיתיים ומתועדים. הרצת{" "}
+            <code>python3 -m pipeline.run_etl</code> תחליף אותם בסקרים שפורסמו.
           </div>
         )}
 
