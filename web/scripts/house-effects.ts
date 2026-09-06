@@ -16,7 +16,6 @@
  * straight off the live page without a database.
  */
 
-import { PrismaClient } from "@prisma/client";
 import {
   DEFAULT_REFERENCE_WINDOW_DAYS,
   DEFAULT_SHRINKAGE,
@@ -25,6 +24,47 @@ import {
 import { dedupePolls, type RawPoll } from "../lib/pollAverage.ts";
 
 type Named = { id: string; name: string };
+
+/**
+ * Load Prisma only when the database is actually being read.
+ *
+ * `--stdin` needs no database, and the CI probe runs it that way against polls
+ * parsed straight off the live page. A top-level import made that impossible:
+ * the generated client does not exist until `prisma generate` has run, and
+ * under bare node it resolves as CommonJS whose named exports may not survive
+ * — so the probe died on an import it never needed.
+ */
+async function openPrisma() {
+  let mod: Record<string, unknown>;
+  try {
+    mod = await import("@prisma/client");
+  } catch {
+    // Not installed at all, rather than installed but ungenerated. Both mean
+    // the same thing to whoever ran this, so they get the same instruction.
+    mod = {};
+  }
+  const holder = (mod.PrismaClient ? mod : (mod.default as Record<string, unknown>)) ?? {};
+  const Client = holder.PrismaClient as (new () => {
+    party: { findMany(args: unknown): Promise<{ id: string; name: string }[]> };
+    poll: { findMany(args: unknown): Promise<PollRow[]> };
+    $disconnect(): Promise<void>;
+  }) | undefined;
+  if (!Client) {
+    throw new Error(
+      "לא נמצא לקוח Prisma. יש להריץ `npm run db:generate` לפני קריאה מהמסד, " +
+        "או להשתמש ב---stdin.",
+    );
+  }
+  return new Client();
+}
+
+type PollRow = {
+  id: string;
+  pollster: string;
+  fieldDateEnd: Date;
+  sampleSize: number;
+  results: { partyId: string; seats: number }[];
+};
 
 async function readStdin(): Promise<string> {
   const chunks: Buffer[] = [];
@@ -47,7 +87,7 @@ async function load(): Promise<{ polls: RawPoll[]; parties: Named[] }> {
     return { polls, parties: [...ids].sort().map((id) => ({ id, name: id })) };
   }
 
-  const prisma = new PrismaClient();
+  const prisma = await openPrisma();
   try {
     const [parties, polls] = await Promise.all([
       prisma.party.findMany({ where: { isActive: true }, orderBy: { name: "asc" } }),
