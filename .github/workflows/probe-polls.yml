@@ -220,3 +220,67 @@ jobs:
                       print(f"      קישורים חיצוניים בשורה: {links[:3]}")
                       break
           PY
+
+  verify:
+    name: הפרסר מול הדף החי
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # The unit tests use fixtures I wrote from what I saw. They cannot prove
+    # the parser reads the actual page — only this can.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: שליפה וניתוח אמיתיים
+        run: |
+          python - <<'PY'
+          import logging
+          import sys
+
+          from pipeline.etl.extract import wikipedia_polls as wp
+          from pipeline.etl.transform.normalize import clean_polls
+
+          logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+
+          html = wp._fetch_page_html()
+          report = wp.parse_tables(html)
+          print(f"\n{report.summary()}\n")
+
+          if not report.tables_used:
+              sys.exit("לא זוהתה אף טבלת סקרים — כנראה הכותרות בדף השתנו.")
+          if not report.polls:
+              sys.exit("זוהו טבלאות אך לא נקראה מהן אף שורה.")
+
+          for poll in sorted(report.polls, key=lambda p: p.field_date_end)[-5:]:
+              total = sum(poll.seats.values())
+              print(
+                  f"  {poll.field_date_end}  {poll.pollster:14s} / {poll.sponsor:16s} "
+                  f"n={poll.sample_size:5d} ±{poll.margin_of_error}%  סכום={total:.0f}"
+              )
+              print(f"      {poll.source_name}: {poll.source_url[:90]}")
+
+          # The real test is not that rows were produced, but that they survive
+          # the same validation a real ETL run applies.
+          cleaned = clean_polls(report.polls)
+          print(f"\nעברו ניקוי: {len(cleaned.polls)} · נדחו: {len(cleaned.rejected)}")
+          for rejection in cleaned.rejected[:10]:
+              print(f"  נדחה — {rejection.record}: {rejection.reason}")
+          if cleaned.unmapped_parties:
+              print("\nשמות מפלגות שלא זוהו (יש להוסיף ל-ALIASES):")
+              for name in sorted(cleaned.unmapped_parties):
+                  print(f"    {name}")
+
+          if not cleaned.polls:
+              sys.exit("אף סקר לא עבר ולידציה — הפרסר קורא משהו, אבל לא נכון.")
+
+          share = len(cleaned.polls) / len(report.polls)
+          print(f"\nשיעור מעבר: {share:.0%}")
+          if share < 0.5:
+              sys.exit(f"רק {share:.0%} מהשורות עברו ולידציה — הפרסר קורא לא נכון.")
+          PY

@@ -20,9 +20,15 @@ from datetime import date, datetime, timedelta, timezone
 from sqlalchemy import select
 
 from .db import get_engine, table
-from .etl.extract import knesset_api, news_rss, polls_scraper
+from .etl.extract import (
+    knesset_api,
+    manual_polls,
+    news_rss,
+    polls_scraper,
+    wikipedia_polls,
+)
 from .etl.load import loader
-from .etl.transform.normalize import clean_polls
+from .etl.transform.normalize import clean_polls, poll_id
 
 log = logging.getLogger(__name__)
 
@@ -76,10 +82,46 @@ def run(dry_run: bool = False, since_days: int = 7, knesset_number: int = 25) ->
 
     # --- Extract -----------------------------------------------------------
     log.info("שולף סקרים...")
-    polls_result = polls_scraper.extract()
-    stats["polls"]["fetched"] = len(polls_result["polls"])
-    stats["polls"]["error"] = polls_result.get("error")
-    stats["polls"]["note"] = polls_result.get("note")
+    # Three sources, in ascending order of authority. Wikipedia collects the
+    # published polls; configured scrapers cover anything it misses; a
+    # hand-entered row is a person's correction and comes last so that
+    # `clean_polls` keeps it over an automatic row with the same natural key.
+    poll_notes: list[str] = []
+    poll_errors: list[str] = []
+    # Later sources override earlier ones for the same poll. Precedence is
+    # applied here rather than left to clean_polls, which rejects a repeated
+    # natural key outright and would therefore discard the correction instead
+    # of the row being corrected.
+    by_key: dict[str, object] = {}
+    overridden = 0
+    for name, result in (
+        ("ויקיפדיה", wikipedia_polls.extract(since=date.today() - timedelta(days=180))),
+        ("מקורות מוגדרים", polls_scraper.extract()),
+        ("הזנה ידנית", manual_polls.extract()),
+    ):
+        for raw in result["polls"]:
+            key = poll_id(raw.pollster, raw.field_date_end, raw.sponsor)
+            if key in by_key:
+                overridden += 1
+                log.info(
+                    "  %s גובר על רשומה קודמת: %s / %s",
+                    name, raw.pollster, raw.field_date_end,
+                )
+            by_key[key] = raw
+        log.info("  %s: %d סקרים", name, len(result["polls"]))
+        if result.get("note"):
+            poll_notes.append(f"{name}: {result['note']}")
+        if result.get("error"):
+            poll_errors.append(f"{name}: {result['error']}")
+
+    raw_polls = list(by_key.values())
+    if overridden:
+        poll_notes.append(f"{overridden} סקרים הוחלפו על ידי מקור בעל עדיפות גבוהה יותר")
+
+    polls_result = {"polls": raw_polls}
+    stats["polls"]["fetched"] = len(raw_polls)
+    stats["polls"]["error"] = "; ".join(poll_errors) or None
+    stats["polls"]["note"] = " · ".join(poll_notes) or None
 
     log.info("שולף נתוני כנסת...")
     knesset_result = knesset_api.extract(knesset_number)
