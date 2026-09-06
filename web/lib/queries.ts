@@ -14,6 +14,7 @@ import {
   toChartRows,
   trend,
   type AveragePoint,
+  type ChartRow,
   type RawPoll,
 } from "./pollAverage";
 import { estimateHouseEffects, houseEffectMagnitude } from "./houseEffects";
@@ -36,7 +37,7 @@ export type PartyRow = {
 export type PollSnapshot = {
   parties: PartyRow[];
   points: AveragePoint[];
-  chartRows: Record<string, string | number>[];
+  chartRows: ChartRow[];
   latest: Map<string, AveragePoint>;
   changes: Map<string, number>;
   projections: SeatProjection[];

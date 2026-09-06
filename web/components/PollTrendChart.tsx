@@ -2,15 +2,17 @@
 
 import { useMemo, useState } from "react";
 import {
+  Area,
   CartesianGrid,
+  ComposedChart,
   Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import { formatShortDate } from "@/lib/format";
+import { bandKey, type ChartRow } from "@/lib/pollAverage";
 
 export type ChartParty = {
   id: string;
@@ -21,7 +23,7 @@ export type ChartParty = {
 };
 
 type Props = {
-  rows: Record<string, string | number>[];
+  rows: ChartRow[];
   parties: ChartParty[];
   windowDays: number;
   onWindowChange?: (days: number) => void;
@@ -116,7 +118,7 @@ export default function PollTrendChart({
               className="text-muted"
               style={{ captionSide: "top", textAlign: "start", paddingBottom: "8px", fontSize: "12px" }}
             >
-              ממוצע נע במנדטים, לפי תאריך
+              ממוצע נע במנדטים, לפי תאריך. בסוגריים טווח אי-הוודאות.
             </caption>
             <thead>
               <tr>
@@ -134,9 +136,20 @@ export default function PollTrendChart({
                   <td>{String(row.date)}</td>
                   {shown.map((party) => (
                     <td key={party.id} className="ltr-nums">
-                      {typeof row[party.id] === "number"
-                        ? (row[party.id] as number).toFixed(1)
-                        : "—"}
+                      {typeof row[party.id] === "number" ? (
+                        <>
+                          {(row[party.id] as number).toFixed(1)}
+                          {Array.isArray(row[bandKey(party.id)]) && (
+                            <span className="text-muted">
+                              {" "}
+                              ({(row[bandKey(party.id)] as [number, number])[0].toFixed(1)}–
+                              {(row[bandKey(party.id)] as [number, number])[1].toFixed(1)})
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        "—"
+                      )}
                     </td>
                   ))}
                 </tr>
@@ -147,7 +160,7 @@ export default function PollTrendChart({
       ) : (
         <div style={{ width: "100%", height: 340 }}>
           <ResponsiveContainer>
-            <LineChart data={rows} margin={{ top: 8, right: 8, bottom: 4, left: 8 }}>
+            <ComposedChart data={rows} margin={{ top: 8, right: 8, bottom: 4, left: 8 }}>
               <CartesianGrid stroke="var(--chart-grid)" vertical={false} />
               {/*
                 The time axis deliberately stays left-to-right even though the
@@ -180,11 +193,37 @@ export default function PollTrendChart({
                   color: "var(--color-text)",
                 }}
                 labelFormatter={(label) => `נכון ל-${String(label)}`}
-                formatter={(value, name) => [
-                  `${Number(value).toFixed(1)} מנדטים`,
-                  String(name),
-                ]}
+                formatter={(value, name, item) => {
+                  // The band is drawn, not listed: its own row would repeat the
+                  // range that already sits beside the mean.
+                  const row = (item?.payload ?? {}) as Record<string, unknown>;
+                  const id = String(item?.dataKey ?? "");
+                  const band = row[bandKey(id)];
+                  const range = Array.isArray(band)
+                    ? ` (${Number(band[0]).toFixed(1)}–${Number(band[1]).toFixed(1)})`
+                    : "";
+                  return [`${Number(value).toFixed(1)} מנדטים${range}`, String(name)];
+                }}
               />
+              {/*
+                The uncertainty band, drawn first so the lines sit on top of it.
+                It is deliberately recessive — the reader should register width,
+                not a second set of shapes — and it carries no legend entry,
+                since it belongs to the series whose colour it already shares.
+              */}
+              {shown.map((party) => (
+                <Area
+                  key={`${party.id}-band`}
+                  dataKey={bandKey(party.id)}
+                  fill={colorOf(party)}
+                  fillOpacity={0.13}
+                  stroke="none"
+                  legendType="none"
+                  tooltipType="none"
+                  activeDot={false}
+                  isAnimationActive={false}
+                />
+              ))}
               {shown.map((party) => (
                 <Line
                   key={party.id}
@@ -198,7 +237,7 @@ export default function PollTrendChart({
                   isAnimationActive={false}
                 />
               ))}
-            </LineChart>
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
       )}

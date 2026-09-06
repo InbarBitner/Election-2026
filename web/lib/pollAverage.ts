@@ -282,11 +282,23 @@ function round1(n: number): number {
   return Math.round(n * 10) / 10;
 }
 
-/** Reshape points into one row per date with a column per party, for Recharts. */
-export function toChartRows(
-  points: AveragePoint[],
-): Record<string, string | number>[] {
-  const byDate = new Map<string, Record<string, string | number>>();
+/** The band column for a party, alongside its mean column. */
+export function bandKey(partyId: string): string {
+  return `${partyId}__band`;
+}
+
+export type ChartRow = Record<string, string | number | [number, number]>;
+
+/**
+ * Reshape points into one row per date with a column per party, for Recharts.
+ *
+ * Each party gets two columns: its mean, and a `[lo, hi]` pair for the
+ * uncertainty band. The band was computed from the first version of this file
+ * and carried on `AveragePoint` all along, but nothing ever drew it — the
+ * chart read only the mean, so every figure on screen looked exact.
+ */
+export function toChartRows(points: AveragePoint[]): ChartRow[] {
+  const byDate = new Map<string, ChartRow>();
   for (const p of points) {
     let row = byDate.get(p.date);
     if (!row) {
@@ -294,6 +306,7 @@ export function toChartRows(
       byDate.set(p.date, row);
     }
     row[p.partyId] = p.mean;
+    row[bandKey(p.partyId)] = [p.lo, p.hi];
   }
   return [...byDate.values()].sort((a, b) =>
     String(a.date) < String(b.date) ? -1 : 1,

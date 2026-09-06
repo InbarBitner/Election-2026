@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  bandKey,
   dedupePolls,
   movingAverage,
   latestAverages,
@@ -249,6 +250,15 @@ describe("toChartRows", () => {
     const rows = toChartRows(
       movingAverage([poll("a", "X", "2026-06-01", 500, { p1: 30, p2: 10 })], ["p1", "p2"]),
     );
-    expect(rows).toEqual([{ date: "2026-06-01", p1: 30, p2: 10 }]);
+    // Each party carries its mean and a [lo, hi] band, which is what lets the
+    // chart draw uncertainty rather than a bare line.
+    expect(rows).toHaveLength(1);
+    expect(rows[0].date).toBe("2026-06-01");
+    expect(rows[0].p1).toBe(30);
+    expect(rows[0].p2).toBe(10);
+    // 30 seats of 120 is a 25% share; at n=500 that is a 1.9pp standard error,
+    // which is 2.3 seats. 10 seats is an 8.3% share, a tighter 1.5 seats.
+    expect(rows[0][bandKey("p1")]).toEqual([27.7, 32.3]);
+    expect(rows[0][bandKey("p2")]).toEqual([8.5, 11.5]);
   });
 });

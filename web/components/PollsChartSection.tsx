@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
+import type { ChartRow } from "@/lib/pollAverage";
 import PollTrendChart, { type ChartParty } from "./PollTrendChart";
 
 /**
@@ -14,7 +15,7 @@ export default function PollsChartSection({
   parties,
   windowDays,
 }: {
-  rows: Record<string, string | number>[];
+  rows: ChartRow[];
   parties: ChartParty[];
   windowDays: number;
 }) {
