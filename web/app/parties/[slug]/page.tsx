@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import CandidateXray from "@/components/CandidateXray";
-import { Panel, PartySwatch, SectionTitle, SourceBadge, TrendPill } from "@/components/ui";
+import { Callout, Panel, PartySwatch, SectionTitle, SourceBadge, TrendPill } from "@/components/ui";
 import { AXIS_NAMES, BLOC_NAMES } from "@/lib/format";
 import { getPartyBySlug, getPollSnapshot } from "@/lib/queries";
 import { prisma } from "@/lib/db";
@@ -160,13 +160,25 @@ export default async function PartyPage({
         )}
 
         <Panel style={{ gridColumn: "1 / -1" }}>
-          <SectionTitle hint="לחיצה על ״רנטגן מועמד״ פותחת את היסטוריית ההצבעות, הצעות החוק, ההתבטאויות והקשרים הפוליטיים — כל פריט עם קישור למקורו.">
+          <SectionTitle
+            hint={
+              party.candidates.length === 0
+                ? undefined
+                : "לחיצה על ״רנטגן מועמד״ פותחת את היסטוריית ההצבעות, הצעות החוק, ההתבטאויות והקשרים הפוליטיים — כל פריט עם קישור למקורו."
+            }
+          >
             רשימת המועמדים
           </SectionTitle>
           {party.candidates.length === 0 ? (
-            <p style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)", fontSize: "0.88rem" }}>
-              לא נטענו מועמדים למפלגה זו.
-            </p>
+            // Deliberately empty rather than filled with placeholders: the
+            // lists are not public yet, and inventing names on a page about a
+            // real election is not an acceptable stand-in for missing data.
+            <Callout>
+              <strong>הרשימה טרם פורסמה.</strong> רשימות המועמדים מוגשות לוועדת
+              הבחירות המרכזית סמוך למועד הבחירות, ומוצגות כאן רק לאחר פרסומן
+              הרשמי. עד אז לא מוצגים כאן מועמדים — לא שמות משוערים ולא נתוני
+              הדגמה.
+            </Callout>
           ) : (
             <ol style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {party.candidates.map((candidate) => (

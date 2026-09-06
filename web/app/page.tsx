@@ -177,7 +177,7 @@ export default async function HomePage() {
       </div>
 
       <Panel>
-        <SectionTitle hint="לחיצה על מפלגה פותחת את מצעה, רשימת מועמדיה ופיצ׳ר רנטגן מועמד.">
+        <SectionTitle hint="לחיצה על מפלגה פותחת את מצעה ואת עמדותיה לפי תחום.">
           מפלגות
         </SectionTitle>
         <ul

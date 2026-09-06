@@ -12,11 +12,14 @@ What is real and what is not:
 * Polls are SYNTHETIC. They are generated from the trajectory in
   data/seed/poll_anchors.json with per-pollster house effects and deterministic
   noise, and are labelled with obviously fictional pollster names.
-* Candidates are FICTIONAL placeholders, and so are their votes, bills, quotes
-  and connections. Attributing invented statements or voting records to real
-  politicians would be indefensible even in demo data, so the demo attributes
-  them to invented people instead. `python -m pipeline.run_etl` replaces them
-  with real, sourced records from the Knesset's open data.
+* Candidates are NOT seeded by default (`--candidates-per-party` defaults to
+  0). The official lists are filed with the Central Elections Committee shortly
+  before the election; until they are public the site shows no candidates
+  rather than invented ones, and the party pages say why. Passing a number
+  regenerates the fictional placeholders for development — they are named
+  "(מועמד/ת לדוגמה)" and carry invented votes, bills, quotes and connections,
+  because attributing invented statements or voting records to real
+  politicians would be indefensible even in demo data.
 
 Every seeded row carries provenance="seed", which is what the UI's demo-data
 banner keys off.
@@ -367,8 +370,12 @@ def build_events(anchors_config: dict) -> list[dict]:
 def main() -> int:
     parser = argparse.ArgumentParser(description="טעינת נתוני הדגמה למסד הנתונים")
     parser.add_argument("--dry-run", action="store_true", help="הצג בלבד, ללא כתיבה")
+    # Defaults to zero: the official candidate lists are filed with the
+    # Central Elections Committee shortly before the election, and until they
+    # are public the site shows no candidates at all rather than invented ones.
+    # Pass a number to regenerate the fictional placeholders for development.
     parser.add_argument(
-        "--candidates-per-party", type=int, default=6, help="כמה מועמדים לייצר לכל מפלגה"
+        "--candidates-per-party", type=int, default=0, help="כמה מועמדים לייצר לכל מפלגה"
     )
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")

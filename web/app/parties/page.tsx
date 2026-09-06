@@ -15,7 +15,7 @@ export default async function PartiesPage() {
   if (snapshot.parties.length === 0) {
     return (
       <>
-        <h1>מפלגות ומועמדים</h1>
+        <h1>מפלגות</h1>
         <Callout tone="warning">
           לא נטענו מפלגות. הרץ <code>python -m pipeline.seed</code>.
         </Callout>
@@ -44,7 +44,7 @@ export default async function PartiesPage() {
 
   return (
     <>
-      <h1 style={{ fontSize: "44px", margin: "0 0 6px" }}>מפלגות ומועמדים</h1>
+      <h1 style={{ fontSize: "44px", margin: "0 0 6px" }}>מפלגות</h1>
       <p className="text-muted" style={{ marginTop: 0, fontSize: "13px" }}>
         <span className="ltr-nums">{snapshot.parties.length}</span> רשימות, מקובצות
         לפי גוש ומסודרות לפי ממוצע הסקרים.
@@ -132,11 +132,19 @@ export default async function PartiesPage() {
                       flexWrap: "wrap",
                     }}
                   >
+                    {/*
+                      "0 מועמדים ברשימה" would read as a party with no
+                      candidates rather than as a list nobody has filed yet.
+                    */}
                     <span style={{ fontSize: "0.8rem", color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
-                      <span className="ltr-nums">
-                        {candidateCount.get(party.id) ?? 0}
-                      </span>{" "}
-                      מועמדים ברשימה
+                      {(candidateCount.get(party.id) ?? 0) === 0 ? (
+                        "הרשימה טרם פורסמה"
+                      ) : (
+                        <>
+                          <span className="ltr-nums">{candidateCount.get(party.id)}</span>{" "}
+                          מועמדים ברשימה
+                        </>
+                      )}
                     </span>
                     <SourceBadge url={party.sourceUrl} name={party.sourceName} />
                   </div>
