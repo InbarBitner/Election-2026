@@ -139,8 +139,21 @@ jobs:
               "View_vote_rslts_hdr_Approved",
               "View_Vote_MK_Individual",
               "vote_result_type",
+              # The join table: which member voted which way in which vote.
+              "vote_rslts_kmmbr_shadow",
           ):
               show(f"Votes: {entity}", entity, service="Votes.svc", **{"$top": "2"})
+
+          # 5d. Votes.svc keys members by mk_individual_id while
+          #     ParliamentInfo.svc keys them by PersonID. Whether those are the
+          #     same number decides whether the two services can be joined at
+          #     all, so check one known id in both directions rather than
+          #     assuming they line up.
+          show(
+              "האם mk_individual_id זהה ל-PersonID? (12 = בנימין אלון לפי Votes.svc)",
+              "KNS_Person",
+              **{"$filter": "PersonID eq 12"},
+          )
 
           # 6. How many people hold each candidate MK position in this Knesset —
           #    43/61 are "member of Knesset" (m/f) and 54 is faction membership,
