@@ -35,13 +35,44 @@ class FetchError(RuntimeError):
 
 @lru_cache(maxsize=64)
 def _robots(origin: str) -> urllib.robotparser.RobotFileParser | None:
-    parser = urllib.robotparser.RobotFileParser()
-    parser.set_url(f"{origin}/robots.txt")
+    """Fetch and parse a host's robots.txt.
+
+    The fetch is done here rather than by `RobotFileParser.read()`, which
+    issues the request with urllib's default User-Agent. Wikimedia — and it is
+    not alone — answers 403 to an unidentified agent, and `read()` treats 403
+    as "this host forbids everything" without raising. The result was that
+    every URL on Wikipedia reported as disallowed, including ordinary article
+    pages that robots.txt plainly permits, and nothing surfaced the reason.
+
+    So the file is requested with the same identifying User-Agent as every
+    other call, and only the parsing is left to the standard library.
+    """
+    url = f"{origin}/robots.txt"
     try:
-        parser.read()
-    except Exception as exc:  # noqa: BLE001 — a missing robots.txt is not fatal
+        response = requests.get(
+            url,
+            timeout=REQUEST_TIMEOUT,
+            headers={"User-Agent": USER_AGENT, "Accept": "text/plain"},
+        )
+    except Exception as exc:  # noqa: BLE001 — an unreachable robots.txt is not fatal
         log.warning("could not read robots.txt for %s: %s", origin, exc)
         return None
+
+    if response.status_code == 404:
+        # No robots.txt at all: nothing is stated, so nothing is restricted.
+        return None
+    if response.status_code >= 400:
+        log.warning(
+            "robots.txt for %s returned %s — treating the host as off limits",
+            origin,
+            response.status_code,
+        )
+        parser = urllib.robotparser.RobotFileParser()
+        parser.disallow_all = True
+        return parser
+
+    parser = urllib.robotparser.RobotFileParser()
+    parser.parse(response.text.splitlines())
     return parser
 
 

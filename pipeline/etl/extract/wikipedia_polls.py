@@ -37,13 +37,12 @@ log = logging.getLogger(__name__)
 PAGE_TITLE = "Opinion polling for the 2026 Israeli legislative election"
 PAGE_URL = "https://en.wikipedia.org/wiki/" + PAGE_TITLE.replace(" ", "_")
 
-# The page is read through the REST endpoint rather than the action API.
-# Wikipedia's robots.txt disallows /w/ for all crawlers, and /w/api.php sits
-# under it; the shared HTTP client honours robots.txt, so the action API is
-# simply off limits here. Carving out a per-host exception to that rule is not
-# a decision this module should make quietly. /api/rest_v1/ is a different
-# path and returns the same rendered HTML.
-REST_URL = "https://en.wikipedia.org/api/rest_v1/page/html/{title}"
+# The page is read from its ordinary article URL. Wikipedia's robots.txt
+# disallows both /w/ (where the action API lives) and /api/ (the REST
+# endpoint) for all crawlers, while /wiki/ — the page any reader opens — is
+# permitted. The shared HTTP client honours robots.txt, so that settles which
+# of the three to use, and no per-host exception is needed.
+ARTICLE_URL = "https://en.wikipedia.org/wiki/{title}"
 
 # A seat-poll table is identified by its header, not its position on the page.
 REQUIRED_HEADERS = ("fieldwork date", "polling firm", "publisher", "sample size")
@@ -173,7 +172,7 @@ def _margin_of_error(sample_size: int) -> float:
 
 
 def _fetch_page_html() -> str:
-    url = REST_URL.format(title=quote(PAGE_TITLE.replace(" ", "_"), safe=""))
+    url = ARTICLE_URL.format(title=quote(PAGE_TITLE.replace(" ", "_"), safe=""))
     response = fetch(url, accept="text/html")
     if not response.text or "<table" not in response.text:
         raise FetchError("התשובה מוויקיפדיה אינה מכילה טבלאות")
