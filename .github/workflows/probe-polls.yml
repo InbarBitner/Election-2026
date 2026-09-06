@@ -237,6 +237,41 @@ jobs:
 
       - run: pip install -r requirements.txt
 
+      - name: מה robots.txt של ויקיפדיה מתיר
+        run: |
+          python - <<'PY'
+          # The action API lives under /w/, which Wikipedia's robots.txt
+          # disallows for crawlers even though the API is published for
+          # programmatic use. Rather than carve out an exception to the
+          # project's robots rule, check which endpoints are permitted.
+          import urllib.request
+
+          from pipeline.etl.extract.http import USER_AGENT, is_allowed
+
+          request = urllib.request.Request(
+              "https://en.wikipedia.org/robots.txt", headers={"User-Agent": USER_AGENT}
+          )
+          with urllib.request.urlopen(request, timeout=30) as response:
+              robots = response.read().decode("utf-8", "replace")
+
+          print("--- הכללים החלים על User-agent: * ---")
+          active = False
+          for line in robots.splitlines():
+              stripped = line.strip()
+              if stripped.lower().startswith("user-agent:"):
+                  active = stripped.split(":", 1)[1].strip() == "*"
+              elif active and stripped and not stripped.startswith("#"):
+                  print("   ", stripped)
+
+          print("\n--- מה הלקוח שלנו מתיר ---")
+          for url in (
+              "https://en.wikipedia.org/w/api.php",
+              "https://en.wikipedia.org/api/rest_v1/page/html/Israel",
+              "https://en.wikipedia.org/wiki/Israel",
+          ):
+              print(f"    {'מותר ' if is_allowed(url) else 'חסום'}  {url}")
+          PY
+
       - name: שליפה וניתוח אמיתיים
         run: |
           python - <<'PY'

@@ -27,14 +27,23 @@ import re
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 
+from urllib.parse import quote
+
 from ..transform.normalize import RawPoll
-from .http import FetchError, fetch_json
+from .http import FetchError, fetch
 
 log = logging.getLogger(__name__)
 
-WIKI_API = "https://en.wikipedia.org/w/api.php"
 PAGE_TITLE = "Opinion polling for the 2026 Israeli legislative election"
 PAGE_URL = "https://en.wikipedia.org/wiki/" + PAGE_TITLE.replace(" ", "_")
+
+# The page is read through the REST endpoint rather than the action API.
+# Wikipedia's robots.txt disallows /w/ for all crawlers, and /w/api.php sits
+# under it; the shared HTTP client honours robots.txt, so the action API is
+# simply off limits here. Carving out a per-host exception to that rule is not
+# a decision this module should make quietly. /api/rest_v1/ is a different
+# path and returns the same rendered HTML.
+REST_URL = "https://en.wikipedia.org/api/rest_v1/page/html/{title}"
 
 # A seat-poll table is identified by its header, not its position on the page.
 REQUIRED_HEADERS = ("fieldwork date", "polling firm", "publisher", "sample size")
@@ -164,21 +173,11 @@ def _margin_of_error(sample_size: int) -> float:
 
 
 def _fetch_page_html() -> str:
-    payload = fetch_json(
-        WIKI_API,
-        params={
-            "action": "parse",
-            "page": PAGE_TITLE,
-            "prop": "text",
-            "format": "json",
-            "formatversion": "2",
-            "disabletoc": "1",
-        },
-    )
-    try:
-        return payload["parse"]["text"]
-    except (KeyError, TypeError) as exc:
-        raise FetchError(f"תשובה בלתי צפויה מוויקיפדיה: {exc}") from None
+    url = REST_URL.format(title=quote(PAGE_TITLE.replace(" ", "_"), safe=""))
+    response = fetch(url, accept="text/html")
+    if not response.text or "<table" not in response.text:
+        raise FetchError("התשובה מוויקיפדיה אינה מכילה טבלאות")
+    return response.text
 
 
 def _citation_urls(html: str) -> dict[str, str]:
