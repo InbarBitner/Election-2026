@@ -347,7 +347,15 @@ def parse_tables(html: str, today: date | None = None) -> ParseReport:
                     continue
                 value = _parse_seats(cells[i])
                 if value is not None:
-                    seats[party_name] = value
+                    # Accumulate rather than assign: a header cell that spans
+                    # two columns ("Joint List" over Hadash and Balad) maps two
+                    # positions onto one name, and assignment silently dropped
+                    # the first one's seats — a row that summed to 120 in the
+                    # article arrived here at 114. Summing is right in all
+                    # three shapes: one spanning value counted once (it sits at
+                    # the first position, the second is empty), two values under
+                    # one name added, and two names under one spanning value.
+                    seats[party_name] = seats.get(party_name, 0.0) + value
             if not seats:
                 report.skip("אין מנדטים בשורה", " | ".join(cells[:6]))
                 continue

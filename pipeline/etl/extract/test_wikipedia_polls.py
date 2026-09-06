@@ -348,6 +348,39 @@ class ColspanTest(unittest.TestCase):
         names = wp._header_cells(header)
         self.assertEqual(names[-2:], ["RZP - Zehut", "RZP - Zehut"])
 
+    def test_two_columns_under_one_header_name_are_added_not_overwritten(self):
+        """The article's "Joint List" header spans Hadash's and Balad's columns.
+
+        Both positions carry the same party name, so assigning instead of
+        adding dropped the first figure and left the row 4 seats short — a
+        rejection at the seat-sum check with nothing to say why.
+        """
+        header = (
+            "<tr><th>Fieldwork date</th><th>Polling firm</th><th>Publisher</th>"
+            '<th>Sample size</th><th>Likud</th><th colspan="2">Joint List</th></tr>'
+        )
+        row = ("<tr><td>3 Sep</td><td>Lazar</td><td>Maariv</td><td>600</td>"
+               "<td>20</td><td>4</td><td>5</td></tr>")
+        seats = wp.parse_tables(
+            f'<table class="wikitable">{header}{row}</table>', today=TODAY
+        ).polls[0].seats
+
+        self.assertEqual(seats["Joint List"], 9.0)
+
+    def test_one_spanning_value_under_one_spanning_header_stays_itself(self):
+        """The same header, but the pollster reported the pair as one figure."""
+        header = (
+            "<tr><th>Fieldwork date</th><th>Polling firm</th><th>Publisher</th>"
+            '<th>Sample size</th><th>Likud</th><th colspan="2">Joint List</th></tr>'
+        )
+        row = ("<tr><td>3 Sep</td><td>Lazar</td><td>Maariv</td><td>600</td>"
+               '<td>20</td><td colspan="2">9</td></tr>')
+        seats = wp.parse_tables(
+            f'<table class="wikitable">{header}{row}</table>', today=TODAY
+        ).polls[0].seats
+
+        self.assertEqual(seats["Joint List"], 9.0)
+
 
 class RowWidthTest(unittest.TestCase):
     """A row that does not line up with its header is refused, not guessed at.
