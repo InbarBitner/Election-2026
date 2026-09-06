@@ -337,3 +337,69 @@ jobs:
           if share < 0.5:
               sys.exit(f"רק {share:.0%} מהשורות עברו ולידציה — הפרסר קורא לא נכון.")
           PY
+
+  house_effects:
+    name: הטיית בתי הסקרים על נתונים אמיתיים
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - run: pip install -r requirements.txt
+
+      # The estimator lives in TypeScript with the rest of the averaging logic,
+      # so the polls are parsed in Python and piped across rather than the
+      # maths being written a second time in the language that happens to hold
+      # the parser.
+      - name: שליפת הסקרים החיים והערכת ההטיה
+        run: |
+          python - > /tmp/polls.json <<'PY'
+          import json
+          from pipeline.etl.extract import wikipedia_polls as wp
+          from pipeline.etl.transform.normalize import clean_polls
+
+          report = wp.parse_tables(wp._fetch_page_html())
+          cleaned = clean_polls(report.polls)
+          print(json.dumps([
+              {
+                  "id": p.id,
+                  "pollster": p.pollster,
+                  "fieldDateEnd": p.field_date_end.isoformat(),
+                  "sampleSize": p.sample_size,
+                  "results": [{"partyId": k, "seats": v} for k, v in p.seats.items()],
+              }
+              for p in cleaned.polls
+          ]))
+          PY
+          python -c "import json;d=json.load(open('/tmp/polls.json'));print(f'{len(d)} סקרים נטענו')"
+          cd web
+          npm ci --ignore-scripts
+          node scripts/house-effects.ts --stdin < /tmp/polls.json
+
+      # A lean of many seats is not a house effect, it is a parsing failure
+      # wearing one — the correction would then quietly rewrite real figures.
+      - name: שפיות התוצאה
+        run: |
+          cd web
+          node scripts/house-effects.ts --stdin --json < /tmp/polls.json > /tmp/effects.json
+          python - <<'PY'
+          import json, sys
+          rows = json.load(open("/tmp/effects.json"))
+          if not rows:
+              sys.exit("לא חושבה אף הטיה — ההערכה לא רצה בפועל.")
+          worst = max(rows, key=lambda r: r["rms"])
+          print(f"החריג ביותר: {worst['pollster']} · סטייה {worst['rms']}")
+          if worst["rms"] > 4:
+              sys.exit(f"סטייה של {worst['rms']} מנדטים אינה הטיית בית סקרים אלא באג.")
+          print("ההטיות בטווח סביר.")
+          PY

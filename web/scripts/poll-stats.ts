@@ -18,6 +18,7 @@ import {
   trend,
   type RawPoll,
 } from "../lib/pollAverage.ts";
+import { estimateHouseEffects } from "../lib/houseEffects.ts";
 import { projectSeats, seatsByBloc } from "../lib/seats.ts";
 
 function numericArg(flag: string, fallback: number): number {
@@ -48,7 +49,10 @@ async function main() {
     }));
 
     const partyIds = parties.map((p) => p.id);
-    const points = movingAverage(raw, partyIds, { windowDays });
+    // Same correction the site applies, for the same reason it exists here at
+    // all: the brief must not report a swing the chart does not show.
+    const houseEffects = estimateHouseEffects(raw, partyIds);
+    const points = movingAverage(raw, partyIds, { windowDays, houseEffects });
     const latest = latestAverages(points);
     const movement = trend(points, trendDays);
 

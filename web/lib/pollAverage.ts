@@ -6,6 +6,10 @@
  * This is the single implementation of the averaging logic in the project.
  */
 
+// Type-only: houseEffects.ts imports the primitives below, so a value import
+// here would close a cycle. The lookup is one line, inlined at its use.
+import type { HouseEffects } from "./houseEffects";
+
 export type RawPoll = {
   id: string;
   pollster: string;
@@ -32,19 +36,80 @@ export type AverageOptions = {
   windowDays?: number;
   /** Age in days at which a poll's weight is halved. */
   halfLifeDays?: number;
+  /**
+   * Per-firm lean to subtract before averaging, from `estimateHouseEffects`.
+   * Omitted means raw polls, which is what the average was before house
+   * effects existed.
+   */
+  houseEffects?: HouseEffects;
 };
 
 const DAY_MS = 86_400_000;
 
 export const DEFAULT_WINDOW_DAYS = 14;
 const DEFAULT_HALF_LIFE_DAYS = 7;
+export const TOTAL_SEATS = 120;
+
+/**
+ * Smallest uncertainty any single poll can carry, in seats.
+ *
+ * Pollsters publish whole seats, so even a hypothetical infinite sample would
+ * still be rounded to within half a seat. It also keeps the band from
+ * collapsing to nothing for a party reported at 0, where the binomial formula
+ * returns almost no error — but "0" there means "under the threshold", a
+ * censored figure rather than a measured one.
+ */
+const REPORTING_GRANULARITY = 0.5;
 
 export function toDateKey(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
-function startOfDay(d: Date): number {
+export function startOfDayMs(d: Date): number {
   return Math.floor(d.getTime() / DAY_MS) * DAY_MS;
+}
+
+const startOfDay = startOfDayMs;
+
+/** A party's seats in a poll, or undefined when the poll did not list it. */
+export function seatsOf(poll: RawPoll, partyId: string): number | undefined {
+  return poll.results.find((r) => r.partyId === partyId)?.seats;
+}
+
+/**
+ * The first date each party appears in any poll.
+ *
+ * A party missing from a poll normally means "under the reporting threshold",
+ * which is information worth keeping as a zero. But a party that did not yet
+ * exist is missing for a different reason, and counting those absences as
+ * zeros drags a new list's average down for a full window after it launches —
+ * the moment its numbers matter most. Polls that predate a party are dropped
+ * from that party's average instead.
+ */
+export function partyFirstSeen(polls: RawPoll[]): Map<string, number> {
+  const first = new Map<string, number>();
+  for (const poll of polls) {
+    const day = startOfDay(poll.fieldDateEnd);
+    for (const result of poll.results) {
+      const existing = first.get(result.partyId);
+      if (existing === undefined || day < existing) first.set(result.partyId, day);
+    }
+  }
+  return first;
+}
+
+/**
+ * Sampling error of one poll's figure for one party, in seats.
+ *
+ * The published seat count is converted back to the vote share it implies,
+ * the binomial standard error of that share is taken, and the result is
+ * converted back to seats.
+ */
+export function samplingErrorSeats(seats: number, sampleSize: number): number {
+  const n = Math.max(1, sampleSize);
+  const share = Math.min(1, Math.max(0, seats / TOTAL_SEATS));
+  const error = TOTAL_SEATS * Math.sqrt((share * (1 - share)) / n);
+  return Math.max(REPORTING_GRANULARITY, error);
 }
 
 /**
@@ -109,6 +174,7 @@ export function movingAverage(
   const clean = dedupePolls(polls).sort(
     (a, b) => a.fieldDateEnd.getTime() - b.fieldDateEnd.getTime(),
   );
+  const firstSeen = partyFirstSeen(clean);
 
   const firstDay = startOfDay(clean[0].fieldDateEnd);
   const lastDay = startOfDay(clean[clean.length - 1].fieldDateEnd);
@@ -124,31 +190,60 @@ export function movingAverage(
 
     const date = toDateKey(new Date(day));
     for (const partyId of partyIds) {
+      const born = firstSeen.get(partyId);
       let sumW = 0;
+      let sumW2 = 0;
       let sumWX = 0;
       let sumWX2 = 0;
+      let sumW2Var = 0;
       let count = 0;
       for (const poll of inWindow) {
-        const result = poll.results.find((r) => r.partyId === partyId);
-        // A party missing from a poll means "below reporting threshold", which
-        // is information: treat it as 0 seats rather than dropping the poll.
-        const seats = result ? result.seats : 0;
+        // A poll taken before the party existed is not evidence that it was
+        // polling at zero.
+        if (born !== undefined && startOfDay(poll.fieldDateEnd) < born) continue;
+
+        const result = seatsOf(poll, partyId);
+        // A party missing from a poll it could have appeared in means "below
+        // reporting threshold", which is information: treat it as 0 seats
+        // rather than dropping the poll.
+        const raw = result ?? 0;
+        const lean = options.houseEffects?.get(poll.pollster)?.get(partyId) ?? 0;
+        const seats = Math.max(0, raw - lean);
         const w = pollWeight(poll, day, halfLifeDays);
+        const sd = samplingErrorSeats(seats, poll.sampleSize);
         sumW += w;
+        sumW2 += w * w;
         sumWX += w * seats;
         sumWX2 += w * seats * seats;
+        sumW2Var += w * w * sd * sd;
         count += 1;
       }
       if (sumW === 0) continue;
       const mean = sumWX / sumW;
-      const variance = Math.max(0, sumWX2 / sumW - mean * mean);
-      const sd = Math.sqrt(variance);
+
+      // Two different things are uncertain, and the band has to survive both.
+      //
+      // `spread` is how much the firms in the window disagree, divided by the
+      // effective number of them (Kish). It is the honest measure when several
+      // polls are in — but with a single poll it is exactly zero, and the old
+      // band collapsed to a hairline at the very moment the least was known.
+      //
+      // `sampling` is the error the polls carry by being samples at all. No
+      // amount of agreement can push the estimate below it, so it acts as a
+      // floor rather than being added: the scatter between firms already
+      // contains sampling noise, and adding both would count it twice.
+      const effectiveN = sumW2 > 0 ? (sumW * sumW) / sumW2 : 1;
+      const between = Math.max(0, sumWX2 / sumW - mean * mean);
+      const spread = Math.sqrt(between / effectiveN);
+      const sampling = Math.sqrt(sumW2Var) / sumW;
+      const band = Math.max(spread, sampling);
+
       points.push({
         date,
         partyId,
         mean: round1(mean),
-        lo: round1(Math.max(0, mean - sd)),
-        hi: round1(mean + sd),
+        lo: round1(Math.max(0, mean - band)),
+        hi: round1(mean + band),
         pollCount: count,
       });
     }

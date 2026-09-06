@@ -147,6 +147,84 @@ describe("movingAverage", () => {
   });
 });
 
+describe("the uncertainty band", () => {
+  it("does not vanish when a single poll is all there is", () => {
+    // The old band was the spread between polls, which is exactly zero with
+    // one poll — so the chart drew a hairline of apparent certainty on the
+    // day the least was known. Sampling error is the floor beneath it.
+    const points = movingAverage([poll("a", "X", "2026-06-01", 500, { p1: 30 })], ["p1"]);
+    expect(points[0].hi).toBeGreaterThan(points[0].mean);
+    expect(points[0].lo).toBeLessThan(points[0].mean);
+  });
+
+  it("is wider for a small sample than a large one", () => {
+    const band = (n: number) => {
+      const p = movingAverage([poll("a", "X", "2026-06-01", n, { p1: 30 })], ["p1"])[0];
+      return p.hi - p.lo;
+    };
+    expect(band(400)).toBeGreaterThan(band(2500));
+  });
+
+  it("widens when the firms disagree", () => {
+    const agree = movingAverage(
+      [
+        poll("a", "X", "2026-06-01", 500, { p1: 30 }),
+        poll("b", "Y", "2026-06-01", 500, { p1: 30 }),
+      ],
+      ["p1"],
+    )[0];
+    const differ = movingAverage(
+      [
+        poll("a", "X", "2026-06-01", 500, { p1: 22 }),
+        poll("b", "Y", "2026-06-01", 500, { p1: 38 }),
+      ],
+      ["p1"],
+    )[0];
+    expect(differ.hi - differ.lo).toBeGreaterThan(agree.hi - agree.lo);
+  });
+
+  it("never reports a negative lower bound", () => {
+    const points = movingAverage([poll("a", "X", "2026-06-01", 300, { p1: 0 })], ["p1"]);
+    expect(points[0].lo).toBe(0);
+  });
+});
+
+describe("parties that did not exist yet", () => {
+  const polls = [
+    poll("old1", "X", "2026-06-01", 500, { p1: 60, p2: 60 }),
+    poll("old2", "Y", "2026-06-02", 500, { p1: 60, p2: 60 }),
+    poll("new1", "X", "2026-06-10", 500, { p1: 50, p2: 50, p3: 20 }),
+  ];
+
+  it("does not read a party's absence before it launched as zero seats", () => {
+    // p3 first appears on the 10th. Counting the two earlier polls as zeros
+    // would report the new list at 6.7 seats on the day it entered the race —
+    // wrong, and wrong in the direction that makes a new party look dead on
+    // arrival for a full window.
+    const points = movingAverage(polls, ["p3"], { windowDays: 14 });
+    const last = points.at(-1)!;
+    expect(last.mean).toBe(20);
+    expect(last.pollCount).toBe(1);
+  });
+
+  it("still reads absence as zero once the party is in the field", () => {
+    const withSilence = [
+      ...polls,
+      poll("new2", "Y", "2026-06-11", 500, { p1: 60, p2: 60 }),
+    ];
+    // p3 existed by the 11th and Y did not list it: that is "under the
+    // threshold", which is information and stays a zero.
+    const last = movingAverage(withSilence, ["p3"], { windowDays: 14 }).at(-1)!;
+    expect(last.pollCount).toBe(2);
+    expect(last.mean).toBeLessThan(20);
+  });
+
+  it("leaves long-standing parties untouched", () => {
+    const last = movingAverage(polls, ["p1"], { windowDays: 14 }).at(-1)!;
+    expect(last.pollCount).toBe(3);
+  });
+});
+
 describe("latestAverages and trend", () => {
   const polls = [
     poll("a", "X", "2026-06-01", 500, { p1: 30, p2: 10 }),

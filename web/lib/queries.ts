@@ -16,6 +16,7 @@ import {
   type AveragePoint,
   type RawPoll,
 } from "./pollAverage";
+import { estimateHouseEffects, houseEffectMagnitude } from "./houseEffects";
 import { projectSeats, seatsByBloc, type SeatProjection } from "./seats";
 
 export type PartyRow = {
@@ -43,6 +44,8 @@ export type PollSnapshot = {
   pollCount: number;
   asOf: string | null;
   windowDays: number;
+  /** Each firm's distance from the field, largest first, for disclosure. */
+  houseEffects: { pollster: string; rms: number }[];
   /** True while any displayed poll is demo data. */
   hasSeedData: boolean;
 };
@@ -68,7 +71,11 @@ export async function getPollSnapshot(
   }));
 
   const partyIds = parties.map((p) => p.id);
-  const points = movingAverage(raw, partyIds, { windowDays });
+  // Estimated over the whole history rather than the chosen window: a firm's
+  // lean is a property of the firm, and re-estimating it from two weeks of
+  // polls would make it lurch about as the reader changes the window.
+  const houseEffects = estimateHouseEffects(raw, partyIds);
+  const points = movingAverage(raw, partyIds, { windowDays, houseEffects });
   const latest = latestAverages(points);
   const changes = trend(points, trendDays);
 
@@ -96,6 +103,7 @@ export async function getPollSnapshot(
     pollCount: polls.length,
     asOf,
     windowDays,
+    houseEffects: houseEffectMagnitude(houseEffects),
     hasSeedData: polls.some((p) => p.provenance === "seed"),
   };
 }
