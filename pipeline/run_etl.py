@@ -85,6 +85,7 @@ def run(dry_run: bool = False, since_days: int = 7, knesset_number: int = 25) ->
     knesset_result = knesset_api.extract(knesset_number)
     stats["knesset"]["fetched"] = len(knesset_result["votes"]) + len(knesset_result["bills"])
     stats["knesset"]["error"] = knesset_result.get("error")
+    stats["knesset"]["note"] = knesset_result.get("note")
 
     log.info("שולף פידי חדשות...")
     news_result = news_rss.extract(since=date.today() - timedelta(days=since_days))

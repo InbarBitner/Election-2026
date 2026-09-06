@@ -103,12 +103,15 @@ def _odata_page(
     top: int,
     skip: int,
     filter_expr: str | None,
+    order_by: str | None = None,
 ) -> list[dict]:
     params = {"$format": "json", "$top": str(top)}
     if skip:
         params["$skip"] = str(skip)
     if filter_expr:
         params["$filter"] = filter_expr
+    if order_by:
+        params["$orderby"] = order_by
     payload = fetch_json(f"{base}/{entity}", params=params)
     # OData v3 nests under "d"/"results"; v4 uses "value".
     if isinstance(payload.get("d"), dict):
@@ -230,6 +233,29 @@ def _fetch_person_names(person_ids: list[int]) -> dict[int, str]:
             if full:
                 names[row["PersonID"]] = full
     return names
+
+
+def latest_vote_knesset() -> int | None:
+    """The most recent Knesset the vote service actually publishes.
+
+    Votes.svc is frozen: its newest vote is 34525, from 13 July 2021, in the
+    24th Knesset. Nothing from the 25th is there. Reading the ceiling from the
+    service means the connector can say so instead of quietly returning an
+    empty vote history, and starts working on its own the day the Knesset
+    resumes publishing.
+    """
+    rows = _odata_page(
+        "View_vote_rslts_hdr_Approved",
+        base=VOTES_BASE,
+        top=1,
+        skip=0,
+        filter_expr=None,
+        order_by="vote_id desc",
+    )
+    for row in rows:
+        if row.get("knesset_num"):
+            return int(row["knesset_num"])
+    return None
 
 
 def _vote_headers(knesset_number: int, limit: int = 1200) -> dict[int, dict]:
@@ -421,13 +447,32 @@ def extract(knesset_number: int = 25) -> dict:
         return {"members": [], "votes": [], "bills": [], "error": str(exc)}
 
     errors: list[str] = []
+    note: str | None = None
 
-    # Fetched once and shared across every member, rather than per member.
+    # Votes and bills come from different services with different coverage, so
+    # the vote side is checked before it is used. Without this the run would
+    # simply produce no votes, which is exactly the "empty means broken or
+    # means nothing, who knows" ambiguity this module is meant to be rid of.
+    headers: dict[int, dict] = {}
     try:
-        headers = _vote_headers(knesset_number)
+        covered = latest_vote_knesset()
     except FetchError as exc:
-        headers = {}
-        errors.append(f"כותרות הצבעות: {exc}")
+        covered = None
+        errors.append(f"בדיקת כיסוי ההצבעות: {exc}")
+
+    if covered is not None and covered < knesset_number:
+        note = (
+            f"שירות ההצבעות של הכנסת מתעדכן עד הכנסת ה-{covered} בלבד, ולכן אין "
+            f"היסטוריית הצבעות לכנסת ה-{knesset_number}. הצעות החוק כן נטענות. "
+            "זו מגבלה של המקור, לא תקלה בצינור."
+        )
+        log.warning(note)
+    else:
+        try:
+            headers = _vote_headers(knesset_number)
+        except FetchError as exc:
+            errors.append(f"כותרות הצבעות: {exc}")
+
     results = _vote_result_names()
     statuses = _bill_statuses()
 
@@ -458,5 +503,6 @@ def extract(knesset_number: int = 25) -> dict:
         "members": members,
         "votes": votes,
         "bills": bills,
+        "note": note,
         "error": "; ".join(errors[:5]) if errors else None,
     }

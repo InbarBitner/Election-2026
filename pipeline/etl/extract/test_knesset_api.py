@@ -248,11 +248,53 @@ class FetchBillsTest(unittest.TestCase):
                 knesset_api.fetch_bills("405", statuses={})
 
 
+class VoteCoverageTest(unittest.TestCase):
+    """Votes.svc is frozen at the 24th Knesset; that must be said, not hidden."""
+
+    def test_reads_the_ceiling_from_the_service(self):
+        with mock.patch.object(
+            knesset_api, "_odata_page", return_value=[{"vote_id": 34525, "knesset_num": 24}]
+        ):
+            self.assertEqual(knesset_api.latest_vote_knesset(), 24)
+
+    def test_an_uncovered_knesset_produces_a_note_not_an_error(self):
+        with mock.patch.object(
+            knesset_api, "fetch_members", return_value=[{"knessetMemberId": "405"}]
+        ), mock.patch.object(knesset_api, "latest_vote_knesset", return_value=24), \
+             mock.patch.object(knesset_api, "_vote_result_names", return_value={}), \
+             mock.patch.object(knesset_api, "_bill_statuses", return_value={}), \
+             mock.patch.object(knesset_api, "fetch_bills", return_value=[]), \
+             mock.patch.object(knesset_api, "_vote_headers") as headers, \
+             mock.patch.object(knesset_api, "fetch_votes") as votes:
+            result = knesset_api.extract(25)
+
+        # Not fetched at all, rather than fetched and found empty.
+        headers.assert_not_called()
+        votes.assert_not_called()
+        self.assertIsNone(result["error"])
+        self.assertIn("הכנסת ה-24", result["note"])
+
+    def test_a_covered_knesset_still_fetches_votes(self):
+        with mock.patch.object(
+            knesset_api, "fetch_members", return_value=[{"knessetMemberId": "405"}]
+        ), mock.patch.object(knesset_api, "latest_vote_knesset", return_value=25), \
+             mock.patch.object(knesset_api, "_vote_headers", return_value={8: VOTE_HEADER}), \
+             mock.patch.object(knesset_api, "_vote_result_names", return_value={1: "for"}), \
+             mock.patch.object(knesset_api, "_bill_statuses", return_value={}), \
+             mock.patch.object(knesset_api, "fetch_bills", return_value=[]), \
+             mock.patch.object(knesset_api, "fetch_votes", return_value=[{"id": "v1"}]):
+            result = knesset_api.extract(25)
+
+        self.assertIsNone(result["note"])
+        self.assertEqual(len(result["votes"]), 1)
+
+
 class ExtractTest(unittest.TestCase):
     def test_a_member_failure_does_not_abort_the_run(self):
         with mock.patch.object(
             knesset_api, "fetch_members", return_value=[{"knessetMemberId": "405"}]
-        ), mock.patch.object(knesset_api, "_vote_headers", return_value={8: VOTE_HEADER}), \
+        ), mock.patch.object(knesset_api, "latest_vote_knesset", return_value=25), \
+             mock.patch.object(knesset_api, "_vote_headers", return_value={8: VOTE_HEADER}), \
              mock.patch.object(knesset_api, "_vote_result_names", return_value={1: "for"}), \
              mock.patch.object(knesset_api, "_bill_statuses", return_value={}), \
              mock.patch.object(knesset_api, "fetch_votes", side_effect=FetchError("נפל")), \
