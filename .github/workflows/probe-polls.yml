@@ -1,0 +1,141 @@
+name: בדיקת מבנה טבלת הסקרים בוויקיפדיה
+
+# A manual probe, never scheduled — the same tool that settled the Knesset
+# connector's field names, pointed at the polling table this time.
+#
+# The development sandbox cannot reach wikipedia.org (the egress proxy rejects
+# the connection), and the last connector written against an assumed response
+# shape shipped six silent bugs. So before any parser is written: find the real
+# page, and print the real table structure.
+on:
+  workflow_dispatch:
+    inputs:
+      lang:
+        description: "he או en"
+        required: false
+        default: "en"
+
+jobs:
+  probe:
+    name: מבנה טבלת הסקרים
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: חיפוש הדף וקריאת מבנה הטבלה
+        env:
+          LANG_CODE: ${{ inputs.lang }}
+        run: |
+          python - <<'PY'
+          """Find the polling page and print the shape of its tables."""
+          import json
+          import os
+          import re
+          import time
+          import urllib.parse
+          import urllib.request
+
+          LANG = os.environ.get("LANG_CODE") or "en"
+          API = f"https://{LANG}.wikipedia.org/w/api.php"
+          # The API asks for a descriptive User-Agent identifying the client.
+          UA = "Election2026Bot/0.1 (+https://github.com/InbarBitner/Election-2026; polling table probe)"
+
+
+          def api(**params):
+              params.setdefault("format", "json")
+              params.setdefault("formatversion", "2")
+              url = f"{API}?" + urllib.parse.urlencode(params)
+              request = urllib.request.Request(url, headers={"User-Agent": UA})
+              time.sleep(1)
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  return json.load(response)
+
+
+          print("=" * 70)
+          print(f"חיפוש דפי סקרים ב-{LANG}.wikipedia")
+          print("=" * 70)
+          for term in (
+              "opinion polling Israeli legislative election",
+              "סקרי דעת קהל בחירות לכנסת",
+          ):
+              try:
+                  found = api(action="query", list="search", srsearch=term, srlimit=8)
+              except Exception as exc:  # noqa: BLE001 — a probe reports, never fails
+                  print(f"  !! {type(exc).__name__}: {exc}")
+                  continue
+              print(f"\n  חיפוש: {term!r}")
+              for hit in found.get("query", {}).get("search", []):
+                  print(f"    - {hit['title']}")
+
+          # Candidate titles, most specific first. The probe reports which of
+          # these actually exist rather than assuming a naming convention.
+          candidates = [
+              "Opinion polling for the next Israeli legislative election",
+              "Opinion polling for the 2026 Israeli legislative election",
+              "Opinion polling for the 2026 Israeli general election",
+              "סקרי דעת קהל לקראת הבחירות לכנסת העשרים ושש",
+              "סקרי דעת קהל לקראת הבחירות לכנסת ה-26",
+          ]
+          print("\n" + "=" * 70)
+          print("אילו מהכתובות הצפויות קיימות")
+          print("=" * 70)
+          existing = []
+          try:
+              info = api(action="query", titles="|".join(candidates), prop="info")
+              for page in info.get("query", {}).get("pages", []):
+                  missing = page.get("missing", False)
+                  print(f"    {'חסר ' if missing else 'קיים'}  {page['title']}")
+                  if not missing:
+                      existing.append(page["title"])
+          except Exception as exc:  # noqa: BLE001
+              print(f"  !! {type(exc).__name__}: {exc}")
+
+          if not existing:
+              print("\nאף אחת מהכתובות לא קיימת — יש לבחור דף מתוצאות החיפוש שלמעלה.")
+              raise SystemExit(0)
+
+          title = existing[0]
+          print("\n" + "=" * 70)
+          print(f"מבנה הטבלאות ב: {title}")
+          print("=" * 70)
+          try:
+              parsed = api(action="parse", page=title, prop="text", disabletoc="1")
+              html = parsed["parse"]["text"]
+          except Exception as exc:  # noqa: BLE001
+              print(f"  !! {type(exc).__name__}: {exc}")
+              raise SystemExit(0)
+
+          print(f"  אורך ה-HTML: {len(html)} תווים")
+
+          # Deliberately crude: the point is to see the real markup, not to
+          # write the parser here.
+          tables = re.findall(r"<table[^>]*>.*?</table>", html, flags=re.S)
+          print(f"  מספר טבלאות בדף: {len(tables)}")
+
+          def strip_tags(fragment):
+              text = re.sub(r"<[^>]+>", " ", fragment)
+              text = text.replace("&#160;", " ").replace("&nbsp;", " ").replace("&amp;", "&")
+              return " ".join(text.split())
+
+          for index, table in enumerate(tables[:4]):
+              rows = re.findall(r"<tr[^>]*>(.*?)</tr>", table, flags=re.S)
+              print(f"\n  --- טבלה {index}: {len(rows)} שורות ---")
+              for row in rows[:5]:
+                  cells = re.findall(r"<t[hd][^>]*>(.*?)</t[hd]>", row, flags=re.S)
+                  rendered = " | ".join(strip_tags(cell)[:24] for cell in cells[:18])
+                  print(f"      ({len(cells):2d}) {rendered[:300]}")
+              # Whether a row carries a link to the original publication decides
+              # whether sourceUrl can point at the poll itself rather than at
+              # Wikipedia, which is the difference between citing a source and
+              # citing an encyclopedia's summary of one.
+              for row in rows[1:4]:
+                  links = re.findall(r'href="(http[^"]+)"', row)
+                  if links:
+                      print(f"      קישורים חיצוניים בשורה: {links[:3]}")
+                      break
+          PY
