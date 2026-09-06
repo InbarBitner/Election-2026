@@ -77,8 +77,34 @@ jobs:
               return rows
 
 
+          def service_document(service):
+              """List the entity sets a service exposes, so nothing is guessed."""
+              url = f"https://knesset.gov.il/Odata/{service}/?$format=json"
+              print(f"\n{'=' * 70}\n{service} — entity sets\n{'=' * 70}")
+              request = urllib.request.Request(url, headers={"User-Agent": UA})
+              time.sleep(2)
+              try:
+                  with urllib.request.urlopen(request, timeout=30) as response:
+                      payload = json.load(response)
+              except Exception as exc:  # noqa: BLE001 — a probe reports, never fails
+                  print(f"  !! {type(exc).__name__}: {exc}")
+                  return
+              entries = payload.get("value") or payload.get("d") or []
+              for entry in entries:
+                  name = entry.get("name") if isinstance(entry, dict) else entry
+                  print(f"    {name}")
+
+
+          # 0. What each service actually exposes. KNS_PersonVotesView 404s, so
+          #    the vote entity has to be found rather than assumed a second time.
+          service_document("ParliamentInfo.svc")
+          service_document("Votes.svc")
+
           # 1. Where the names actually live.
           show("שמות האנשים", "KNS_Person", **{"$top": "2"})
+
+          # 1b. Bill titles are not on KNS_BillInitiator — find where they are.
+          show("הצעות חוק", "KNS_Bill", **{"$top": "2"})
 
           # 2. Does filtering to the current Knesset return anything at all?
           show(
@@ -100,7 +126,20 @@ jobs:
               label = row.get("Description") or row.get("Name") or ""
               print(f"    {row.get('PositionID')}: {label}")
 
-          # 5. The two per-member entities, so their field names are known too.
-          show("הצבעות", "KNS_PersonVotesView", **{"$top": "2"})
+          # 5. The per-member entities, so their field names are known too.
           show("יוזמי הצעות חוק", "KNS_BillInitiator", **{"$top": "2"})
+
+          # 6. How many people hold each candidate MK position in this Knesset —
+          #    43/61 are "member of Knesset" (m/f) and 54 is faction membership,
+          #    which is the row that actually carries FactionName.
+          for position_id in (43, 61, 54):
+              show(
+                  f"PositionID {position_id} בכנסת ה-{KNESSET}",
+                  "KNS_PersonToPosition",
+                  **{
+                      "$top": "2",
+                      "$filter": f"KnessetNum eq {KNESSET} and PositionID eq {position_id}",
+                      "$inlinecount": "allpages",
+                  },
+              )
           PY
