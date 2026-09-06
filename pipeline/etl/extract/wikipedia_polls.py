@@ -208,9 +208,18 @@ def _fetch_page_html() -> str:
 
 
 def _citation_urls(html: str) -> dict[str, str]:
-    """cite_note id -> the external URL of that reference, where it has one."""
+    """cite_note id -> the external URL of that reference, where it has one.
+
+    The id is matched wherever it appears among the element's attributes.
+    Requiring it to come first found 0 of 1488 references on the live page —
+    every poll then cited Wikipedia instead of the publication, silently,
+    because falling back is a legitimate outcome and looked like one.
+    """
     urls: dict[str, str] = {}
-    for match in re.finditer(r'<li id="(cite_note[^"]+)"(.*?)</li>', html, flags=re.S):
+    pattern = re.compile(
+        r'<li\b[^>]*\bid="(cite[_-]note[^"]*)"[^>]*>(.*?)</li>', flags=re.S
+    )
+    for match in pattern.finditer(html):
         external = re.search(r'href="(https?://[^"]+)"', match.group(2))
         if external:
             urls[match.group(1)] = external.group(1)

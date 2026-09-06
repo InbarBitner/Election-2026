@@ -247,3 +247,45 @@ class AggregateColumnTest(unittest.TestCase):
         self.assertNotIn("Gov.", poll.seats)
         # The row's own seats, with the 61-seat coalition total left out.
         self.assertEqual(sum(poll.seats.values()), 116.0)
+
+
+class CitationResolutionTest(unittest.TestCase):
+    """Wikipedia puts other attributes before the id on reference items.
+
+    Requiring id to come first matched 0 of 1488 references on the live page,
+    so every poll cited Wikipedia rather than the publication — and because
+    falling back is a legitimate outcome, nothing looked wrong.
+    """
+
+    def test_id_is_found_wherever_it_sits_among_the_attributes(self):
+        refs = (
+            '<ol class="references">'
+            '<li class="mw-cite" id="cite_note-maariv-23" data-x="1">'
+            '<span class="reference-text">'
+            '<a rel="nofollow" class="external text"'
+            ' href="https://www.maariv.co.il/elections/poll-1234">סקר</a>'
+            "</span></li></ol>"
+        )
+        urls = wp._citation_urls(refs)
+        self.assertEqual(
+            urls["cite_note-maariv-23"],
+            "https://www.maariv.co.il/elections/poll-1234",
+        )
+
+    def test_a_row_then_cites_the_publication(self):
+        refs = (
+            '<ol class="references"><li class="x" id="cite_note-maariv-23">'
+            '<a href="https://www.maariv.co.il/elections/poll-1234">סקר</a>'
+            "</li></ol>"
+        )
+        report = wp.parse_tables(_table([SEAT_HEADER, LAZAR_ROW]) + refs, today=TODAY)
+        self.assertEqual(report.citations_resolved, 1)
+        self.assertEqual(
+            report.polls[0].source_url,
+            "https://www.maariv.co.il/elections/poll-1234",
+        )
+        self.assertEqual(report.polls[0].source_name, "Maariv")
+
+    def test_a_reference_with_no_external_link_is_not_invented(self):
+        refs = '<ol><li id="cite_note-c14-24">Channel 14 broadcast</li></ol>'
+        self.assertEqual(wp._citation_urls(refs), {})
