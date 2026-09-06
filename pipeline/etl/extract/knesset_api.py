@@ -55,6 +55,10 @@ VOTE_POSITIONS = {1: "for", 2: "against", 3: "abstain"}
 # the chunk small enough that the query string stays well inside URL limits.
 ID_CHUNK = 40
 
+# The service caps every response at 100 rows and does not say so: $top=300 on
+# a 193-row query still returns 100. Measured, not assumed.
+PAGE_SIZE = 100
+
 
 class _Skipped:
     """Counts rows dropped during parsing, so silence can be distinguished.
@@ -92,14 +96,17 @@ class _Skipped:
             )
 
 
-def _odata(
+def _odata_page(
     entity: str,
     *,
-    base: str = PARLIAMENT_BASE,
-    top: int = 200,
-    filter_expr: str | None = None,
+    base: str,
+    top: int,
+    skip: int,
+    filter_expr: str | None,
 ) -> list[dict]:
     params = {"$format": "json", "$top": str(top)}
+    if skip:
+        params["$skip"] = str(skip)
     if filter_expr:
         params["$filter"] = filter_expr
     payload = fetch_json(f"{base}/{entity}", params=params)
@@ -107,6 +114,36 @@ def _odata(
     if isinstance(payload.get("d"), dict):
         return payload["d"].get("results", [])
     return payload.get("value", payload.get("d", []) or [])
+
+
+def _odata(
+    entity: str,
+    *,
+    base: str = PARLIAMENT_BASE,
+    top: int = 200,
+    filter_expr: str | None = None,
+) -> list[dict]:
+    """Fetch up to `top` rows, following the service's page cap.
+
+    The service returns at most PAGE_SIZE rows however large $top is, and says
+    nothing about the rows it withheld. Asking for 500 members of the 25th
+    Knesset returned exactly 100 — a plausible-looking roster missing a fifth
+    of its members. Paging until a short page arrives is what makes `top` mean
+    what it says.
+    """
+    rows: list[dict] = []
+    while len(rows) < top:
+        page = _odata_page(
+            entity,
+            base=base,
+            top=min(PAGE_SIZE, top - len(rows)),
+            skip=len(rows),
+            filter_expr=filter_expr,
+        )
+        rows.extend(page)
+        if len(page) < PAGE_SIZE:
+            break
+    return rows[:top]
 
 
 def _chunks(items: list, size: int = ID_CHUNK):

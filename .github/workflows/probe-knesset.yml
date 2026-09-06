@@ -49,6 +49,19 @@ jobs:
           KNESSET = os.environ.get("KNESSET_NUMBER") or "25"
 
 
+          def safe_get(entity, service="ParliamentInfo.svc", **params):
+              """get() that reports instead of aborting the whole probe.
+
+              A bare get() killed an earlier run on an HTTP 400 and threw away
+              every answer that would have printed after it.
+              """
+              try:
+                  return get(entity, service=service, **params)
+              except Exception as exc:  # noqa: BLE001 — a probe reports, never fails
+                  print(f"    !! {type(exc).__name__}: {exc}")
+                  return []
+
+
           def get(entity, service="ParliamentInfo.svc", **params):
               params.setdefault("$format", "json")
               url = f"https://knesset.gov.il/Odata/{service}/{entity}?" + urllib.parse.urlencode(params)
@@ -170,7 +183,7 @@ jobs:
           #     $inlinecount reports the true total alongside the page.
           print(f"\n{'=' * 70}\nגודל עמוד: האם השירות חותך ב-100?\n{'=' * 70}")
           for top in ("100", "300"):
-              rows = get(
+              rows = safe_get(
                   "KNS_PersonToPosition",
                   **{
                       "$top": top,
@@ -178,7 +191,7 @@ jobs:
                   },
               )
               print(f"    $top={top} -> {len(rows)} שורות")
-          rows = get(
+          rows = safe_get(
               "KNS_PersonToPosition",
               **{
                   "$top": "300",
@@ -192,7 +205,7 @@ jobs:
           #     sample rows carried knesset_num 16. Find which Knessets the
           #     view actually covers before assuming the filter is wrong.
           print(f"\n{'=' * 70}\nאילו כנסות מכוסות ב-View_vote_rslts_hdr_Approved\n{'=' * 70}")
-          latest = get(
+          latest = safe_get(
               "View_vote_rslts_hdr_Approved",
               service="Votes.svc",
               **{"$top": "3", "$orderby": "vote_id desc"},
@@ -206,12 +219,31 @@ jobs:
               f"knesset_num eq {KNESSET}",
               f"knesset_num eq '{KNESSET}'",
           ):
-              rows = get(
+              rows = safe_get(
                   "View_vote_rslts_hdr_Approved",
                   service="Votes.svc",
                   **{"$top": "2", "$filter": expr},
               )
               print(f"    filter {expr!r} -> {len(rows)} שורות")
+
+          # 5g. Answered above: the page cap is 100 regardless of $top, and
+          #     View_vote_rslts_hdr_Approved stops at Knesset 24 (last vote
+          #     2021-07-13). So the question is whether the per-member results
+          #     table covers the current Knesset even though the header view
+          #     does not — if it does not, this service simply has no votes for
+          #     the sitting Knesset and the app must say so.
+          print(f"\n{'=' * 70}\nעד איזו כנסת מגיעות תוצאות ההצבעה עצמן\n{'=' * 70}")
+          for expr in (None, f"knesset_num eq {KNESSET}", "knesset_num eq 24"):
+              params = {"$top": "2", "$orderby": "vote_id desc"}
+              if expr:
+                  params["$filter"] = expr
+              rows = safe_get("vote_rslts_kmmbr_shadow", service="Votes.svc", **params)
+              print(f"    filter={expr!r} -> {len(rows)} שורות")
+              for row in rows[:1]:
+                  print(
+                      f"        vote_id={row.get('vote_id')} knesset_num={row.get('knesset_num')} "
+                      f"kmmbr={row.get('kmmbr_name')}"
+                  )
 
           # 6. How many people hold each candidate MK position in this Knesset —
           #    43/61 are "member of Knesset" (m/f) and 54 is faction membership,
@@ -270,7 +302,10 @@ jobs:
           # A real Knesset has 120 seats; replacements push the count a little
           # higher. Anything far outside that means the query is wrong even
           # though it returned rows.
-          if not 100 <= len(members) <= 200:
+          # 100 was the page cap, not a roster. A real Knesset has 120
+          # seats and replacements only push the count up, so anything
+          # under 115 means rows are still being lost.
+          if not 115 <= len(members) <= 200:
               sys.exit(f"מספר ח\"כים חריג: {len(members)}")
 
           headers = knesset_api._vote_headers(knesset)

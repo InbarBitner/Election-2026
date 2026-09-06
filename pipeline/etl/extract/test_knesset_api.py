@@ -76,6 +76,44 @@ class VoteMemberIdTest(unittest.TestCase):
         self.assertEqual(knesset_api.vote_member_id("000000405"), "000000405")
 
 
+class PaginationTest(unittest.TestCase):
+    """The service caps responses at 100 rows without saying so."""
+
+    def test_pages_until_a_short_page_arrives(self):
+        pages = [
+            [{"n": i} for i in range(100)],
+            [{"n": i} for i in range(100, 193)],
+        ]
+        calls = []
+
+        def fake_page(entity, *, base, top, skip, filter_expr):
+            calls.append((top, skip))
+            return pages.pop(0) if pages else []
+
+        with mock.patch.object(knesset_api, "_odata_page", side_effect=fake_page):
+            rows = knesset_api._odata("KNS_PersonToPosition", top=500)
+
+        self.assertEqual(len(rows), 193)
+        self.assertEqual(calls, [(100, 0), (100, 100)])
+
+    def test_a_single_short_page_makes_no_second_request(self):
+        with mock.patch.object(
+            knesset_api, "_odata_page", return_value=[{"n": 1}]
+        ) as page:
+            rows = knesset_api._odata("KNS_Person", top=500)
+        self.assertEqual(len(rows), 1)
+        page.assert_called_once()
+
+    def test_never_returns_more_than_requested(self):
+        with mock.patch.object(
+            knesset_api,
+            "_odata_page",
+            return_value=[{"n": i} for i in range(100)],
+        ):
+            rows = knesset_api._odata("KNS_Person", top=40)
+        self.assertEqual(len(rows), 40)
+
+
 class SkippedTest(unittest.TestCase):
     """The guard that turns a silent empty result into a loud failure."""
 
