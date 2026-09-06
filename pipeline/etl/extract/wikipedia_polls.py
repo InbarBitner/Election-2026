@@ -50,9 +50,28 @@ REQUIRED_HEADERS = ("fieldwork date", "polling firm", "publisher", "sample size"
 # Columns that are structural rather than parties.
 NON_PARTY_HEADERS = {
     "fieldwork date", "polling firm", "publisher", "sample size", "lead",
-    "others", "other", "government", "opposition", "undecided", "don't know",
-    "no answer", "absent", "n/a", "sample", "date", "pollster",
+    "others", "undecided", "don't know", "no answer", "absent", "n/a",
+    "sample", "date", "pollster",
 }
+
+# Aggregate columns are the dangerous ones: they hold a real seat count, so
+# nothing downstream can tell them from a party. A "Gov." column carrying the
+# coalition's ~50 seats pushed every row it appeared in to a total of 163–179
+# and got the whole poll rejected. Matched by prefix because the headers carry
+# footnote markers and abbreviations.
+AGGREGATE_PREFIXES = (
+    "gov", "coalition", "opposition", "bloc", "total", "right-wing bloc",
+    "left-wing bloc", "cross-bloc", "arab", "haredi", "national camp",
+    "change bloc", "netanyahu bloc", "anti-netanyahu",
+)
+
+
+def _is_party_column(header: str) -> bool:
+    """Whether a header names a party rather than a total or a question."""
+    name = header.strip().lower().rstrip(".")
+    if not name or name in NON_PARTY_HEADERS:
+        return False
+    return not any(name.startswith(prefix) for prefix in AGGREGATE_PREFIXES)
 
 MONTHS = {
     "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
@@ -69,9 +88,18 @@ class ParseReport:
     rows_seen: int = 0
     polls: list[RawPoll] = field(default_factory=list)
     skipped: dict[str, int] = field(default_factory=dict)
+    # A couple of examples per reason, so a large skip count can be judged
+    # rather than guessed at — most are legitimately not polls, but a spike
+    # would be the parser losing rows it should keep.
+    examples: dict[str, list[str]] = field(default_factory=dict)
+    citations_resolved: int = 0
 
-    def skip(self, reason: str) -> None:
+    def skip(self, reason: str, example: str = "") -> None:
         self.skipped[reason] = self.skipped.get(reason, 0) + 1
+        if example:
+            shown = self.examples.setdefault(reason, [])
+            if len(shown) < 3:
+                shown.append(example[:120])
 
     def summary(self) -> str:
         parts = ", ".join(f"{k}={v}" for k, v in sorted(self.skipped.items()))
@@ -224,7 +252,7 @@ def parse_tables(html: str, today: date | None = None) -> ParseReport:
         party_at = {
             i: _strip_tags(c)
             for i, c in enumerate(_cells(rows[0]))
-            if headers[i] not in NON_PARTY_HEADERS and _strip_tags(c)
+            if _is_party_column(headers[i]) and _strip_tags(c)
         }
 
         for row_html in rows[1:]:
@@ -238,18 +266,18 @@ def parse_tables(html: str, today: date | None = None) -> ParseReport:
 
             span = _parse_date_range(cells[date_at], today)
             if span is None:
-                report.skip("תאריך לא נקרא")
+                report.skip("תאריך לא נקרא", " | ".join(cells[:4]))
                 continue
 
             pollster = cells[firm_at]
             sponsor = cells[pub_at]
             if not pollster or not sponsor:
-                report.skip("חסר בית סקרים או מזמין")
+                report.skip("חסר בית סקרים או מזמין", " | ".join(cells[:4]))
                 continue
 
             size_text = re.sub(r"[,\s]", "", cells[size_at])
             if not size_text.isdigit():
-                report.skip("גודל מדגם לא נקרא")
+                report.skip("גודל מדגם לא נקרא", " | ".join(cells[:5]))
                 continue
             sample_size = int(size_text)
 
@@ -261,13 +289,15 @@ def parse_tables(html: str, today: date | None = None) -> ParseReport:
                 if value is not None:
                     seats[party_name] = value
             if not seats:
-                report.skip("אין מנדטים בשורה")
+                report.skip("אין מנדטים בשורה", " | ".join(cells[:6]))
                 continue
 
             # The publisher's own article is the source; the encyclopedia's
             # summary of it is the fallback when the citation has no link.
             note = re.search(r'href="#(cite_note[^"]+)"', raw_cells[pub_at])
             source_url = citations.get(note.group(1)) if note else None
+            if source_url:
+                report.citations_resolved += 1
 
             report.polls.append(
                 RawPoll(

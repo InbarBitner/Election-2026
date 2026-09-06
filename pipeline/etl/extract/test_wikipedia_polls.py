@@ -212,3 +212,38 @@ class ExtractTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class AggregateColumnTest(unittest.TestCase):
+    """Total columns carry real seat counts and must never be read as parties.
+
+    A "Gov." column holding the coalition's ~50 seats pushed every row it
+    appeared in to a total of 163–179, so the seat-sum check rejected 126 of
+    171 otherwise-good polls. The number looked like a party's, which is why
+    only the total caught it.
+    """
+
+    def test_totals_and_blocs_are_not_parties(self):
+        for header in (
+            "Gov.", "Gov. [a]", "Opposition", "Coalition", "Right-wing bloc",
+            "Cross-bloc w. Arabs", "Total", "Lead", "Sample size",
+        ):
+            self.assertFalse(wp._is_party_column(header), header)
+
+    def test_real_parties_still_are(self):
+        for header in (
+            "Likud", "Yashar", "Joint List", "Amcha Yisrael", "Zionist Home",
+            # Residual buckets stay in: they hold seats that must count
+            # towards 120, and being unmapped they are reported rather than
+            # attributed to any party.
+            "Other parties", "Unity",
+        ):
+            self.assertTrue(wp._is_party_column(header), header)
+
+    def test_a_gov_column_does_not_inflate_the_seat_total(self):
+        header = SEAT_HEADER + ["Gov."]
+        row = LAZAR_ROW + ["61"]
+        poll = wp.parse_tables(_table([header, row]) + REFERENCES, today=TODAY).polls[0]
+        self.assertNotIn("Gov.", poll.seats)
+        # The row's own seats, with the 61-seat coalition total left out.
+        self.assertEqual(sum(poll.seats.values()), 116.0)

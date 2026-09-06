@@ -286,6 +286,14 @@ jobs:
           html = wp._fetch_page_html()
           report = wp.parse_tables(html)
           print(f"\n{report.summary()}\n")
+          print(f"ציטוטים שנפתרו לכתובת הפרסום: {report.citations_resolved}/{len(report.polls)}")
+          # Most skipped rows are legitimately not polls; a spike would be the
+          # parser losing rows it should keep, so show what is being dropped.
+          for reason, rows in report.examples.items():
+              print(f"\n  דוגמאות ל-{reason!r}:")
+              for row in rows:
+                  print(f"      {row}")
+          print()
 
           if not report.tables_used:
               sys.exit("לא זוהתה אף טבלת סקרים — כנראה הכותרות בדף השתנו.")
