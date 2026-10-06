@@ -153,3 +153,56 @@ class SeedReplacementTest(unittest.TestCase):
 
         self.assertEqual(removed, 0)
         delete.assert_not_called()
+
+
+class SourceIsolationTest(unittest.TestCase):
+    """One source crashing must cost that source, not the run.
+
+    Every extractor documents "never raises — reports errors instead", and the
+    pipeline's whole fault model rests on it. A docstring is not a mechanism:
+    when the Knesset service returned a non-JSON body, the JSONDecodeError was
+    not a FetchError, escaped the extractor's own handler, and ended the
+    nightly run — so the polls, the vectors and the brief were lost to an
+    unrelated source being down for an hour.
+    """
+
+    def test_a_well_behaved_source_is_passed_straight_through(self):
+        from .run_etl import _isolate
+
+        result = _isolate("x", lambda: {"polls": [1, 2], "note": "fine"}, {"polls": []})
+        self.assertEqual(result, {"polls": [1, 2], "note": "fine"})
+
+    def test_a_crashing_source_degrades_to_an_error_result(self):
+        from .run_etl import _isolate
+
+        def boom():
+            raise ValueError("Expecting value: line 1 column 1 (char 0)")
+
+        result = _isolate("כנסת", boom, {"members": [], "votes": [], "bills": []})
+        self.assertEqual(result["votes"], [])
+        self.assertIn("ValueError", result["error"])
+
+    def test_the_error_is_the_shape_silent_sources_can_read(self):
+        # The health check distinguishes "zero rows, no reason given" from
+        # "zero rows because the source failed". A contained crash has to land
+        # in the second category or it would be reported as a silent source.
+        from .run_etl import _isolate, silent_sources
+
+        def boom():
+            raise RuntimeError("nope")
+
+        result = _isolate("knesset", boom, {"votes": [], "bills": []})
+        stats = {"knesset": {"fetched": 0, "loaded": 0, "rejected": 0,
+                             "error": result["error"], "note": None}}
+        self.assertEqual(silent_sources(stats), [])
+
+    def test_a_keyboard_interrupt_is_not_swallowed(self):
+        # Containing a source's bug is the point; swallowing the operator's
+        # Ctrl-C is not.
+        from .run_etl import _isolate
+
+        def interrupted():
+            raise KeyboardInterrupt
+
+        with self.assertRaises(KeyboardInterrupt):
+            _isolate("x", interrupted, {"polls": []})

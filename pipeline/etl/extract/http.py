@@ -125,4 +125,28 @@ def fetch(url: str, *, params: dict | None = None, accept: str = "application/js
 
 
 def fetch_json(url: str, *, params: dict | None = None) -> dict:
-    return fetch(url, params=params).json()
+    """Fetch and parse JSON, reporting a non-JSON body as a fetch failure.
+
+    `fetch` is careful — it retries, and turns an HTTP error into FetchError —
+    but `.json()` used to sit outside that care, so a 200 response carrying
+    something else raised `requests.exceptions.JSONDecodeError` instead. That
+    is not a FetchError, so it escaped every `except FetchError` between here
+    and the top and ended the whole run. A service answering an OData query
+    with an HTML maintenance page is an ordinary Tuesday, not an exceptional
+    event, and it must look like any other unreachable source.
+
+    The message carries the content type and the first bytes of the body,
+    because "Expecting value: line 1 column 1 (char 0)" says only that the
+    reply was not JSON — never that it was a login page, a rate-limit notice,
+    or an outage notice, which is the thing worth knowing.
+    """
+    response = fetch(url, params=params)
+    try:
+        return response.json()
+    except ValueError as exc:
+        content_type = response.headers.get("Content-Type", "לא צוין")
+        preview = " ".join(response.text[:200].split())
+        raise FetchError(
+            f"{url} החזיר תשובה שאינה JSON (Content-Type: {content_type}): "
+            f"{preview or '[גוף ריק]'}"
+        ) from exc

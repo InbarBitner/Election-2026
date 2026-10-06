@@ -85,3 +85,63 @@ class RobotsTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class _JsonResponse:
+    """Enough of requests.Response for fetch_json, including a bad body."""
+
+    def __init__(self, text: str, content_type: str = "application/json") -> None:
+        self.status_code = 200
+        self.text = text
+        self.headers = {"Content-Type": content_type}
+
+    def json(self):
+        import json as _json
+
+        return _json.loads(self.text)
+
+    def raise_for_status(self):
+        return None
+
+
+class FetchJsonTest(unittest.TestCase):
+    """A 200 that is not JSON must read as an unreachable source.
+
+    From a real outage: the Knesset OData service answered a query with an
+    HTML page. `.json()` sat outside everything `fetch` protects, so the
+    JSONDecodeError was not a FetchError, slipped past every `except
+    FetchError` on the way up, and ended the whole nightly run — taking the
+    polls, the vectors and the daily brief with it.
+    """
+
+    def test_valid_json_is_returned(self):
+        with mock.patch.object(http, "fetch", return_value=_JsonResponse('{"value": [1]}')):
+            self.assertEqual(http.fetch_json("https://example.com/odata"), {"value": [1]})
+
+    def test_an_html_body_raises_fetch_error_not_a_decode_error(self):
+        page = "<!DOCTYPE html><html><body>Service unavailable</body></html>"
+        with mock.patch.object(
+            http, "fetch", return_value=_JsonResponse(page, "text/html; charset=utf-8")
+        ):
+            with self.assertRaises(http.FetchError):
+                http.fetch_json("https://example.com/odata")
+
+    def test_the_error_says_what_came_back_instead(self):
+        # "Expecting value: line 1 column 1" says only "not JSON". Whether it
+        # was an outage notice, a login page or a rate-limit message is the
+        # part that decides what to do next.
+        page = "<html><body>אתר הכנסת בתחזוקה</body></html>"
+        with mock.patch.object(
+            http, "fetch", return_value=_JsonResponse(page, "text/html")
+        ):
+            with self.assertRaises(http.FetchError) as caught:
+                http.fetch_json("https://example.com/odata")
+        message = str(caught.exception)
+        self.assertIn("text/html", message)
+        self.assertIn("בתחזוקה", message)
+
+    def test_an_empty_body_is_named_as_such(self):
+        with mock.patch.object(http, "fetch", return_value=_JsonResponse("", "text/plain")):
+            with self.assertRaises(http.FetchError) as caught:
+                http.fetch_json("https://example.com/odata")
+        self.assertIn("גוף ריק", str(caught.exception))

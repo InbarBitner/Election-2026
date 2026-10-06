@@ -67,6 +67,29 @@ def _candidates_by_knesset_id(connection) -> dict[str, str]:
     return {row.knessetMemberId: row.id for row in rows}
 
 
+def _isolate(name: str, extract, empty: dict) -> dict:
+    """Call a source's extract, converting a broken contract into an error.
+
+    Every extractor documents "never raises — reports errors instead", and the
+    whole-pipeline design rests on it: a single source failing must not stop
+    the others. But a docstring is a promise, not a mechanism. When the Knesset
+    OData service answered a query with a non-JSON body, the resulting
+    JSONDecodeError was not a FetchError, slipped past the extractor's own
+    `except FetchError`, and ended the run — so the polls, the vectors and the
+    daily brief were all lost to one unrelated source being briefly down.
+
+    The contract is now enforced where it is relied upon rather than trusted
+    at each call site. An extractor that breaks it degrades that one source,
+    exactly as a reported error would, and the traceback is logged so the bug
+    is still visible rather than smoothed over.
+    """
+    try:
+        return extract()
+    except Exception as exc:  # noqa: BLE001 — the point is to contain anything
+        log.exception("מקור %s קרס במקום לדווח על שגיאה", name)
+        return {**empty, "error": f"{type(exc).__name__}: {exc}"}
+
+
 def run(dry_run: bool = False, since_days: int = 7, knesset_number: int = 25) -> int:
     run_id = f"etl_{datetime.now(timezone.utc):%Y%m%d%H%M%S}_{uuid.uuid4().hex[:6]}"
     stats: dict[str, dict] = {
@@ -94,10 +117,18 @@ def run(dry_run: bool = False, since_days: int = 7, knesset_number: int = 25) ->
     # of the row being corrected.
     by_key: dict[str, object] = {}
     overridden = 0
+    no_polls = {"polls": [], "note": None}
     for name, result in (
-        ("ויקיפדיה", wikipedia_polls.extract(since=date.today() - timedelta(days=180))),
-        ("מקורות מוגדרים", polls_scraper.extract()),
-        ("הזנה ידנית", manual_polls.extract()),
+        (
+            "ויקיפדיה",
+            _isolate(
+                "ויקיפדיה",
+                lambda: wikipedia_polls.extract(since=date.today() - timedelta(days=180)),
+                no_polls,
+            ),
+        ),
+        ("מקורות מוגדרים", _isolate("מקורות מוגדרים", polls_scraper.extract, no_polls)),
+        ("הזנה ידנית", _isolate("הזנה ידנית", manual_polls.extract, no_polls)),
     ):
         for raw in result["polls"]:
             key = poll_id(raw.pollster, raw.field_date_end, raw.sponsor)
@@ -124,13 +155,21 @@ def run(dry_run: bool = False, since_days: int = 7, knesset_number: int = 25) ->
     stats["polls"]["note"] = " · ".join(poll_notes) or None
 
     log.info("שולף נתוני כנסת...")
-    knesset_result = knesset_api.extract(knesset_number)
+    knesset_result = _isolate(
+        "כנסת",
+        lambda: knesset_api.extract(knesset_number),
+        {"members": [], "votes": [], "bills": [], "note": None},
+    )
     stats["knesset"]["fetched"] = len(knesset_result["votes"]) + len(knesset_result["bills"])
     stats["knesset"]["error"] = knesset_result.get("error")
     stats["knesset"]["note"] = knesset_result.get("note")
 
     log.info("שולף פידי חדשות...")
-    news_result = news_rss.extract(since=date.today() - timedelta(days=since_days))
+    news_result = _isolate(
+        "חדשות",
+        lambda: news_rss.extract(since=date.today() - timedelta(days=since_days)),
+        {"events": [], "note": None},
+    )
     stats["news"]["fetched"] = len(news_result["events"])
     stats["news"]["error"] = news_result.get("error")
     stats["news"]["note"] = news_result.get("note")
