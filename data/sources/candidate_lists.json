@@ -1,0 +1,87 @@
+{
+  "_comment": "Official candidate lists for the 26th Knesset, as approved by the Central Elections Committee. Each URL is the Israel Democracy Institute's PDF copy of the committee's page for that list (index: https://www.idi.org.il/policy/parties-and-elections/elections/2026-1). `components` are the parties that jointly submitted the list, as named in the list's header; `match` is the text that identifies each one in an entry's 'מטעם' line. Single-party lists have none, since naming the only party on every entry adds nothing.",
+  "sourceName": "ועדת הבחירות המרכזית (עותק: המכון הישראלי לדמוקרטיה)",
+  "lists": {
+    "likud": {
+      "url": "https://www.idi.org.il/media/32314/%D7%94%D7%9C%D7%99%D7%9B%D7%95%D7%93.pdf",
+      "components": [
+        { "name": "הליכוד", "match": "הליכוד" },
+        { "name": "תקווה חדשה", "match": "תקווה" }
+      ]
+    },
+    "democrats": {
+      "url": "https://www.idi.org.il/media/32313/%D7%94%D7%93%D7%9E%D7%95%D7%A7%D7%A8%D7%98%D7%99%D7%9D.pdf",
+      "components": [
+        { "name": "הדמוקרטים", "match": "הדמוקרטים" },
+        { "name": "מרצ", "match": "מרצ" }
+      ]
+    },
+    "joint-list": {
+      "url": "https://www.idi.org.il/media/32320/%D7%94%D7%A8%D7%A9%D7%99%D7%9E%D7%94-%D7%94%D7%9E%D7%A9%D7%95%D7%AA%D7%A4%D7%AA.pdf",
+      "components": [
+        { "name": "חד\"ש", "match": "הקומוניסטית" },
+        { "name": "בל\"ד", "match": "אלתג'מוע" },
+        { "name": "תע\"ל", "match": "להתחדשות" }
+      ]
+    },
+    "kachol-lavan": {
+      "url": "https://www.idi.org.il/media/32327/%D7%9B%D7%97%D7%95%D7%9C-%D7%9C%D7%91%D7%9F.pdf"
+    },
+    "otzma": {
+      "url": "https://www.idi.org.il/media/32332/%D7%A2%D7%95%D7%A6%D7%9E%D7%94-%D7%99%D7%94%D7%95%D7%93%D7%99%D7%AA.pdf",
+      "components": [
+        { "name": "עוצמה יהודית", "match": "חזית יהודית" },
+        { "name": "ארץ ישראל שלנו", "match": "ארץ ישראל שלנו" }
+      ]
+    },
+    "raam": {
+      "url": "https://www.idi.org.il/media/32337/%D7%A8%D7%A2%D7%9E.pdf"
+    },
+    "religious-zionism": {
+      "url": "https://www.idi.org.il/media/32318/%D7%94%D7%A6%D7%99%D7%95%D7%A0%D7%95%D7%AA-%D7%94%D7%93%D7%AA%D7%99%D7%AA.pdf",
+      "components": [
+        { "name": "הציונות הדתית", "match": "תקומה" },
+        { "name": "זהות", "match": "זהות" },
+        { "name": "עתיד אחד", "match": "עתיד אחד" }
+      ]
+    },
+    "shas": {
+      "url": "https://www.idi.org.il/media/32339/%D7%A9%D7%A1.pdf"
+    },
+    "yachad": {
+      "url": "https://www.idi.org.il/media/32309/%D7%91%D7%99%D7%97%D7%93.pdf",
+      "components": [
+        { "name": "בנט 2026", "match": "ביחד בראשות בנט" },
+        { "name": "יש עתיד", "match": "יש עתיד" }
+      ]
+    },
+    "yahadut-hatorah": {
+      "url": "https://www.idi.org.il/media/32323/%D7%99%D7%94%D7%93%D7%95%D7%AA-%D7%94%D7%AA%D7%95%D7%A8%D7%94.pdf",
+      "components": [
+        { "name": "דגל התורה", "match": "דגל התורה" },
+        { "name": "אגודת ישראל", "match": "הסתדרות אגודת ישראל" },
+        { "name": "חומת תורת ישראל", "match": "חומת תורת ישראל" }
+      ]
+    },
+    "yashar": {
+      "url": "https://www.idi.org.il/media/32324/%D7%99%D7%A9%D7%A8.pdf",
+      "components": [
+        { "name": "ישר!", "match": "מפלגת ישר" },
+        { "name": "יסודות ישראל", "match": "יסודות ישראל" }
+      ]
+    },
+    "yisrael-beitenu": {
+      "url": "https://www.idi.org.il/media/32325/%D7%99%D7%A9%D7%A8%D7%90%D7%9C-%D7%91%D7%99%D7%AA%D7%A0%D7%95.pdf"
+    },
+    "zionist-home": {
+      "url": "https://www.idi.org.il/media/32315/%D7%94%D7%9E%D7%99%D7%9C%D7%95%D7%90%D7%99%D7%9E%D7%A0%D7%99%D7%A7%D7%99%D7%9D-%D7%95%D7%94%D7%9B%D7%9C%D7%9B%D7%9C%D7%99%D7%AA.pdf",
+      "components": [
+        { "name": "המילואימניקים", "match": "המילואימניקים" },
+        { "name": "הכלכלית החדשה", "match": "הכלכלית" }
+      ]
+    },
+    "amcha-israel": {
+      "url": "https://www.idi.org.il/media/32333/%D7%A2%D7%9E%D7%9A-%D7%99%D7%A9%D7%A8%D7%90%D7%9C.pdf"
+    }
+  }
+}

@@ -34,7 +34,8 @@ ALIASES: dict[str, list[str]] = {
         "bennett",
         "yesh atid",
         "beyachad",
-        "together", "beyachad natzliach",
+        # Not "ביחד נצליח": that is a separate Arab-Jewish list.
+        "together",
     ],
     "yashar": ["ישר", "ישר!", "ישר בראשות איזנקוט", "איזנקוט", "yashar", "eisenkot"],
     "amcha-israel": ["עמך ישראל", "עמך", "וינטר", "עופר וינטר", "amcha israel", "winter",

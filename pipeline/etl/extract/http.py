@@ -46,13 +46,17 @@ def _robots(origin: str) -> urllib.robotparser.RobotFileParser | None:
 
     So the file is requested with the same identifying User-Agent as every
     other call, and only the parsing is left to the standard library.
+
+    The Accept header carries a fallback for the same reason: idi.org.il
+    answers a bare "text/plain" with 406, which would otherwise read as a ban
+    on the whole host although its robots.txt permits what we fetch.
     """
     url = f"{origin}/robots.txt"
     try:
         response = requests.get(
             url,
             timeout=REQUEST_TIMEOUT,
-            headers={"User-Agent": USER_AGENT, "Accept": "text/plain"},
+            headers={"User-Agent": USER_AGENT, "Accept": "text/plain, */*;q=0.1"},
         )
     except Exception as exc:  # noqa: BLE001 — an unreachable robots.txt is not fatal
         log.warning("could not read robots.txt for %s: %s", origin, exc)
