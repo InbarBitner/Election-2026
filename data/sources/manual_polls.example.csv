@@ -1,0 +1,20 @@
+# Hand-entered polls. Copy to manual_polls.csv to use.
+#
+# A row here overrides anything read from Wikipedia for the same pollster and
+# end date, so this is where you correct a wrong figure or add a poll that has
+# not reached Wikipedia yet.
+#
+# Required: pollster, field_date_end, sample_size, source_url.
+# field_date_start defaults to field_date_end for a single-day poll.
+# margin_of_error may be left blank if the publication did not state one.
+# source_url must link to the publication — a row without it is not loaded.
+#
+# Party columns: use the Hebrew or English name as published. Anything the
+# alias table in pipeline/etl/transform/party_mapping.py recognises will map;
+# an unrecognised name is reported rather than guessed at. A party polling
+# below the threshold gets 0, not a blank — a blank means "not asked about".
+#
+# Lines beginning with # in the pollster column are ignored.
+pollster,sponsor,field_date_start,field_date_end,sample_size,margin_of_error,source_url,source_name,הליכוד,ביחד,ישר!,הציונות הדתית,עוצמה יהודית,ש"ס,יהדות התורה,ישראל ביתנו,הדמוקרטים,כחול לבן,הרשימה המשותפת,רע"ם,הבית הציוני,עמך ישראל
+# Example row, delete it. Seats must add up to 120.
+לזר,מעריב,2026-09-03,2026-09-04,600,4.0,https://www.maariv.co.il/elections/example,מעריב,20,15,23,5,8,7,7,9,10,0,7,5,0,4

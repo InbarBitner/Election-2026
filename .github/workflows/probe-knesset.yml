@@ -1,0 +1,354 @@
+name: בדיקת מבנה נתוני הכנסת
+
+# A manual probe, never scheduled.
+#
+# The development sandbox cannot reach knesset.gov.il — the egress proxy
+# rejects the connection outright — so the OData connector was written against
+# assumed field names and shipped a bug: KNS_PersonToPosition has no `Name`
+# column, so every member was filtered out and the source returned zero rows
+# with no error at all.
+#
+# This workflow exists so the field names can be read off the live service
+# instead of guessed at again. It prints structure — the key names of a couple
+# of rows, and row counts — and is deliberately tiny: a handful of requests,
+# spaced out, run only when somebody presses the button.
+on:
+  workflow_dispatch:
+    inputs:
+      knesset_number:
+        description: "מספר הכנסת לבדיקה"
+        required: false
+        default: "25"
+
+jobs:
+  probe:
+    name: מבנה KNS_Person / KNS_PersonToPosition
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: שליפת מבנה הטבלאות
+        env:
+          KNESSET_NUMBER: ${{ inputs.knesset_number }}
+        run: |
+          python - <<'PY'
+          """Print the shape of the Knesset OData entities the connector uses."""
+          import json
+          import os
+          import time
+          import urllib.parse
+          import urllib.request
+
+          BASE = "https://knesset.gov.il/Odata/ParliamentInfo.svc"
+          UA = "Election2026Bot/0.1 (+https://github.com/InbarBitner/Election-2026; schema probe)"
+          KNESSET = os.environ.get("KNESSET_NUMBER") or "25"
+
+
+          def safe_get(entity, service="ParliamentInfo.svc", **params):
+              """get() that reports instead of aborting the whole probe.
+
+              A bare get() killed an earlier run on an HTTP 400 and threw away
+              every answer that would have printed after it.
+              """
+              try:
+                  return get(entity, service=service, **params)
+              except Exception as exc:  # noqa: BLE001 — a probe reports, never fails
+                  print(f"    !! {type(exc).__name__}: {exc}")
+                  return []
+
+
+          def get(entity, service="ParliamentInfo.svc", **params):
+              params.setdefault("$format", "json")
+              url = f"https://knesset.gov.il/Odata/{service}/{entity}?" + urllib.parse.urlencode(params)
+              request = urllib.request.Request(url, headers={"User-Agent": UA})
+              # One request every couple of seconds: this is a probe, not a crawl.
+              time.sleep(2)
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  payload = json.load(response)
+              if isinstance(payload.get("d"), dict):
+                  return payload["d"].get("results", [])
+              return payload.get("value", payload.get("d") or [])
+
+
+          def show(title, entity, service="ParliamentInfo.svc", **params):
+              print(f"\n{'=' * 70}\n{title}\n  {service}/{entity} {params}\n{'=' * 70}")
+              try:
+                  rows = get(entity, service=service, **params)
+              except Exception as exc:  # noqa: BLE001 — a probe reports, never fails
+                  print(f"  !! {type(exc).__name__}: {exc}")
+                  return []
+              print(f"  rows: {len(rows)}")
+              if rows:
+                  print(f"  keys: {sorted(rows[0])}")
+                  for row in rows[:2]:
+                      print("  " + json.dumps(row, ensure_ascii=False))
+              return rows
+
+
+          def service_document(service):
+              """List the entity sets a service exposes, so nothing is guessed."""
+              url = f"https://knesset.gov.il/Odata/{service}/?$format=json"
+              print(f"\n{'=' * 70}\n{service} — entity sets\n{'=' * 70}")
+              request = urllib.request.Request(url, headers={"User-Agent": UA})
+              time.sleep(2)
+              try:
+                  with urllib.request.urlopen(request, timeout=30) as response:
+                      payload = json.load(response)
+              except Exception as exc:  # noqa: BLE001 — a probe reports, never fails
+                  print(f"  !! {type(exc).__name__}: {exc}")
+                  return
+              entries = payload.get("value") or payload.get("d") or []
+              for entry in entries:
+                  name = entry.get("name") if isinstance(entry, dict) else entry
+                  print(f"    {name}")
+
+
+          # 0. What each service actually exposes. KNS_PersonVotesView 404s, so
+          #    the vote entity has to be found rather than assumed a second time.
+          service_document("ParliamentInfo.svc")
+          service_document("Votes.svc")
+
+          # 1. Where the names actually live.
+          show("שמות האנשים", "KNS_Person", **{"$top": "2"})
+
+          # 1b. Bill titles are not on KNS_BillInitiator — find where they are.
+          show("הצעות חוק", "KNS_Bill", **{"$top": "2"})
+
+          # 2. Does filtering to the current Knesset return anything at all?
+          show(
+              f"תפקידים בכנסת ה-{KNESSET}",
+              "KNS_PersonToPosition",
+              **{"$top": "3", "$filter": f"KnessetNum eq {KNESSET}"},
+          )
+
+          # 3. …and narrowed to currently-held positions.
+          show(
+              f"תפקידים נוכחיים בכנסת ה-{KNESSET}",
+              "KNS_PersonToPosition",
+              **{"$top": "3", "$filter": f"KnessetNum eq {KNESSET} and IsCurrent eq true"},
+          )
+
+          # 4. Which PositionID means "member of Knesset".
+          positions = show("רשימת התפקידים", "KNS_Position", **{"$top": "100"})
+          for row in positions:
+              label = row.get("Description") or row.get("Name") or ""
+              print(f"    {row.get('PositionID')}: {label}")
+
+          # 5. The per-member entities, so their field names are known too.
+          show("יוזמי הצעות חוק", "KNS_BillInitiator", **{"$top": "2"})
+
+          # 5b. KNS_Bill carries StatusID, not a status description — the text
+          #     for it lives here.
+          show("סטטוסים", "KNS_Status", **{"$top": "5"})
+
+          # 5c. Votes are not in ParliamentInfo.svc at all; they are their own
+          #     service. These are the four entity sets it exposes.
+          for entity in (
+              "View_vote_rslts_hdr_Approved",
+              "View_Vote_MK_Individual",
+              "vote_result_type",
+              # The join table: which member voted which way in which vote.
+              "vote_rslts_kmmbr_shadow",
+          ):
+              show(f"Votes: {entity}", entity, service="Votes.svc", **{"$top": "2"})
+
+          # 5d. Votes.svc keys members by mk_individual_id while
+          #     ParliamentInfo.svc keys them by PersonID. Whether those are the
+          #     same number decides whether the two services can be joined at
+          #     all, so check one known id in both directions rather than
+          #     assuming they line up.
+          # …and they are not: PersonID 12 does not exist, while Votes.svc has
+          # mk_individual_id 12. The two services number people differently, so
+          # a bridge table is required. KNS_MkSiteCode is the candidate.
+          show(
+              "האם mk_individual_id זהה ל-PersonID? (12 = בנימין אלון לפי Votes.svc)",
+              "KNS_Person",
+              **{"$filter": "PersonID eq 12"},
+          )
+          show("גשר בין מרחבי המזהים", "KNS_MkSiteCode", **{"$top": "3"})
+          show(
+              "אלון ב-KNS_Person — לאיזה PersonID הוא ממופה",
+              "KNS_Person",
+              **{"$filter": "LastName eq 'אלון'", "$top": "5"},
+          )
+
+          # 5e. The live run returned exactly 100 members for a 120-seat
+          #     Knesset despite $top=500 — the round number says the service
+          #     caps its page size and the connector is silently truncating.
+          #     $inlinecount reports the true total alongside the page.
+          print(f"\n{'=' * 70}\nגודל עמוד: האם השירות חותך ב-100?\n{'=' * 70}")
+          for top in ("100", "300"):
+              rows = safe_get(
+                  "KNS_PersonToPosition",
+                  **{
+                      "$top": top,
+                      "$filter": f"KnessetNum eq {KNESSET} and PositionID eq 54",
+                  },
+              )
+              print(f"    $top={top} -> {len(rows)} שורות")
+          rows = safe_get(
+              "KNS_PersonToPosition",
+              **{
+                  "$top": "300",
+                  "$skip": "100",
+                  "$filter": f"KnessetNum eq {KNESSET} and PositionID eq 54",
+              },
+          )
+          print(f"    $skip=100 -> {len(rows)} שורות (אם >0, צריך עימוד)")
+
+          # 5f. knesset_num eq 25 returned no vote headers at all, though the
+          #     sample rows carried knesset_num 16. Find which Knessets the
+          #     view actually covers before assuming the filter is wrong.
+          print(f"\n{'=' * 70}\nאילו כנסות מכוסות ב-View_vote_rslts_hdr_Approved\n{'=' * 70}")
+          latest = safe_get(
+              "View_vote_rslts_hdr_Approved",
+              service="Votes.svc",
+              **{"$top": "3", "$orderby": "vote_id desc"},
+          )
+          for row in latest:
+              print(
+                  f"    vote_id={row.get('vote_id')} knesset_num={row.get('knesset_num')!r} "
+                  f"date={row.get('vote_date')}"
+              )
+          for expr in (
+              f"knesset_num eq {KNESSET}",
+              f"knesset_num eq '{KNESSET}'",
+          ):
+              rows = safe_get(
+                  "View_vote_rslts_hdr_Approved",
+                  service="Votes.svc",
+                  **{"$top": "2", "$filter": expr},
+              )
+              print(f"    filter {expr!r} -> {len(rows)} שורות")
+
+          # 5g. Answered above: the page cap is 100 regardless of $top, and
+          #     View_vote_rslts_hdr_Approved stops at Knesset 24 (last vote
+          #     2021-07-13). So the question is whether the per-member results
+          #     table covers the current Knesset even though the header view
+          #     does not — if it does not, this service simply has no votes for
+          #     the sitting Knesset and the app must say so.
+          print(f"\n{'=' * 70}\nעד איזו כנסת מגיעות תוצאות ההצבעה עצמן\n{'=' * 70}")
+          for expr in (None, f"knesset_num eq {KNESSET}", "knesset_num eq 24"):
+              params = {"$top": "2", "$orderby": "vote_id desc"}
+              if expr:
+                  params["$filter"] = expr
+              rows = safe_get("vote_rslts_kmmbr_shadow", service="Votes.svc", **params)
+              print(f"    filter={expr!r} -> {len(rows)} שורות")
+              for row in rows[:1]:
+                  print(
+                      f"        vote_id={row.get('vote_id')} knesset_num={row.get('knesset_num')} "
+                      f"kmmbr={row.get('kmmbr_name')}"
+                  )
+
+          # 6. How many people hold each candidate MK position in this Knesset —
+          #    43/61 are "member of Knesset" (m/f) and 54 is faction membership,
+          #    which is the row that actually carries FactionName.
+          for position_id in (43, 61, 54):
+              show(
+                  f"PositionID {position_id} בכנסת ה-{KNESSET}",
+                  "KNS_PersonToPosition",
+                  **{
+                      "$top": "2",
+                      "$filter": f"KnessetNum eq {KNESSET} and PositionID eq {position_id}",
+                      "$inlinecount": "allpages",
+                  },
+              )
+          PY
+
+  verify:
+    name: הקונקטור מול השירות החי
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # The unit tests use fixtures chosen by the same author who chose the
+    # wrong field names, so they cannot prove the connector works. This runs
+    # the real functions against the real service on a small sample.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: שליפה אמיתית של ח"כים, הצבעות והצעות חוק
+        env:
+          KNESSET_NUMBER: ${{ inputs.knesset_number }}
+        run: |
+          python - <<'PY'
+          import logging
+          import os
+          import sys
+
+          from pipeline.etl.extract import knesset_api
+
+          logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+          knesset = int(os.environ.get("KNESSET_NUMBER") or 25)
+
+          members = knesset_api.fetch_members(knesset)
+          print(f"\nח\"כים: {len(members)}")
+          for member in members[:5]:
+              print(f"  {member['knessetMemberId']:>6}  {member['name']}  [{member['factionName']}]")
+
+          if not members:
+              sys.exit("fetch_members החזירה אפס — הבדיקה נכשלת במקום לדווח הצלחה.")
+
+          # A real Knesset has 120 seats; replacements push the count a little
+          # higher. Anything far outside that means the query is wrong even
+          # though it returned rows.
+          # 100 was the page cap, not a roster. A real Knesset has 120
+          # seats and replacements only push the count up, so anything
+          # under 115 means rows are still being lost.
+          if not 115 <= len(members) <= 200:
+              sys.exit(f"מספר ח\"כים חריג: {len(members)}")
+
+          # Votes.svc is frozen at the 24th Knesset. That is the source's
+          # limitation, not a defect in this code, so it must not fail the
+          # build — but a vote history that is empty for a Knesset the service
+          # DOES cover would be a defect, and still fails below.
+          covered = knesset_api.latest_vote_knesset()
+          results = knesset_api._vote_result_names()
+          statuses = knesset_api._bill_statuses()
+          print(f"כיסוי הצבעות עד כנסת {covered} · סוגי תוצאה: {results} · סטטוסים: {len(statuses)}")
+
+          if not statuses:
+              sys.exit("לא נשלפו סטטוסים של הצעות חוק.")
+
+          votes_expected = covered is not None and covered >= knesset
+          headers = knesset_api._vote_headers(knesset) if votes_expected else {}
+          if votes_expected and not headers:
+              sys.exit(f"הכנסת ה-{knesset} מכוסה בשירות ההצבעות אך לא נשלפו כותרות.")
+          if not votes_expected:
+              print(
+                  f"אין הצבעות לכנסת ה-{knesset} — השירות מתעדכן עד כנסת {covered}. "
+                  "מגבלת מקור, לא כשל."
+              )
+
+          checked = 0
+          for member in members[:3]:
+              person_id = member["knessetMemberId"]
+              votes = (
+                  knesset_api.fetch_votes(
+                      person_id, knesset_number=knesset, headers=headers, results=results
+                  )
+                  if votes_expected
+                  else []
+              )
+              bills = knesset_api.fetch_bills(person_id, statuses=statuses)
+              print(f"\n{member['name']} — {len(votes)} הצבעות, {len(bills)} הצעות חוק")
+              for vote in votes[:2]:
+                  print(f"    [{vote['position']:>7}] {vote['date']}  {vote['billTitle'][:60]}")
+              for bill in bills[:2]:
+                  print(f"    [{bill['status']}] {bill['date']}  {bill['title'][:60]}")
+              checked += len(votes) + len(bills)
+
+          if checked == 0:
+              sys.exit("אף הצבעה ואף הצעת חוק לא נשלפו עבור שלושת הח\"כים הראשונים.")
+          print(f"\nסה\"כ {checked} רשומות נשלפו ונותחו בהצלחה.")
+          PY

@@ -1,0 +1,125 @@
+{
+  "_comment": "SYNTHETIC DEMO DATA — these are not real published polls. The seed generator (pipeline/seed.py) interpolates a daily series between these anchors, adds a per-pollster house effect and deterministic noise, and loads the result through the same transform/load path as the real scrapers. The party roster matches the real September 2026 lists so the demo is not nonsense, but the NUMBERS are invented. Replace with real polls by configuring a source in data/sources/polls.json and running `python -m pipeline.run_etl`.",
+  "startDate": "2026-03-01",
+  "endDate": "2026-08-31",
+  "pollsters": [
+    {
+      "name": "מדגם הדגמה א'",
+      "sponsor": "ערוץ הדגמה 1",
+      "sampleSize": 750,
+      "marginOfError": 3.6,
+      "houseEffect": {
+        "likud": 1.0,
+        "democrats": -0.5
+      }
+    },
+    {
+      "name": "מדגם הדגמה ב'",
+      "sponsor": "ערוץ הדגמה 2",
+      "sampleSize": 600,
+      "marginOfError": 4.0,
+      "houseEffect": {
+        "likud": -1.0,
+        "yachad": 0.7
+      }
+    },
+    {
+      "name": "מדגם הדגמה ג'",
+      "sponsor": "עיתון הדגמה",
+      "sampleSize": 1100,
+      "marginOfError": 3.0,
+      "houseEffect": {
+        "yashar": 1.2,
+        "kachol-lavan": -0.6
+      }
+    },
+    {
+      "name": "מדגם הדגמה ד'",
+      "sponsor": "רדיו הדגמה",
+      "sampleSize": 500,
+      "marginOfError": 4.4,
+      "houseEffect": {
+        "otzma": 0.6,
+        "shas": 0.4
+      }
+    }
+  ],
+  "anchors": [
+    {
+      "date": "2026-03-01",
+      "seats": {
+        "likud": 26,
+        "yashar": 12,
+        "yachad": 22,
+        "shas": 10,
+        "yahadut-hatorah": 7,
+        "otzma": 8,
+        "religious-zionism": 5,
+        "yisrael-beitenu": 7,
+        "democrats": 10,
+        "kachol-lavan": 6,
+        "joint-list": 5,
+        "raam": 2,
+        "amcha-israel": 0,
+        "zionist-home": 0
+      }
+    },
+    {
+      "date": "2026-05-15",
+      "seats": {
+        "likud": 24,
+        "yashar": 18,
+        "yachad": 20,
+        "shas": 10,
+        "yahadut-hatorah": 7,
+        "otzma": 8,
+        "religious-zionism": 5,
+        "yisrael-beitenu": 7,
+        "democrats": 9,
+        "kachol-lavan": 4,
+        "joint-list": 6,
+        "raam": 1,
+        "amcha-israel": 1,
+        "zionist-home": 0
+      }
+    },
+    {
+      "date": "2026-07-01",
+      "seats": {
+        "likud": 22,
+        "yashar": 23,
+        "yachad": 18,
+        "shas": 9,
+        "yahadut-hatorah": 7,
+        "otzma": 7,
+        "religious-zionism": 5,
+        "yisrael-beitenu": 7,
+        "democrats": 9,
+        "kachol-lavan": 3,
+        "joint-list": 6,
+        "raam": 2,
+        "amcha-israel": 2,
+        "zionist-home": 0
+      }
+    },
+    {
+      "date": "2026-08-31",
+      "seats": {
+        "likud": 22,
+        "yashar": 24,
+        "yachad": 17,
+        "shas": 8,
+        "yahadut-hatorah": 7,
+        "otzma": 8,
+        "religious-zionism": 5,
+        "yisrael-beitenu": 8,
+        "democrats": 10,
+        "kachol-lavan": 0,
+        "joint-list": 7,
+        "raam": 4,
+        "amcha-israel": 0,
+        "zionist-home": 0
+      }
+    }
+  ]
+}

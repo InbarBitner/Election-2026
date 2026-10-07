@@ -1,0 +1,321 @@
+"""Loading cleaned records into the warehouse.
+
+Every write in the project goes through this module, which is what makes the
+`require_source` rule enforceable: there is no other path into the sourced
+tables. All loads are idempotent — running the same day twice produces the same
+rows, not duplicates — because ids are derived from natural keys upstream.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+
+from sqlalchemy import func, select
+
+from ...db import delete_where, now_ms, table, to_db_datetime, upsert
+from ..transform.normalize import CleanPoll, require_source
+
+
+def _row_id(prefix: str, *parts: str) -> str:
+    key = "|".join(parts)
+    return f"{prefix}_" + hashlib.sha1(key.encode("utf-8")).hexdigest()[:16]
+
+
+def load_parties(connection, parties: list[dict]) -> int:
+    """Load parties and their platform planks.
+
+    `parties` are dicts in the shape of data/seed/parties.json.
+    """
+    party_rows = []
+    plank_rows = []
+    for party in parties:
+        require_source(party, f"מפלגה {party.get('name')}")
+        party_rows.append(
+            {
+                "id": party["id"],
+                "slug": party["slug"],
+                "name": party["name"],
+                "shortName": party["shortName"],
+                "leader": party["leader"],
+                "bloc": party["bloc"],
+                "color": party["color"],
+                "colorDark": party.get("colorDark", party["color"]),
+                "isActive": party.get("isActive", True),
+                "platformText": party.get("platformText", ""),
+                "sourceUrl": party["sourceUrl"],
+                "sourceName": party["sourceName"],
+                "provenance": party.get("provenance", "seed"),
+                "updatedAt": now_ms(),
+            }
+        )
+        for plank in party.get("planks", []):
+            plank_rows.append(
+                {
+                    "id": _row_id("plank", party["id"], plank["axis"]),
+                    "partyId": party["id"],
+                    "axis": plank["axis"],
+                    "topic": plank["topic"],
+                    "text": plank["text"],
+                    "position": float(plank["position"]),
+                    # A plank inherits the party's platform source.
+                    "sourceUrl": plank.get("sourceUrl", party["sourceUrl"]),
+                    "sourceName": plank.get("sourceName", party["sourceName"]),
+                }
+            )
+
+    written = upsert(connection, "Party", party_rows, key=["id"])
+    upsert(connection, "PlatformPlank", plank_rows, key=["id"])
+    return written
+
+
+def load_candidates(connection, candidates: list[dict]) -> int:
+    rows = []
+    for candidate in candidates:
+        require_source(candidate, f"מועמד {candidate.get('name')}")
+        rows.append(
+            {
+                "id": candidate["id"],
+                "partyId": candidate["partyId"],
+                "name": candidate["name"],
+                "listPosition": int(candidate["listPosition"]),
+                "bio": candidate.get("bio", ""),
+                "knessetMemberId": candidate.get("knessetMemberId"),
+                "sourceUrl": candidate["sourceUrl"],
+                "sourceName": candidate["sourceName"],
+                "provenance": candidate.get("provenance", "seed"),
+                "updatedAt": now_ms(),
+            }
+        )
+    return upsert(connection, "Candidate", rows, key=["id"])
+
+
+def load_polls(connection, polls: list[CleanPoll]) -> int:
+    poll_rows = []
+    result_rows = []
+    for poll in polls:
+        poll_rows.append(
+            {
+                "id": poll.id,
+                "pollster": poll.pollster,
+                "sponsor": poll.sponsor,
+                "fieldDateStart": to_db_datetime(poll.field_date_start),
+                "fieldDateEnd": to_db_datetime(poll.field_date_end),
+                "sampleSize": poll.sample_size,
+                "marginOfError": poll.margin_of_error,
+                "sourceUrl": poll.source_url,
+                "sourceName": poll.source_name,
+                "provenance": poll.provenance,
+                "createdAt": now_ms(),
+            }
+        )
+        for party_id, seats in poll.seats.items():
+            result_rows.append(
+                {
+                    "id": _row_id("pr", poll.id, party_id),
+                    "pollId": poll.id,
+                    "partyId": party_id,
+                    "seats": float(seats),
+                }
+            )
+
+    written = upsert(connection, "Poll", poll_rows, key=["id"])
+    upsert(connection, "PollResult", result_rows, key=["id"])
+    return written
+
+
+def _load_sourced(connection, table_name: str, rows: list[dict], label: str) -> int:
+    for row in rows:
+        require_source(row, label)
+    return upsert(connection, table_name, rows, key=["id"])
+
+
+def load_votes(connection, votes: list[dict]) -> int:
+    rows = [
+        {
+            "id": v["id"],
+            "candidateId": v["candidateId"],
+            "billTitle": v["billTitle"],
+            "topic": v["topic"],
+            "date": to_db_datetime(v["date"]),
+            "position": v["position"],
+            "againstFaction": bool(v.get("againstFaction", False)),
+            "sourceUrl": v["sourceUrl"],
+            "sourceName": v["sourceName"],
+        }
+        for v in votes
+    ]
+    return _load_sourced(connection, "VoteRecord", rows, "הצבעה")
+
+
+def load_bills(connection, bills: list[dict]) -> int:
+    rows = [
+        {
+            "id": b["id"],
+            "candidateId": b["candidateId"],
+            "title": b["title"],
+            "topic": b["topic"],
+            "status": b["status"],
+            "date": to_db_datetime(b["date"]),
+            "isLeadSponsor": bool(b.get("isLeadSponsor", False)),
+            "summary": b.get("summary", ""),
+            "sourceUrl": b["sourceUrl"],
+            "sourceName": b["sourceName"],
+        }
+        for b in bills
+    ]
+    return _load_sourced(connection, "Bill", rows, "הצעת חוק")
+
+
+def load_quotes(connection, quotes: list[dict]) -> int:
+    rows = [
+        {
+            "id": q["id"],
+            "candidateId": q["candidateId"],
+            "text": q["text"],
+            "context": q.get("context", ""),
+            "topic": q["topic"],
+            "date": to_db_datetime(q["date"]),
+            "sourceUrl": q["sourceUrl"],
+            "sourceName": q["sourceName"],
+        }
+        for q in quotes
+    ]
+    return _load_sourced(connection, "Quote", rows, "ציטוט")
+
+
+def load_connections(connection, connections: list[dict]) -> int:
+    rows = [
+        {
+            "id": c["id"],
+            "candidateId": c["candidateId"],
+            "kind": c["kind"],
+            "targetName": c["targetName"],
+            "description": c.get("description", ""),
+            "sourceUrl": c["sourceUrl"],
+            "sourceName": c["sourceName"],
+        }
+        for c in connections
+    ]
+    return _load_sourced(connection, "Connection", rows, "קשר פוליטי")
+
+
+def load_events(connection, events: list[dict]) -> int:
+    rows = [
+        {
+            "id": e["id"],
+            "kind": e["kind"],
+            "date": to_db_datetime(e["date"]),
+            "headline": e["headline"],
+            "description": e.get("description", ""),
+            "sourceUrl": e["sourceUrl"],
+            "sourceName": e["sourceName"],
+            "provenance": e.get("provenance", "etl"),
+        }
+        for e in events
+    ]
+    return _load_sourced(connection, "Event", rows, "אירוע")
+
+
+def load_quiz(connection, questions: list[dict]) -> int:
+    rows = [
+        {
+            "id": q["id"],
+            "order": int(q["order"]),
+            "axis": q["axis"],
+            "text": q["text"],
+            "shortLabel": q["shortLabel"],
+            "weight": float(q.get("weight", 1.0)),
+            "polarity": int(q.get("polarity", 1)),
+        }
+        for q in questions
+    ]
+    # The quiz is a fixed questionnaire, not accumulated data: replacing it
+    # wholesale keeps removed questions from lingering.
+    connection.execute(table("QuizQuestion").delete())
+    return upsert(connection, "QuizQuestion", rows, key=["id"])
+
+
+def load_party_vectors(connection, vectors: dict[str, dict[str, float]], derived_from: str) -> int:
+    rows = [
+        {
+            "partyId": party_id,
+            "vectorJson": json.dumps(vector, ensure_ascii=False, sort_keys=True),
+            "derivedFrom": derived_from,
+            "updatedAt": now_ms(),
+        }
+        for party_id, vector in vectors.items()
+    ]
+    return upsert(connection, "PartyVector", rows, key=["partyId"])
+
+
+def save_brief(connection, brief: dict) -> None:
+    upsert(
+        connection,
+        "DailyBrief",
+        [
+            {
+                "date": brief["date"],
+                "headline": brief["headline"],
+                "bodyMarkdown": brief["bodyMarkdown"],
+                "generator": brief["generator"],
+                "factsJson": json.dumps(brief["facts"], ensure_ascii=False),
+                "createdAt": now_ms(),
+            }
+        ],
+        key=["date"],
+    )
+
+
+def start_run(connection, run_id: str) -> None:
+    upsert(
+        connection,
+        "EtlRun",
+        [
+            {
+                "id": run_id,
+                "startedAt": now_ms(),
+                "finishedAt": None,
+                "status": "running",
+                "statsJson": "{}",
+            }
+        ],
+        key=["id"],
+    )
+
+
+def finish_run(connection, run_id: str, status: str, stats: dict) -> None:
+    # startedAt is deliberately not written here, so the run keeps its real
+    # start time and the duration stays meaningful.
+    connection.execute(
+        table("EtlRun")
+        .update()
+        .where(table("EtlRun").c.id == run_id)
+        .values(
+            finishedAt=now_ms(),
+            status=status,
+            statsJson=json.dumps(stats, ensure_ascii=False, default=str),
+        )
+    )
+
+
+def clear_seed_data(connection) -> None:
+    """Remove rows that came from the seed, leaving real ETL data untouched."""
+    for table_name in ("Poll", "Candidate", "Party", "Event"):
+        delete_where(connection, table_name, provenance="seed")
+
+
+def delete_seed_polls(connection) -> int:
+    """Drop the synthetic polls, returning how many went.
+
+    Called once real polls have loaded. Only the polls: the seeded parties are
+    genuine public facts and stay, and the seeded quiz has no real counterpart
+    to replace it.
+    """
+    polls = table("Poll")
+    existing = connection.execute(
+        select(func.count()).select_from(polls).where(polls.c.provenance == "seed")
+    ).scalar_one()
+    if existing:
+        delete_where(connection, "Poll", provenance="seed")
+    return int(existing)

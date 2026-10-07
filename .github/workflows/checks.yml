@@ -1,0 +1,131 @@
+name: בדיקות
+
+# Runs on every push and every pull request. This is the safety net that keeps
+# broken code out of the branch; the daily data pipeline lives in daily.yml and
+# is deliberately kept separate, so a failing scrape never looks like a failing
+# test suite.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  web:
+    name: typecheck / test / lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - run: npm ci
+        working-directory: web
+
+      # The Prisma client is generated code, not committed, so typecheck fails
+      # without this step.
+      - run: npx prisma generate
+        working-directory: web
+
+      - run: npm run typecheck
+        working-directory: web
+
+      - run: npm run test
+        working-directory: web
+
+      - run: npm run lint
+        working-directory: web
+
+      - run: npm run build
+        working-directory: web
+        env:
+          DATABASE_URL: file:../../data/election.db
+
+  pipeline:
+    name: seed → vectors → brief
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Proves the pipeline still runs end to end against a fresh database, and
+    # that the seed is genuinely idempotent, without touching any live source.
+    env:
+      DATABASE_URL: file:../../data/election.db
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: npm ci
+        working-directory: web
+      - run: pip install -r requirements.txt
+
+      - name: בדיקות הצינור
+        run: python -m unittest discover -s pipeline -t . -p 'test_*.py' -v
+
+      - name: הכנת מסד הנתונים
+        working-directory: web
+        run: |
+          npx prisma generate
+          npx prisma db push --skip-generate
+
+      - name: טעינת נתוני הדגמה
+        run: python -m pipeline.seed
+
+      - name: בדיקת אידמפוטנטיות
+        run: |
+          python - <<'PY'
+          import sqlite3, subprocess, sys
+
+          TABLES = ["Party", "Candidate", "Poll", "PollResult", "VoteRecord", "Quote", "Event"]
+
+          def counts():
+              conn = sqlite3.connect("data/election.db")
+              try:
+                  return {t: conn.execute('select count(*) from "%s"' % t).fetchone()[0] for t in TABLES}
+              finally:
+                  conn.close()
+
+          before = counts()
+          subprocess.run([sys.executable, "-m", "pipeline.seed"], check=True)
+          after = counts()
+
+          if before != after:
+              print("הרצה חוזרת של ה-seed שינתה את מספר השורות:")
+              for table in TABLES:
+                  if before[table] != after[table]:
+                      print(f"  {table}: {before[table]} -> {after[table]}")
+              sys.exit(1)
+          print("אידמפוטנטי:", before)
+          PY
+
+      - name: בניית וקטורי מפלגות
+        run: python -m pipeline.ml.build_vectors
+
+      # No API key in CI, so this exercises the deterministic fallback — the
+      # path that has to work when the model is unavailable.
+      - name: יצירת סקירה יומית (מסלול fallback)
+        run: python -m pipeline.brief.generate --date today --no-llm
+
+      # No live-source dry run here, deliberately. `run_etl --dry-run` fetches
+      # for real — that is what makes it a dry run of the load rather than of
+      # the fetch — and now that the Knesset connector works it walks 151
+      # members, which is some 300 requests at the client's 1.5s-per-host rate
+      # limit. Running that on every push would mean hundreds of requests to a
+      # government service every time anyone commits, which is not a
+      # reasonable thing to point at someone else's server.
+      #
+      # The orchestration logic is covered by pipeline/test_run_etl.py above;
+      # the live connector is covered by probe-knesset.yml on demand and by
+      # daily.yml on its schedule, where hitting the sources is the point.

@@ -1,0 +1,208 @@
+"""Tests for the ETL run's health reporting.
+
+The property under test is the one that matters most in a scheduled pipeline:
+a source that quietly returns nothing must never be reported as healthy. A run
+that goes green while the warehouse stops updating is worse than a run that
+fails, because nobody looks at it.
+
+Run with:  python -m pytest pipeline/test_run_etl.py
+       or: python -m unittest pipeline.test_run_etl
+"""
+
+from __future__ import annotations
+
+import unittest
+from datetime import date
+
+from .run_etl import silent_sources
+
+
+def source(fetched=0, error=None, note=None, **extra):
+    return {"fetched": fetched, "loaded": 0, "rejected": 0, "error": error, "note": note, **extra}
+
+
+class SilentSourceTests(unittest.TestCase):
+    def test_zero_rows_with_no_error_and_no_reason_is_flagged(self):
+        stats = {"knesset": source(fetched=0)}
+        self.assertEqual(silent_sources(stats), ["knesset"])
+
+    def test_a_source_that_is_switched_off_is_not_flagged(self):
+        # Unconfigured sources explain themselves through `note`; that is a
+        # deliberate state, not a silent failure.
+        stats = {"polls": source(fetched=0, note="לא הוגדרו מקורות סקרים פעילים")}
+        self.assertEqual(silent_sources(stats), [])
+
+    def test_a_source_that_failed_loudly_is_not_flagged(self):
+        # It is already reported as an error; flagging it twice adds noise.
+        stats = {"knesset": source(fetched=0, error="timeout")}
+        self.assertEqual(silent_sources(stats), [])
+
+    def test_a_source_that_returned_rows_is_not_flagged(self):
+        stats = {"knesset": source(fetched=42)}
+        self.assertEqual(silent_sources(stats), [])
+
+    def test_rows_dropped_for_unmapped_parties_are_not_silent(self):
+        # Everything was rejected at the mapping step, which is reported
+        # separately and actionably.
+        stats = {"polls": source(fetched=0, unmapped=["מפלגה חדשה"])}
+        self.assertEqual(silent_sources(stats), [])
+
+    def test_each_source_is_judged_on_its_own(self):
+        stats = {
+            "polls": source(fetched=0, note="כבוי"),
+            "knesset": source(fetched=0),
+            "news": source(fetched=3),
+        }
+        self.assertEqual(silent_sources(stats), ["knesset"])
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+
+class PollPrecedenceTest(unittest.TestCase):
+    """A hand-entered poll must replace the automatic row, not be rejected.
+
+    clean_polls rejects a repeated natural key, keeping whichever it saw
+    first. Relying on source ordering alone would therefore have discarded
+    every manual correction while reporting it as a duplicate — the correction
+    would vanish and the wrong figure would stay on the site.
+    """
+
+    def _raw(self, seats, source):
+        from pipeline.etl.transform.normalize import RawPoll
+
+        return RawPoll(
+            pollster="לזר",
+            sponsor="מעריב",
+            field_date_start=date(2026, 9, 3),
+            field_date_end=date(2026, 9, 4),
+            sample_size=600,
+            margin_of_error=4.0,
+            source_url=f"https://example.com/{source}",
+            source_name=source,
+            seats=seats,
+        )
+
+    def test_the_last_source_wins_for_the_same_natural_key(self):
+        from pipeline.etl.transform.normalize import clean_polls, poll_id
+
+        auto = self._raw({"הליכוד": 20, "ישר!": 100}, "wikipedia")
+        manual = self._raw({"הליכוד": 22, "ישר!": 98}, "manual")
+
+        by_key = {}
+        for raw in (auto, manual):
+            by_key[poll_id(raw.pollster, raw.field_date_end, raw.sponsor)] = raw
+
+        self.assertEqual(len(by_key), 1)
+        cleaned = clean_polls(list(by_key.values()))
+        self.assertEqual(len(cleaned.polls), 1)
+        self.assertEqual(cleaned.polls[0].source_name, "manual")
+        self.assertEqual(cleaned.polls[0].seats["likud"], 22)
+        self.assertEqual(cleaned.rejected, [])
+
+    def test_without_deduping_first_the_correction_is_the_one_rejected(self):
+        """Pins why the dedupe exists, so removing it fails loudly here."""
+        from pipeline.etl.transform.normalize import clean_polls
+
+        auto = self._raw({"הליכוד": 20, "ישר!": 100}, "wikipedia")
+        manual = self._raw({"הליכוד": 22, "ישר!": 98}, "manual")
+
+        cleaned = clean_polls([auto, manual])
+        self.assertEqual(len(cleaned.polls), 1)
+        self.assertEqual(cleaned.polls[0].source_name, "wikipedia")
+        self.assertEqual(len(cleaned.rejected), 1)
+
+
+class SeedReplacementTest(unittest.TestCase):
+    """Real polls must replace the synthetic ones, not join them.
+
+    The site does not filter polls by provenance — it only reads provenance to
+    decide whether to show the demo banner — so seed and ETL polls left in the
+    same table would be averaged together and presented as a real figure. That
+    is worse than showing only demo data, because it looks real.
+    """
+
+    def test_seed_polls_go_once_real_polls_load(self):
+        from unittest import mock
+
+        from pipeline.etl.load import loader
+
+        connection = mock.Mock()
+        with mock.patch.object(loader, "delete_where") as delete, \
+             mock.patch.object(loader, "select"), \
+             mock.patch.object(loader, "table"):
+            connection.execute.return_value.scalar_one.return_value = 142
+            removed = loader.delete_seed_polls(connection)
+
+        self.assertEqual(removed, 142)
+        delete.assert_called_once_with(connection, "Poll", provenance="seed")
+
+    def test_nothing_is_deleted_when_there_are_no_seed_polls(self):
+        """A second run must not report a deletion it did not make."""
+        from unittest import mock
+
+        from pipeline.etl.load import loader
+
+        connection = mock.Mock()
+        with mock.patch.object(loader, "delete_where") as delete, \
+             mock.patch.object(loader, "select"), \
+             mock.patch.object(loader, "table"):
+            connection.execute.return_value.scalar_one.return_value = 0
+            removed = loader.delete_seed_polls(connection)
+
+        self.assertEqual(removed, 0)
+        delete.assert_not_called()
+
+
+class SourceIsolationTest(unittest.TestCase):
+    """One source crashing must cost that source, not the run.
+
+    Every extractor documents "never raises — reports errors instead", and the
+    pipeline's whole fault model rests on it. A docstring is not a mechanism:
+    when the Knesset service returned a non-JSON body, the JSONDecodeError was
+    not a FetchError, escaped the extractor's own handler, and ended the
+    nightly run — so the polls, the vectors and the brief were lost to an
+    unrelated source being down for an hour.
+    """
+
+    def test_a_well_behaved_source_is_passed_straight_through(self):
+        from .run_etl import _isolate
+
+        result = _isolate("x", lambda: {"polls": [1, 2], "note": "fine"}, {"polls": []})
+        self.assertEqual(result, {"polls": [1, 2], "note": "fine"})
+
+    def test_a_crashing_source_degrades_to_an_error_result(self):
+        from .run_etl import _isolate
+
+        def boom():
+            raise ValueError("Expecting value: line 1 column 1 (char 0)")
+
+        result = _isolate("כנסת", boom, {"members": [], "votes": [], "bills": []})
+        self.assertEqual(result["votes"], [])
+        self.assertIn("ValueError", result["error"])
+
+    def test_the_error_is_the_shape_silent_sources_can_read(self):
+        # The health check distinguishes "zero rows, no reason given" from
+        # "zero rows because the source failed". A contained crash has to land
+        # in the second category or it would be reported as a silent source.
+        from .run_etl import _isolate, silent_sources
+
+        def boom():
+            raise RuntimeError("nope")
+
+        result = _isolate("knesset", boom, {"votes": [], "bills": []})
+        stats = {"knesset": {"fetched": 0, "loaded": 0, "rejected": 0,
+                             "error": result["error"], "note": None}}
+        self.assertEqual(silent_sources(stats), [])
+
+    def test_a_keyboard_interrupt_is_not_swallowed(self):
+        # Containing a source's bug is the point; swallowing the operator's
+        # Ctrl-C is not.
+        from .run_etl import _isolate
+
+        def interrupted():
+            raise KeyboardInterrupt
+
+        with self.assertRaises(KeyboardInterrupt):
+            _isolate("x", interrupted, {"polls": []})
