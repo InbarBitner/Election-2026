@@ -33,6 +33,9 @@ log = logging.getLogger(__name__)
 SOURCES = Path(__file__).resolve().parent.parent / "data" / "sources"
 CONFIG = SOURCES / "candidate_lists.json"
 NAMES = SOURCES / "candidate_names.json"
+# Hand-reviewed: which candidates are serving or former MKs. Without a link the
+# Knesset ETL loads nothing for a candidate, which is the safe default.
+LINKS = SOURCES / "candidate_knesset_links.json"
 MAX_POSITION = 35
 
 
@@ -52,7 +55,14 @@ def display_name(official: str, overrides: dict[str, str]) -> tuple[str, bool]:
     return official, len(words) < 2
 
 
-def _rows(party_id: str, entries, source_url: str, source_name: str, overrides: dict[str, str]) -> list[dict]:
+def _rows(
+    party_id: str,
+    entries,
+    source_url: str,
+    source_name: str,
+    overrides: dict[str, str],
+    links: dict[str, dict],
+) -> list[dict]:
     return [
         {
             "id": f"cand_{party_id}_{entry.position}",
@@ -60,7 +70,7 @@ def _rows(party_id: str, entries, source_url: str, source_name: str, overrides: 
             "name": display_name(entry.name, overrides)[0],
             "listPosition": entry.position,
             "bio": f"מטעם מפלגת {entry.nominated_by}" if entry.nominated_by else "",
-            "knessetMemberId": None,
+            "knessetMemberId": links.get(entry.name, {}).get("knessetMemberId"),
             "sourceUrl": source_url,
             "sourceName": source_name,
             "provenance": "etl",
@@ -78,6 +88,7 @@ def main() -> int:
 
     config = json.loads(CONFIG.read_text(encoding="utf-8"))
     overrides = json.loads(NAMES.read_text(encoding="utf-8"))["names"]
+    links = json.loads(LINKS.read_text(encoding="utf-8"))["links"]
     wanted = args.party or list(config["lists"])
     failed = 0
 
@@ -122,7 +133,14 @@ def main() -> int:
                 )
             continue
 
-        rows = _rows(party_id, entries, source["url"], config["sourceName"], overrides)
+        party_links = links.get(party_id, {})
+        stale = sorted(set(party_links) - {e.name for e in entries})
+        if stale:
+            # A link whose name is no longer on the list (a respelt name, a
+            # withdrawn candidate) would otherwise be dropped without a word.
+            log.warning("  קישורים לכנסת שלא נמצא להם מועמד: %s", stale)
+        rows = _rows(party_id, entries, source["url"], config["sourceName"], overrides, party_links)
+        log.info("  מקושרים לנתוני הכנסת: %d", sum(1 for r in rows if r["knessetMemberId"]))
         candidates = table("Candidate")
         with get_engine().begin() as connection:
             # Replace this party's list wholesale, so a position that moved or

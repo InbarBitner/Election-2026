@@ -153,7 +153,14 @@ model Bill {
   topic       String
   /// One of: proposed | preliminary | first-reading | passed | rejected
   status      String
-  date        DateTime
+  /// Publication date. Null for older bills, which the Knesset record carries
+  /// without one; those are placed by `knessetNum` and `year` instead, never
+  /// by an invented date.
+  date        DateTime?
+  /// The Knesset the bill was tabled in.
+  knessetNum  Int?
+  /// Gregorian year from the bill's title ("התשע"ב-2012"), for ordering.
+  year        Int?
   /// True when the candidate is the lead sponsor rather than a co-sponsor.
   isLeadSponsor Boolean @default(false)
   summary     String

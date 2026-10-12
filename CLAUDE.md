@@ -15,7 +15,7 @@ pip3 install -r requirements.txt           # Python 3.11+
 cp .env.example web/.env                   # Prisma reads web/.env; default is SQLite at data/election.db
 npm run db:push --prefix web               # create/update tables from the Prisma schema
 
-# Populate (re-run after any change to data/seed/: the seed deletes and replaces, it does not merge)
+# Populate a fresh DB (the seed deletes and replaces; see the warning under Architecture before re-running it)
 python3 -m pipeline.seed                   # add --candidates-per-party 6 for fictional dev candidates
 python3 -m pipeline.ml.build_vectors
 python3 -m pipeline.brief.generate --date today --no-llm   # --print prints without saving; drop --no-llm to use Claude
@@ -23,6 +23,10 @@ python3 -m pipeline.brief.generate --date today --no-llm   # --print prints with
 # Live ETL (fetches for real, including in --dry-run, which only skips the write)
 python3 -m pipeline.run_etl --dry-run
 python3 -m pipeline.run_etl
+
+# Official candidate lists (fetches the PDFs; replaces only the named party's candidates)
+python3 -m pipeline.load_candidates --dry-run
+python3 -m pipeline.load_candidates --party likud
 
 # Web
 npm run dev --prefix web                   # http://localhost:3000
@@ -62,19 +66,32 @@ cd web && node scripts/house-effects.ts [--json|--stdin]
   - Polls come from three sources, in rising precedence: `wikipedia_polls` (strict table acceptance; `(0.7%)` means 0 seats; summary columns such as `Gov.` are rejected), then the configured `polls_scraper`, then `manual_polls.csv`, which wins on the same firm and date.
   - Once real polls load successfully, the demo polls are deleted.
   - Loads are idempotent upserts on natural keys.
+- **Don't re-run the seed on a database the ETL has filled.** `clear_seed_data` deletes the seed-provenance `Party` rows, and `PollResult` and `Candidate` cascade from `Party`. So a re-seed wipes the real poll results and the official candidates, and brings the demo polls back. To change parties in a live DB, upsert them with `loader.load_parties` alone.
+- **Candidates (`pipeline/load_candidates.py`, `pipeline/etl/extract/candidate_lists.py`)** come from the IDI's PDF copies of the Central Elections Committee's approved lists (`data/sources/candidate_lists.json`). Only places 1–35 are loaded, but the whole list is parsed and validated. A list with a gap, an empty name or Latin letters/digits in a name is not loaded at all. The PDFs are browser prints:
+  - pypdf's layout mode returns visual order, so Hebrew and digits come out reversed.
+  - Columns can sit only four spaces apart.
+  - gov.il's AI-assistant badge and footer can land inside names.
+- **Candidate names.** The committee prints family name first, with no marker where it ends.
+  - A two-word name is swapped.
+  - A longer name is reordered only from `data/sources/candidate_names.json`, which is hand-written. Without an entry it stays in the official order and the load warns.
+  - Don't reintroduce automatic splitting: a lexicon-based attempt confidently produced wrong names.
+  - The same file holds the owner's corrections, which can differ from the print.
+- **Candidate → Knesset links** live in `data/sources/candidate_knesset_links.json`, keyed by the official printed name, and each one was reviewed by hand. A same-name MK from another party, or one long out of office, is left unlinked on purpose. The Knesset ETL loads bills and votes only for linked candidates.
 - **Transform rules.** `require_source` in `pipeline/etl/transform/normalize.py` rejects any record missing `sourceUrl`/`sourceName`. Unrecognised party names are reported, never guessed. The fix is to add an alias in `party_mapping.py`.
 - **Shared HTTP client (`pipeline/etl/extract/http.py`).** It identifies itself, obeys `robots.txt`, waits 1.5s between requests to the same host, and retries with backoff. Nothing is scraped by default: live sources are opt-in through `data/sources/*.json` (copy the `.example` files and set `"enabled": true`). News is read from RSS only.
 - **Knesset connector facts** (measured, not assumed):
   - Votes stop at the 24th Knesset (July 2021). The connector reads that ceiling and records a note rather than returning empty data.
   - Bills come from `ParliamentInfo.svc` and cover the 25th Knesset.
   - OData silently cuts responses at 100 rows, so the connector pages through them.
-  - Votes and bills load only for candidates that have `knessetMemberId` set.
+  - Votes and bills load only for candidates that have `knessetMemberId` set. The ETL fetches for those linked people, whichever Knesset they served in, not for the sitting Knesset.
+  - `KNS_Bill.PublicationDate` exists only for bills that became law. Proposals have none. `LastUpdatedDate` is not a bill date: for older bills it is 2021-06-29, the day the records were migrated. So `Bill.date` is nullable, and `knessetNum` plus `year` (taken from the title) place undated bills.
+  - Each member keeps their 50 most recent bills (`BILLS_PER_MEMBER`). The query orders by `BillID`, which is only roughly chronological, so the final cut uses date-or-year. The X-ray API orders the same way in code, because ordering by the date column would put every old law above every new proposal.
 - **Daily brief (`pipeline/brief/generate.py`)** has two separate stages. Deterministic code first detects the facts. Claude then only phrases those facts and is never the source of one. Without an API key, or if the call fails, a deterministic template writes the brief. The facts are stored alongside the text and shown on `/brief`.
 - **Voter match.** `pipeline/ml/vectorize.py` builds 5-axis party vectors: 75% stated positions plus 25% character n-gram TF-IDF. `/api/match` computes cosine similarity with an explanation. Quiz answers are never stored on the server (localStorage only).
 
 ## Data-integrity rules enforced on purpose
 
-- **No candidates are shown until the official lists are published.** Never add real or guessed candidate names, or attribute votes or quotes to real politicians in seed or demo data. Fictional dev candidates are labelled as examples.
+- **Candidates come only from the official lists.** Never add real or guessed candidate names, or attribute votes or quotes to real politicians in seed or demo data. Fictional dev candidates are labelled as examples.
 - Every row carries `provenance` (`seed` | `etl`). While any `seed` row exists, the site shows a demo-data banner.
 - Party order comes from the poll average or alphabetical order, never a manual ordering. The "a poll average is not a forecast" disclaimer and each poll's margin of error stay on the page.
 - Colour is never the only encoding. 14 parties cannot be told apart by colour alone, so charts show at most 6 series, each with labels and a legend, and every chart has a table alternative. `Party.color`/`colorDark` are a validated categorical palette, not brand colours.

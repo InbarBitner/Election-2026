@@ -42,7 +42,10 @@ type XrayData = {
     title: string;
     topic: string;
     status: string;
-    date: string;
+    /** Null for older bills the Knesset record carries without a date. */
+    date: string | null;
+    knessetNum: number | null;
+    year: number | null;
     isLeadSponsor: boolean;
     summary: string;
     sourceUrl: string;
@@ -445,6 +448,15 @@ function Votes({ data }: { data: XrayData }) {
   );
 }
 
+/** The publication date, or, where the record has none, the Knesset and year. */
+function billWhen(bill: XrayData["bills"][number]): string {
+  if (bill.date) return formatDate(bill.date);
+  const parts = [];
+  if (bill.knessetNum) parts.push(`הכנסת ה-${bill.knessetNum}`);
+  if (bill.year) parts.push(String(bill.year));
+  return parts.join(" · ") || "ללא תאריך";
+}
+
 function Bills({ data }: { data: XrayData }) {
   if (data.bills.length === 0)
     return <Empty>לא נמצאו הצעות חוק מתועדות עבור מועמד/ת זה/זו.</Empty>;
@@ -477,7 +489,7 @@ function Bills({ data }: { data: XrayData }) {
           >
             <span>{BILL_STATUSES[bill.status] ?? bill.status}</span>
             <span>{bill.topic}</span>
-            <span>{formatDate(bill.date)}</span>
+            <span>{billWhen(bill)}</span>
             <Source url={bill.sourceUrl} name={bill.sourceName} />
           </div>
         </li>

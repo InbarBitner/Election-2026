@@ -86,7 +86,7 @@ class PaginationTest(unittest.TestCase):
         ]
         calls = []
 
-        def fake_page(entity, *, base, top, skip, filter_expr):
+        def fake_page(entity, *, base, top, skip, filter_expr, order_by=None):
             calls.append((top, skip))
             return pages.pop(0) if pages else []
 
@@ -239,6 +239,56 @@ class FetchBillsTest(unittest.TestCase):
         self.assertEqual(bills[0]["date"], date(1949, 6, 7))
         self.assertTrue(bills[0]["isLeadSponsor"])
 
+    def test_takes_the_newest_bills_first(self):
+        # Unordered, the cap kept an arbitrary slice of a member's bills.
+        calls = {}
+
+        def fake_odata(entity, **kwargs):
+            calls[entity] = kwargs
+            return [BILL_LINK] if entity == "KNS_BillInitiator" else [BILL]
+
+        with mock.patch.object(knesset_api, "_odata", side_effect=fake_odata):
+            knesset_api.fetch_bills("405", statuses={})
+
+        self.assertEqual(calls["KNS_BillInitiator"]["order_by"], "BillID desc")
+        self.assertEqual(calls["KNS_BillInitiator"]["top"], 2 * knesset_api.BILLS_PER_MEMBER)
+
+    def test_keeps_the_newest_by_date_not_by_id(self):
+        links = [{**BILL_LINK, "BillID": 2}, {**BILL_LINK, "BillID": 1}]
+        bills_by_id = [
+            {**BILL, "BillID": 2, "PublicationDate": "1997-07-30T00:00:00"},
+            {**BILL, "BillID": 1, "PublicationDate": "2024-01-31T00:00:00"},
+        ]
+
+        def fake_odata(entity, **kwargs):
+            return links if entity == "KNS_BillInitiator" else bills_by_id
+
+        with mock.patch.object(knesset_api, "_odata", side_effect=fake_odata):
+            bills = knesset_api.fetch_bills("405", limit=1, statuses={})
+
+        self.assertEqual(bills[0]["date"], date(2024, 1, 31))
+
+    def test_never_takes_the_migration_timestamp_as_the_bill_date(self):
+        # Older bills have no PublicationDate, and their LastUpdatedDate is the
+        # day the Knesset migrated its records, not anything about the bill.
+        undated = {
+            **BILL,
+            "KnessetNum": 18,
+            "Name": "הצעת חוק מטה ההסברה הלאומי, התשע\"ב-2012",
+            "PublicationDate": None,
+            "LastUpdatedDate": "2021-06-29T07:48:03.727",
+        }
+
+        def fake_odata(entity, **kwargs):
+            return [BILL_LINK] if entity == "KNS_BillInitiator" else [undated]
+
+        with mock.patch.object(knesset_api, "_odata", side_effect=fake_odata):
+            bills = knesset_api.fetch_bills("405", statuses={})
+
+        self.assertIsNone(bills[0]["date"])
+        self.assertEqual(bills[0]["knessetNum"], 18)
+        self.assertEqual(bills[0]["year"], 2012)
+
     def test_link_rows_with_no_matching_bill_raise(self):
         def fake_odata(entity, **kwargs):
             return [BILL_LINK] if entity == "KNS_BillInitiator" else []
@@ -273,6 +323,18 @@ class VoteCoverageTest(unittest.TestCase):
         votes.assert_not_called()
         self.assertIsNone(result["error"])
         self.assertIn("הכנסת ה-24", result["note"])
+
+    def test_given_member_ids_fetches_for_them_not_the_sitting_knesset(self):
+        # A candidate who served only in an earlier Knesset must still get bills.
+        with mock.patch.object(knesset_api, "fetch_members") as members, \
+             mock.patch.object(knesset_api, "latest_vote_knesset", return_value=24), \
+             mock.patch.object(knesset_api, "_vote_result_names", return_value={}), \
+             mock.patch.object(knesset_api, "_bill_statuses", return_value={}), \
+             mock.patch.object(knesset_api, "fetch_bills", return_value=[]) as bills:
+            knesset_api.extract(25, member_ids=["23511", "30680"])
+
+        members.assert_not_called()
+        self.assertEqual([c.args[0] for c in bills.call_args_list], ["23511", "30680"])
 
     def test_a_covered_knesset_still_fetches_votes(self):
         with mock.patch.object(

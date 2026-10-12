@@ -29,6 +29,7 @@ of the above.
 from __future__ import annotations
 
 import logging
+import re
 from datetime import date, datetime
 
 from .http import FetchError, fetch_json
@@ -54,6 +55,9 @@ VOTE_POSITIONS = {1: "for", 2: "against", 3: "abstain"}
 # OData $filter has no IN operator, so ids are batched into `or` chains. Keep
 # the chunk small enough that the query string stays well inside URL limits.
 ID_CHUNK = 40
+# Bills kept per member. A long-serving member has hundreds; the X-ray shows
+# the most recent, so the rest would only lengthen every run.
+BILLS_PER_MEMBER = 50
 
 # The service caps every response at 100 rows and does not say so: $top=300 on
 # a 193-row query still returns 100. Measured, not assumed.
@@ -125,6 +129,7 @@ def _odata(
     base: str = PARLIAMENT_BASE,
     top: int = 200,
     filter_expr: str | None = None,
+    order_by: str | None = None,
 ) -> list[dict]:
     """Fetch up to `top` rows, following the service's page cap.
 
@@ -142,6 +147,7 @@ def _odata(
             top=min(PAGE_SIZE, top - len(rows)),
             skip=len(rows),
             filter_expr=filter_expr,
+            order_by=order_by,
         )
         rows.extend(page)
         if len(page) < PAGE_SIZE:
@@ -385,14 +391,20 @@ def _bill_statuses() -> dict[int, str]:
 
 def fetch_bills(
     person_id: str,
-    limit: int = 40,
+    limit: int = BILLS_PER_MEMBER,
     *,
     statuses: dict[int, str] | None = None,
 ) -> list[dict]:
-    """Bills this member initiated or co-signed.
+    """The member's most recent bills, initiated or co-signed.
 
     KNS_BillInitiator is only a link table — ids and nothing else — so the
     titles come from a second query against KNS_Bill.
+
+    The links are taken newest first. Without an order the service returns
+    whatever comes first in its own storage, so the cap kept an arbitrary
+    slice: one member's 40 bills were all from the day the 25th Knesset
+    opened, another's stopped in 2021. The link table carries no date, so
+    the query orders by BillID, and the final cut is by the bill's date.
     """
     if statuses is None:
         statuses = _bill_statuses()
@@ -400,7 +412,11 @@ def fetch_bills(
     links = _odata(
         "KNS_BillInitiator",
         filter_expr=f"PersonID eq {person_id}",
-        top=limit,
+        order_by="BillID desc",
+        # BillID is mostly but not strictly chronological (a 1997 bill turns
+        # up among one member's highest ids), so take twice the cap by id and
+        # keep the newest by the bill's own date below.
+        top=limit * 2,
     )
 
     skipped = _Skipped(f"הצעות חוק של {person_id}")
@@ -417,9 +433,13 @@ def fetch_bills(
             skipped.drop("אין רשומת הצעת חוק תואמת")
             continue
         title = (bill.get("Name") or "").strip()
-        proposed_at = _parse_date(bill.get("PublicationDate") or bill.get("LastUpdatedDate"))
-        if not title or not proposed_at:
-            skipped.drop("כותרת או תאריך חסרים")
+        # PublicationDate only. LastUpdatedDate is not a date of the bill: for
+        # every older bill it is 2021-06-29, the day the Knesset migrated its
+        # records, and using it put 2012 bills in 2021.
+        proposed_at = _parse_date(bill.get("PublicationDate"))
+        knesset_num = bill.get("KnessetNum")
+        if not title or not (proposed_at or knesset_num):
+            skipped.drop("כותרת חסרה, או לא תאריך ולא מספר כנסת")
             continue
         bills.append(
             {
@@ -428,6 +448,8 @@ def fetch_bills(
                 "topic": (bill.get("SubTypeDesc") or "חקיקה").strip(),
                 "status": bill.get("_statusText") or "לא ידוע",
                 "date": proposed_at,
+                "knessetNum": knesset_num,
+                "year": _title_year(title),
                 "isLeadSponsor": bool(link.get("IsInitiator")),
                 "summary": (bill.get("SummaryLaw") or "").strip(),
                 "sourceUrl": BILL_URL.format(id=bill_id),
@@ -436,15 +458,39 @@ def fetch_bills(
         )
 
     skipped.check(len(bills))
-    return bills
+    bills.sort(key=_bill_recency, reverse=True)
+    return bills[:limit]
 
 
-def extract(knesset_number: int = 25) -> dict:
-    """Entry point used by run_etl. Never raises — reports errors instead."""
-    try:
-        members = fetch_members(knesset_number)
-    except FetchError as exc:
-        return {"members": [], "votes": [], "bills": [], "error": str(exc)}
+def _title_year(title: str) -> int | None:
+    """The Gregorian year a bill's title ends with ("התשע"ב-2012"), if any."""
+    years = re.findall(r"(?<!\d)(19\d{2}|20\d{2})(?!\d)", title)
+    return int(years[-1]) if years else None
+
+
+def _bill_recency(bill: dict) -> tuple:
+    """Sort key, newest first under reverse=True: the date where there is one,
+    otherwise the title's year, then the Knesset number. Used only to choose
+    which bills to keep; the year is never stored as a date."""
+    when = bill["date"] or (date(bill["year"], 1, 1) if bill.get("year") else date.min)
+    return (when, bill.get("knessetNum") or 0, bill["id"])
+
+
+def extract(knesset_number: int = 25, member_ids: list[str] | None = None) -> dict:
+    """Entry point used by run_etl. Never raises — reports errors instead.
+
+    `member_ids` are the people to fetch records for: the candidates linked to
+    a Knesset member, whichever Knesset they served in. Without it the members
+    of `knesset_number` are used, which misses every candidate who served
+    earlier and fetches for sitting members who are not candidates at all.
+    """
+    if member_ids is not None:
+        members = [{"knessetMemberId": str(person_id)} for person_id in member_ids]
+    else:
+        try:
+            members = fetch_members(knesset_number)
+        except FetchError as exc:
+            return {"members": [], "votes": [], "bills": [], "error": str(exc)}
 
     errors: list[str] = []
     note: str | None = None

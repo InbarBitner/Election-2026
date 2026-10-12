@@ -155,11 +155,24 @@ def run(dry_run: bool = False, since_days: int = 7, knesset_number: int = 25) ->
     stats["polls"]["note"] = " · ".join(poll_notes) or None
 
     log.info("שולף נתוני כנסת...")
-    knesset_result = _isolate(
-        "כנסת",
-        lambda: knesset_api.extract(knesset_number),
-        {"members": [], "votes": [], "bills": [], "note": None},
-    )
+    # Records are fetched for the linked candidates themselves, whichever
+    # Knesset they sat in, rather than for the sitting members: a candidate
+    # who served only in an earlier Knesset would otherwise get nothing.
+    with engine.connect() as connection:
+        linked = sorted(_candidates_by_knesset_id(connection))
+    if linked:
+        knesset_result = _isolate(
+            "כנסת",
+            lambda: knesset_api.extract(knesset_number, member_ids=linked),
+            {"members": [], "votes": [], "bills": [], "note": None},
+        )
+    else:
+        knesset_result = {
+            "members": [],
+            "votes": [],
+            "bills": [],
+            "note": "אף מועמד במסד אינו מקושר ל-knessetMemberId, ולכן לא נשלפו נתוני כנסת.",
+        }
     stats["knesset"]["fetched"] = len(knesset_result["votes"]) + len(knesset_result["bills"])
     stats["knesset"]["error"] = knesset_result.get("error")
     stats["knesset"]["note"] = knesset_result.get("note")
@@ -237,12 +250,6 @@ def run(dry_run: bool = False, since_days: int = 7, knesset_number: int = 25) ->
             stats["knesset"]["loaded"] += loader.load_votes(connection, votes)
         if bills:
             stats["knesset"]["loaded"] += loader.load_bills(connection, bills)
-        if knesset_result["members"] and not by_member:
-            stats["knesset"]["note"] = (
-                f"נשלפו {len(knesset_result['members'])} ח\"כים אך אף מועמד במסד "
-                "אינו מקושר ל-knessetMemberId, ולכן לא נטענו הצבעות."
-            )
-
         if news_result["events"]:
             stats["news"]["loaded"] = loader.load_events(connection, news_result["events"])
 

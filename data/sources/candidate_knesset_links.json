@@ -1,0 +1,472 @@
+{
+ "_comment": "Candidates who are or were Knesset members, linked to their PersonID in the Knesset open-data service (KNS_Person). Keys are names exactly as the Central Elections Committee prints them. Every link was reviewed by hand: a name shared with a different MK (a member of another party, or one long out of office with nothing tying them to this list) is left out, because a wrong link would attribute someone else's bills and votes to a real candidate. `knessetName` is the name in the Knesset record, for review only.",
+ "source": "https://knesset.gov.il/Odata/ParliamentInfo.svc/KNS_Person",
+ "links": {
+  "democrats": {
+   "גולן יאיר": {
+    "knessetMemberId": "30743",
+    "knessetName": "יאיר גולן"
+   },
+   "לזימי נעמה": {
+    "knessetMemberId": "30106",
+    "knessetName": "נעמה לזימי"
+   },
+   "קריב גלעד": {
+    "knessetMemberId": "30807",
+    "knessetName": "גלעד קריב"
+   },
+   "רייטן אפרת": {
+    "knessetMemberId": "30808",
+    "knessetName": "אפרת רייטן מרום"
+   },
+   "לסקי שוץ גבריאלה": {
+    "knessetMemberId": "30818",
+    "knessetName": "גבי לסקי"
+   },
+   "רוזין מיכל": {
+    "knessetMemberId": "23653",
+    "knessetName": "מיכל רוזין"
+   },
+   "מואטי אמילי חיה": {
+    "knessetMemberId": "30806",
+    "knessetName": "אמילי חיה מואטי"
+   },
+   "שפע רם": {
+    "knessetMemberId": "30696",
+    "knessetName": "רם שפע"
+   },
+   "סלאלחה עלי": {
+    "knessetMemberId": "30821",
+    "knessetName": "עלי סלאלחה"
+   },
+   "רז מוסי": {
+    "knessetMemberId": "511",
+    "knessetName": "מוסי רז"
+   },
+   "כהן פארן יעל": {
+    "knessetMemberId": "30289",
+    "knessetName": "יעל כהן-פארן"
+   }
+  },
+  "joint-list": {
+   "גבארין יוסף": {
+    "knessetMemberId": "30069",
+    "knessetName": "יוסף ג'בארין"
+   },
+   "טיבי אחמד": {
+    "knessetMemberId": "560",
+    "knessetName": "אחמד טיבי"
+   },
+   "אבו שחאדה סאמי": {
+    "knessetMemberId": "30751",
+    "knessetName": "סמי אבו שחאדה"
+   },
+   "כסיף עופר": {
+    "knessetMemberId": "30719",
+    "knessetName": "עופר כסיף"
+   }
+  },
+  "kachol-lavan": {
+   "גנץ בנימין": {
+    "knessetMemberId": "30657",
+    "knessetName": "בנימין גנץ"
+   },
+   "תמנו פנינה (פנחש)": {
+    "knessetMemberId": "23635",
+    "knessetName": "פנינה תמנו"
+   },
+   "שוסטר אלון נתן": {
+    "knessetMemberId": "30694",
+    "knessetName": "אלון שוסטר"
+   },
+   "מרעי מופיד": {
+    "knessetMemberId": "30816",
+    "knessetName": "מופיד מרעי"
+   }
+  },
+  "likud": {
+   "נתניהו בנימין": {
+    "knessetMemberId": "965",
+    "knessetName": "בנימין נתניהו"
+   },
+   "כהן אליהו": {
+    "knessetMemberId": "30083",
+    "knessetName": "אלי כהן"
+   },
+   "אוחנה אמיר": {
+    "knessetMemberId": "30300",
+    "knessetName": "אמיר אוחנה"
+   },
+   "לוין יריב גדעון": {
+    "knessetMemberId": "12951",
+    "knessetName": "יריב לוין"
+   },
+   "רגב מרים": {
+    "knessetMemberId": "12959",
+    "knessetName": "מירי מרים רגב"
+   },
+   "כץ ישראל": {
+    "knessetMemberId": "468",
+    "knessetName": "ישראל כץ"
+   },
+   "סער גדעון משה": {
+    "knessetMemberId": "1027",
+    "knessetName": "גדעון סער"
+   },
+   "כץ אופיר": {
+    "knessetMemberId": "30701",
+    "knessetName": "אופיר כץ"
+   },
+   "קיש יואב": {
+    "knessetMemberId": "30057",
+    "knessetName": "יואב קיש"
+   },
+   "זוהר מכלוף": {
+    "knessetMemberId": "30058",
+    "knessetName": "מכלוף מיקי זוהר"
+   },
+   "כהן אלמוג": {
+    "knessetMemberId": "30833",
+    "knessetName": "אלמוג כהן"
+   },
+   "שיקלי עמיחי": {
+    "knessetMemberId": "30786",
+    "knessetName": "עמיחי שיקלי"
+   },
+   "סעדה משה": {
+    "knessetMemberId": "30853",
+    "knessetName": "משה סעדה"
+   },
+   "כץ חיים": {
+    "knessetMemberId": "556",
+    "knessetName": "חיים כץ"
+   },
+   "אמסלם דוד": {
+    "knessetMemberId": "23564",
+    "knessetName": "דוד אמסלם"
+   },
+   "עטייה חוה-אתי": {
+    "knessetMemberId": "30702",
+    "knessetName": "חוה אתי עטייה"
+   },
+   "ביסמוט בעז": {
+    "knessetMemberId": "30835",
+    "knessetName": "בועז ביסמוט"
+   },
+   "ביטן דוד": {
+    "knessetMemberId": "23558",
+    "knessetName": "דוד ביטן"
+   },
+   "קרעי שלמה": {
+    "knessetMemberId": "30704",
+    "knessetName": "שלמה קרעי"
+   },
+   "ברקת ניר": {
+    "knessetMemberId": "30700",
+    "knessetName": "ניר ברקת"
+   },
+   "גמליאל דמרי גילה": {
+    "knessetMemberId": "1025",
+    "knessetName": "גילה גמליאל"
+   },
+   "אלקין זאב": {
+    "knessetMemberId": "4397",
+    "knessetName": "זאב אלקין"
+   },
+   "הלוי עמית": {
+    "knessetMemberId": "30711",
+    "knessetName": "עמית הלוי"
+   },
+   "בוארון אביחי אברהם": {
+    "knessetMemberId": "30880",
+    "knessetName": "אביחי אברהם בוארון"
+   }
+  },
+  "otzma": {
+   "בן גביר איתמר": {
+    "knessetMemberId": "30811",
+    "knessetName": "איתמר בן גביר"
+   },
+   "גוטליב רויטל טלי": {
+    "knessetMemberId": "30860",
+    "knessetName": "טלי גוטליב"
+   },
+   "וסרלאוף יצחק שמעון": {
+    "knessetMemberId": "30847",
+    "knessetName": "יצחק שמעון וסרלאוף"
+   },
+   "אליהו עמיחי": {
+    "knessetMemberId": "30857",
+    "knessetName": "עמיחי אליהו"
+   },
+   "סון הר-מלך לימור": {
+    "knessetMemberId": "30849",
+    "knessetName": "לימור סון הר מלך"
+   },
+   "קרויזר יצחק": {
+    "knessetMemberId": "30867",
+    "knessetName": "יצחק קרויזר"
+   }
+  },
+  "raam": {
+   "עבאס מנסור": {
+    "knessetMemberId": "30713",
+    "knessetName": "מנסור עבאס"
+   },
+   "סגלוביץ יואב": {
+    "knessetMemberId": "30695",
+    "knessetName": "יואב סגלוביץ'"
+   },
+   "טאהא ווליד": {
+    "knessetMemberId": "30752",
+    "knessetName": "ווליד טאהא"
+   },
+   "חטיב יאסין אימאן": {
+    "knessetMemberId": "30758",
+    "knessetName": "אימאן ח'טיב יאסין"
+   },
+   "חוגיראת יאסר": {
+    "knessetMemberId": "30843",
+    "knessetName": "יאסר חוג'יראת"
+   }
+  },
+  "religious-zionism": {
+   "סמוטריץ בצלאל יואל": {
+    "knessetMemberId": "30055",
+    "knessetName": "בצלאל סמוטריץ'"
+   },
+   "פייגלין משה זלמן": {
+    "knessetMemberId": "23556",
+    "knessetName": "משה זלמן פייגלין"
+   },
+   "סטרוק אורית מלכה": {
+    "knessetMemberId": "23551",
+    "knessetName": "אורית מלכה סטרוק"
+   },
+   "רוטמן שמחה דן": {
+    "knessetMemberId": "30812",
+    "knessetName": "שמחה רוטמן"
+   },
+   "סוכות צבי ידידיה": {
+    "knessetMemberId": "30874",
+    "knessetName": "צבי ידידיה סוכות"
+   },
+   "טל אוהד": {
+    "knessetMemberId": "30830",
+    "knessetName": "אוהד טל"
+   },
+   "וולדיגר מיכל מרים": {
+    "knessetMemberId": "30810",
+    "knessetName": "מיכל מרים וולדיגר"
+   }
+  },
+  "shas": {
+   "דרעי אריה מכלוף": {
+    "knessetMemberId": "2291",
+    "knessetName": "אריה מכלוף דרעי"
+   },
+   "אזולאי ינון": {
+    "knessetMemberId": "30601",
+    "knessetName": "ינון אזולאי"
+   },
+   "מלכיאלי מיכאל משה": {
+    "knessetMemberId": "30470",
+    "knessetName": "מיכאל מלכיאלי"
+   },
+   "בן צור יואב": {
+    "knessetMemberId": "28513",
+    "knessetName": "יואב בן צור"
+   },
+   "ביטון חיים": {
+    "knessetMemberId": "30804",
+    "knessetName": "חיים ביטון"
+   },
+   "אבוטבול משה": {
+    "knessetMemberId": "30749",
+    "knessetName": "משה אבוטבול"
+   },
+   "בוסו אוריאל מנחם": {
+    "knessetMemberId": "30765",
+    "knessetName": "אוריאל בוסו"
+   },
+   "טייב יוסף": {
+    "knessetMemberId": "30770",
+    "knessetName": "יוסף טייב"
+   },
+   "מישרקי יונתן": {
+    "knessetMemberId": "30868",
+    "knessetName": "יונתן מישרקי"
+   },
+   "מלול ארז": {
+    "knessetMemberId": "30873",
+    "knessetName": "ארז מלול"
+   },
+   "מושיאשוילי סימיון": {
+    "knessetMemberId": "30872",
+    "knessetName": "סימון מושיאשוילי"
+   }
+  },
+  "yachad": {
+   "בנט נפתלי": {
+    "knessetMemberId": "23511",
+    "knessetName": "נפתלי בנט"
+   },
+   "לפיד יאיר": {
+    "knessetMemberId": "23594",
+    "knessetName": "יאיר לפיד"
+   },
+   "בן ארי מירב": {
+    "knessetMemberId": "30102",
+    "knessetName": "מירב בן ארי"
+   },
+   "גינזבורג איתן": {
+    "knessetMemberId": "30693",
+    "knessetName": "איתן גינזבורג"
+   },
+   "כהן מירב": {
+    "knessetMemberId": "30686",
+    "knessetName": "מירב כהן"
+   },
+   "בן ברק רם": {
+    "knessetMemberId": "30691",
+    "knessetName": "רם בן ברק"
+   },
+   "שירי נאור": {
+    "knessetMemberId": "30854",
+    "knessetName": "נאור שירי"
+   },
+   "בליאק ולדימיר": {
+    "knessetMemberId": "30776",
+    "knessetName": "ולדימיר בליאק"
+   },
+   "להב הרצנו יוראי": {
+    "knessetMemberId": "30720",
+    "knessetName": "יוראי להב הרצנו"
+   },
+   "פרידמן יסמין": {
+    "knessetMemberId": "30783",
+    "knessetName": "יסמין פרידמן"
+   },
+   "טור-פז משה יהודה": {
+    "knessetMemberId": "30777",
+    "knessetName": "משה טור פז"
+   },
+   "דוידסון סימון": {
+    "knessetMemberId": "30820",
+    "knessetName": "סימון דוידסון"
+   },
+   "טל מירון שלי": {
+    "knessetMemberId": "30871",
+    "knessetName": "שלי טל מירון"
+   },
+   "איריש מלכאי רוני": {
+    "knessetMemberId": "30923",
+    "knessetName": "רוני מלכאי"
+   },
+   "צרפתי הרכבי מטי": {
+    "knessetMemberId": "30851",
+    "knessetName": "מטי צרפתי הרכבי"
+   }
+  },
+  "yahadut-hatorah": {
+   "אשר יעקב": {
+    "knessetMemberId": "23641",
+    "knessetName": "יעקב אשר"
+   },
+   "גולדקנופ יצחק יששכר": {
+    "knessetMemberId": "30846",
+    "knessetName": "יצחק גולדקנופ"
+   },
+   "יצחק זאב פינדרוס": {
+    "knessetMemberId": "30672",
+    "knessetName": "יצחק פינדרוס"
+   },
+   "פרוש מאיר": {
+    "knessetMemberId": "563",
+    "knessetName": "מאיר פרוש"
+   },
+   "טסלר יואל יעקב": {
+    "knessetMemberId": "30671",
+    "knessetName": "יעקב טסלר"
+   },
+   "רוט משה": {
+    "knessetMemberId": "30870",
+    "knessetName": "משה רוט"
+   },
+   "ברוכי אליהו": {
+    "knessetMemberId": "30768",
+    "knessetName": "אליהו ברוכי"
+   }
+  },
+  "yashar": {
+   "אינזקוט גדי": {
+    "knessetMemberId": "30836",
+    "knessetName": "גדי איזנקוט"
+   },
+   "פרקש-הכהן אורית": {
+    "knessetMemberId": "30685",
+    "knessetName": "אורית פרקש הכהן"
+   },
+   "כהנא מתן": {
+    "knessetMemberId": "30662",
+    "knessetName": "מתן כהנא"
+   },
+   "טרופר יחיאל משה": {
+    "knessetMemberId": "30683",
+    "knessetName": "חילי טרופר"
+   },
+   "שטרן אלעזר": {
+    "knessetMemberId": "23591",
+    "knessetName": "אלעזר שטרן"
+   },
+   "פולקמן רועי שמואל": {
+    "knessetMemberId": "30084",
+    "knessetName": "רועי פולקמן"
+   }
+  },
+  "yisrael-beitenu": {
+   "ליברמן אביגדור": {
+    "knessetMemberId": "427",
+    "knessetName": "אביגדור ליברמן"
+   },
+   "פורר עודד": {
+    "knessetMemberId": "30121",
+    "knessetName": "עודד פורר"
+   },
+   "מלינובסקי קונין יוליה": {
+    "knessetMemberId": "23560",
+    "knessetName": "יוליה מלינובסקי"
+   },
+   "עמאר חמד": {
+    "knessetMemberId": "12938",
+    "knessetName": "חמד עמאר"
+   },
+   "סובה יבגני": {
+    "knessetMemberId": "30722",
+    "knessetName": "יבגני סובה"
+   },
+   "אילוז דן אליהו יעקב": {
+    "knessetMemberId": "30839",
+    "knessetName": "דן אילוז"
+   },
+   "מגן תלם לימור יאיר": {
+    "knessetMemberId": "30745",
+    "knessetName": "לימור מגן תלם"
+   },
+   "רופא אופיר שרון אסתר": {
+    "knessetMemberId": "30823",
+    "knessetName": "שרון רופא אופיר"
+   }
+  },
+  "zionist-home": {
+   "הנדל יועז": {
+    "knessetMemberId": "30680",
+    "knessetName": "יועז הנדל"
+   },
+   "וילף עינת": {
+    "knessetMemberId": "14470",
+    "knessetName": "עינת וילף"
+   }
+  }
+ }
+}

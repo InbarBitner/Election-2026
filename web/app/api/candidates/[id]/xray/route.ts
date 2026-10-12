@@ -7,6 +7,13 @@ import { prisma } from "@/lib/db";
  * Loaded on demand rather than with the party page, because a list page shows
  * dozens of candidates and almost none of them get opened.
  */
+/** Milliseconds for ordering only: the date, else 1 January of the title's year. */
+function billRecency(bill: { date: Date | null; year: number | null; knessetNum: number | null }): number {
+  if (bill.date) return bill.date.getTime();
+  if (bill.year) return Date.UTC(bill.year, 0, 1);
+  return bill.knessetNum ?? 0;
+}
+
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -18,7 +25,8 @@ export async function GET(
     include: {
       party: true,
       votes: { orderBy: { date: "desc" }, take: 60 },
-      bills: { orderBy: { date: "desc" }, take: 30 },
+      // Ordered below, not here: see `billRecency`.
+      bills: true,
       quotes: { orderBy: { date: "desc" }, take: 20 },
       connections: true,
     },
@@ -27,6 +35,15 @@ export async function GET(
   if (!candidate) {
     return NextResponse.json({ error: "מועמד לא נמצא" }, { status: 404 });
   }
+
+  // The Knesset records a publication date only for bills that became law;
+  // proposals have just the Knesset and the year in their title. Sorting on
+  // the date column alone would therefore put every law, however old, above
+  // every proposal, however new. So the order uses the date where there is
+  // one and the year otherwise.
+  const bills = [...candidate.bills]
+    .sort((a, b) => billRecency(b) - billRecency(a) || b.id.localeCompare(a.id))
+    .slice(0, 30);
 
   const votes = candidate.votes;
   const cast = votes.filter((v) => v.position !== "absent");
@@ -65,7 +82,7 @@ export async function GET(
       byTopic: [...byTopic.entries()].map(([topic, counts]) => ({ topic, ...counts })),
     },
     votes: candidate.votes,
-    bills: candidate.bills,
+    bills,
     quotes: candidate.quotes,
     connections: candidate.connections,
   });
