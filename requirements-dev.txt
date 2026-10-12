@@ -1,0 +1,6 @@
+# Research and exploration only, on top of requirements.txt.
+# The pipeline itself never imports these; notebooks under research/ do.
+
+-r requirements.txt
+pandas>=2.2
+jupyterlab>=4.0

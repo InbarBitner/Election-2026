@@ -6,8 +6,9 @@
 
 Lists come from data/sources/candidate_lists.json. A list that fails to parse
 cleanly (a missing position, an empty name) is not loaded at all: a list
-with one wrong or missing entry is worse than no list. Loading replaces that
-party's previously loaded candidates and leaves every other party alone.
+with one wrong or missing entry is worse than no list. Loading brings that
+party's candidates in line with the list, updating them in place so the
+Knesset records attached to them survive, and leaves every other party alone.
 
 Only the first MAX_POSITION places are loaded. No list has come near winning
 35 seats in recent elections, so places further down are not realistic and
@@ -22,7 +23,7 @@ import json
 import logging
 from pathlib import Path
 
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 
 from .db import get_engine, table
 from .etl.extract import candidate_lists
@@ -77,6 +78,46 @@ def _rows(
         }
         for entry in entries
     ]
+
+
+def _sync_candidates(connection, party_id: str, rows: list[dict]) -> int:
+    """Make the party's stored candidates match `rows`, returning how many went.
+
+    Candidates are updated in place, not deleted and reinserted. Bills and
+    votes cascade from Candidate, so a delete-and-reload wiped every Knesset
+    record the ETL had attached, and the X-ray stayed empty until the next ETL
+    run. Only a candidate who is no longer on the list is deleted.
+
+    A candidate whose Knesset link changed loses the records fetched under the
+    old link. Those belong to someone else, and the next ETL run fetches the
+    right ones.
+    """
+    candidates = table("Candidate")
+    existing = {
+        row.id: row.knessetMemberId
+        for row in connection.execute(
+            select(candidates.c.id, candidates.c.knessetMemberId).where(
+                candidates.c.partyId == party_id
+            )
+        )
+    }
+    wanted = {row["id"] for row in rows}
+
+    relinked = [
+        row["id"]
+        for row in rows
+        if row["id"] in existing and existing[row["id"]] != row["knessetMemberId"]
+    ]
+    for table_name in ("Bill", "VoteRecord"):
+        records = table(table_name)
+        if relinked:
+            connection.execute(delete(records).where(records.c.candidateId.in_(relinked)))
+
+    gone = sorted(set(existing) - wanted)
+    if gone:
+        connection.execute(delete(candidates).where(candidates.c.id.in_(gone)))
+    loader.load_candidates(connection, rows)
+    return len(gone)
 
 
 def main() -> int:
@@ -141,13 +182,11 @@ def main() -> int:
             log.warning("  קישורים לכנסת שלא נמצא להם מועמד: %s", stale)
         rows = _rows(party_id, entries, source["url"], config["sourceName"], overrides, party_links)
         log.info("  מקושרים לנתוני הכנסת: %d", sum(1 for r in rows if r["knessetMemberId"]))
-        candidates = table("Candidate")
         with get_engine().begin() as connection:
-            # Replace this party's list wholesale, so a position that moved or
-            # was dropped does not linger from an earlier load.
-            connection.execute(delete(candidates).where(candidates.c.partyId == party_id))
-            loader.load_candidates(connection, rows)
+            removed = _sync_candidates(connection, party_id, rows)
         log.info("  נטענו %d מועמדים", len(rows))
+        if removed:
+            log.info("  הוסרו %d מועמדים שאינם עוד ברשימה", removed)
 
     return 1 if failed else 0
 

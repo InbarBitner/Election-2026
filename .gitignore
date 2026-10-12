@@ -28,6 +28,9 @@ data/sources/news_feeds.json
 web/.env
 web/.env.local
 
+# Notebooks
+.ipynb_checkpoints/
+
 # Editor / OS
 .DS_Store
 .idea/
