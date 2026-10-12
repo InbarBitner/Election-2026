@@ -367,6 +367,40 @@ def build_events(anchors_config: dict) -> list[dict]:
 # ---------------------------------------------------------------------------
 
 
+def plan_seed(
+    *,
+    candidates: list[dict],
+    xray: tuple[list[dict], list[dict], list[dict], list[dict]],
+    polls: list,
+    real_polls: int,
+    parties_with_real_candidates: set[str],
+) -> dict:
+    """Which demo rows to load, given what real data the warehouse already holds.
+
+    Demo data fills gaps; it never sits beside real data. Synthetic polls are
+    left out once any real poll exists, because the site does not filter by
+    provenance and would average the two together (and show the demo banner
+    again). Fictional candidates are left out for a party that has its
+    official list, which would also collide with it on list position.
+    """
+    kept = [c for c in candidates if c["partyId"] not in parties_with_real_candidates]
+    kept_ids = {c["id"] for c in kept}
+    votes, bills, quotes, connections = (
+        [row for row in rows if row["candidateId"] in kept_ids] for rows in xray
+    )
+    return {
+        "candidates": kept,
+        "votes": votes,
+        "bills": bills,
+        "quotes": quotes,
+        "connections": connections,
+        "polls": [] if real_polls else polls,
+        "skipped_candidate_parties": {
+            c["partyId"] for c in candidates if c["partyId"] in parties_with_real_candidates
+        },
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="טעינת נתוני הדגמה למסד הנתונים")
     parser.add_argument("--dry-run", action="store_true", help="הצג בלבד, ללא כתיבה")
@@ -428,22 +462,38 @@ def main() -> int:
         # The seed is a snapshot, not an accumulation: existing demo rows are
         # removed first so that editing the generator replaces the demo dataset
         # instead of layering a second one on top of it. Rows loaded by the real
-        # ETL carry provenance="etl" and are left untouched.
-        loader.clear_seed_data(connection)
+        # ETL carry provenance="etl" and are left untouched, and demo data is
+        # only loaded where there is no real data to stand in for.
+        real_polls, parties_with_real_candidates = loader.real_data(connection)
+        plan = plan_seed(
+            candidates=candidates,
+            xray=(votes, bills, quotes, connections),
+            polls=cleaned.polls,
+            real_polls=real_polls,
+            parties_with_real_candidates=parties_with_real_candidates,
+        )
+        loader.clear_seed_data(connection, keep_party_ids={p["id"] for p in parties})
 
         loader.load_parties(connection, parties)
-        loader.load_candidates(connection, candidates)
-        loader.load_votes(connection, votes)
-        loader.load_bills(connection, bills)
-        loader.load_quotes(connection, quotes)
-        loader.load_connections(connection, connections)
-        loader.load_polls(connection, cleaned.polls)
+        loader.load_candidates(connection, plan["candidates"])
+        loader.load_votes(connection, plan["votes"])
+        loader.load_bills(connection, plan["bills"])
+        loader.load_quotes(connection, plan["quotes"])
+        loader.load_connections(connection, plan["connections"])
+        loader.load_polls(connection, plan["polls"])
         loader.load_events(connection, events)
         loader.load_quiz(connection, quiz_config["questions"])
 
+    if real_polls:
+        log.info("סקרי ההדגמה לא נטענו: במסד יש %d סקרים אמיתיים", real_polls)
+    if plan["skipped_candidate_parties"]:
+        log.info(
+            "מועמדים בדיוניים לא נטענו למפלגות עם רשימה רשמית: %s",
+            ", ".join(sorted(plan["skipped_candidate_parties"])),
+        )
     log.info(
         "נטענו %d מפלגות, %d מועמדים, %d סקרים, %d שאלות שאלון",
-        len(parties), len(candidates), len(cleaned.polls), len(quiz_config["questions"]),
+        len(parties), len(plan["candidates"]), len(plan["polls"]), len(quiz_config["questions"]),
     )
     log.info("כעת הרץ: python -m pipeline.ml.build_vectors")
     return 0

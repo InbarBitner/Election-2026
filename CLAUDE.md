@@ -15,7 +15,7 @@ pip3 install -r requirements.txt           # Python 3.11+
 cp .env.example web/.env                   # Prisma reads web/.env; default is SQLite at data/election.db
 npm run db:push --prefix web               # create/update tables from the Prisma schema
 
-# Populate a fresh DB (the seed deletes and replaces; see the warning under Architecture before re-running it)
+# Populate (safe to re-run after a change to data/seed/: it updates parties in place and never overlays demo data on real data)
 python3 -m pipeline.seed                   # add --candidates-per-party 6 for fictional dev candidates
 python3 -m pipeline.ml.build_vectors
 python3 -m pipeline.brief.generate --date today --no-llm   # --print prints without saving; drop --no-llm to use Claude
@@ -66,7 +66,7 @@ cd web && node scripts/house-effects.ts [--json|--stdin]
   - Polls come from three sources, in rising precedence: `wikipedia_polls` (strict table acceptance; `(0.7%)` means 0 seats; summary columns such as `Gov.` are rejected), then the configured `polls_scraper`, then `manual_polls.csv`, which wins on the same firm and date.
   - Once real polls load successfully, the demo polls are deleted.
   - Loads are idempotent upserts on natural keys.
-- **Don't re-run the seed on a database the ETL has filled.** `clear_seed_data` deletes the seed-provenance `Party` rows, and `PollResult` and `Candidate` cascade from `Party`. So a re-seed wipes the real poll results and the official candidates, and brings the demo polls back. To change parties in a live DB, upsert them with `loader.load_parties` alone.
+- **The seed is safe on a database the ETL has filled, and must stay that way.** `PollResult` and `Candidate` cascade from `Party`, so the seed must never delete a party it is about to reload. `clear_seed_data` keeps every party still in `parties.json`, and `load_parties` upserts it in place. `plan_seed` loads demo polls only when no real poll exists, and fictional candidates only for parties without an official list. A party removed from `parties.json` is deleted along with everything hanging off it.
 - **Candidates (`pipeline/load_candidates.py`, `pipeline/etl/extract/candidate_lists.py`)** come from the IDI's PDF copies of the Central Elections Committee's approved lists (`data/sources/candidate_lists.json`). Only places 1–35 are loaded, but the whole list is parsed and validated. A list with a gap, an empty name or Latin letters/digits in a name is not loaded at all. The PDFs are browser prints:
   - pypdf's layout mode returns visual order, so Hebrew and digits come out reversed.
   - Columns can sit only four spaces apart.

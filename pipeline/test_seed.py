@@ -1,0 +1,65 @@
+"""The seed fills gaps with demo data and never lays it over real data.
+
+Run with:  python3 -m unittest pipeline.test_seed
+"""
+
+from __future__ import annotations
+
+import unittest
+
+from .seed import plan_seed
+
+
+def candidate(party: str, n: int) -> dict:
+    return {"id": f"cand_{party}_{n}", "partyId": party}
+
+
+def row(candidate_id: str) -> dict:
+    return {"candidateId": candidate_id}
+
+
+class PlanSeedTests(unittest.TestCase):
+    def setUp(self):
+        self.candidates = [candidate("likud", 1), candidate("shas", 1)]
+        self.xray = (
+            [row("cand_likud_1"), row("cand_shas_1")],
+            [row("cand_likud_1")],
+            [row("cand_shas_1")],
+            [],
+        )
+        self.polls = ["poll-a", "poll-b"]
+
+    def plan(self, real_polls=0, real_parties=frozenset()):
+        return plan_seed(
+            candidates=self.candidates,
+            xray=self.xray,
+            polls=self.polls,
+            real_polls=real_polls,
+            parties_with_real_candidates=set(real_parties),
+        )
+
+    def test_an_empty_warehouse_gets_the_full_demo_dataset(self):
+        plan = self.plan()
+        self.assertEqual(plan["polls"], self.polls)
+        self.assertEqual(len(plan["candidates"]), 2)
+        self.assertEqual(plan["skipped_candidate_parties"], set())
+
+    def test_no_demo_polls_once_real_polls_exist(self):
+        # Averaged together they would corrupt the aggregate and bring back
+        # the demo banner.
+        self.assertEqual(self.plan(real_polls=166)["polls"], [])
+
+    def test_no_fictional_candidates_for_a_party_with_its_official_list(self):
+        plan = self.plan(real_parties={"likud"})
+        self.assertEqual([c["id"] for c in plan["candidates"]], ["cand_shas_1"])
+        self.assertEqual(plan["skipped_candidate_parties"], {"likud"})
+
+    def test_xray_rows_follow_their_candidate(self):
+        plan = self.plan(real_parties={"likud"})
+        self.assertEqual(plan["votes"], [row("cand_shas_1")])
+        self.assertEqual(plan["bills"], [])
+        self.assertEqual(plan["quotes"], [row("cand_shas_1")])
+
+
+if __name__ == "__main__":
+    unittest.main()

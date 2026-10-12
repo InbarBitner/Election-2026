@@ -11,7 +11,7 @@ from __future__ import annotations
 import hashlib
 import json
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 
 from ...db import delete_where, now_ms, table, to_db_datetime, upsert
 from ..transform.normalize import CleanPoll, require_source
@@ -301,10 +301,41 @@ def finish_run(connection, run_id: str, status: str, stats: dict) -> None:
     )
 
 
-def clear_seed_data(connection) -> None:
-    """Remove rows that came from the seed, leaving real ETL data untouched."""
-    for table_name in ("Poll", "Candidate", "Party", "Event"):
+def clear_seed_data(connection, keep_party_ids: set[str]) -> None:
+    """Remove rows that came from the seed, leaving real ETL data untouched.
+
+    Parties are the exception: they are seed rows, but real data hangs off
+    them, and PollResult and Candidate cascade from Party. Deleting them all
+    and reloading took every real poll result and every official candidate
+    with them. So a party still in the seed file is kept, and the reload
+    updates it in place. Only a party that has left the file is deleted,
+    along with whatever belonged to it.
+    """
+    for table_name in ("Poll", "Candidate", "Event"):
         delete_where(connection, table_name, provenance="seed")
+    parties = table("Party")
+    connection.execute(
+        delete(parties).where(
+            parties.c.provenance == "seed", parties.c.id.notin_(sorted(keep_party_ids))
+        )
+    )
+
+
+def real_data(connection) -> tuple[int, set[str]]:
+    """How many real (ETL) polls exist, and which parties have real candidates.
+
+    The seed reads this so it fills only what is genuinely empty, and never
+    lays demo data over real data.
+    """
+    polls = table("Poll")
+    real_polls = connection.execute(
+        select(func.count()).select_from(polls).where(polls.c.provenance == "etl")
+    ).scalar_one()
+    candidates = table("Candidate")
+    parties = connection.execute(
+        select(candidates.c.partyId).where(candidates.c.provenance == "etl").distinct()
+    )
+    return int(real_polls), {row.partyId for row in parties}
 
 
 def delete_seed_polls(connection) -> int:
