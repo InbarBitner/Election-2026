@@ -28,6 +28,10 @@ data/sources/news_feeds.json
 web/.env
 web/.env.local
 
+# Party platforms fetched by pipeline.fetch_platforms: the parties' copyright,
+# reproducible from data/sources/platforms.json.
+data/platforms/
+
 # Notebooks
 .ipynb_checkpoints/
 

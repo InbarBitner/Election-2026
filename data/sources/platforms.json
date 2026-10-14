@@ -1,0 +1,109 @@
+{
+  "_comment": "Where each party publishes its platform for the 2026 election. Start points are the 'מצע' links on the Israel Democracy Institute's 2026 election page (https://www.idi.org.il/policy/parties-and-elections/elections/2026-1/), plus the plan pages those link to. The fetched text is the parties' copyright, so it is kept out of git (data/platforms/); this file is what makes it reproducible. A party with no pages says why in `note`.",
+  "parties": {
+    "yashar": {
+      "pages": [
+        "https://yasharwitheisenkot.com/principles/",
+        "https://yasharwitheisenkot.com/topic/missions/",
+        "https://yasharwitheisenkot.com/principles/education/",
+        "https://yasharwitheisenkot.com/principles/service-for-all/",
+        "https://yasharwitheisenkot.com/principles/reservists-honour-and-compensation/",
+        "https://yasharwitheisenkot.com/principles/post-traumatic-stress-recovery/",
+        "https://yasharwitheisenkot.com/principles/inlocation-and-aliya/",
+        "https://yasharwitheisenkot.com/principles/homeland-security/",
+        "https://yasharwitheisenkot.com/principles/economics/",
+        "https://yasharwitheisenkot.com/principles/agriculture/",
+        "https://yasharwitheisenkot.com/principles/aliyah-and-integration/",
+        "https://yasharwitheisenkot.com/principles/north-reconstruction-and-prosperity/",
+        "https://yasharwitheisenkot.com/principles/senior-citizens/",
+        "https://yasharwitheisenkot.com/principles/youth-and-young-adults/",
+        "https://yasharwitheisenkot.com/principles/housing/",
+        "https://yasharwitheisenkot.com/principles/culture/",
+        "https://yasharwitheisenkot.com/principles/gender-equality/",
+        "https://yasharwitheisenkot.com/principles/lgbtqia/",
+        "https://yasharwitheisenkot.com/principles/self-employed-and-small-businesses/",
+        "https://yasharwitheisenkot.com/principles/environment-and-climate/",
+        "https://yasharwitheisenkot.com/principles/local-government/",
+        "https://yasharwitheisenkot.com/principles/government-and-public-service/"
+      ]
+    },
+    "yachad": {
+      "pages": [
+        "https://be-yahad.org.il/plans/meshartim/",
+        "https://be-yahad.org.il/plans/yokermichya/",
+        "https://be-yahad.org.il/plans/transport/",
+        "https://be-yahad.org.il/plans/northborderlaw/",
+        "https://be-yahad.org.il/plans/health/",
+        "https://be-yahad.org.il/plans/education/",
+        "https://be-yahad.org.il/plans/גיל-רך/",
+        "https://be-yahad.org.il/plans/women/",
+        "https://be-yahad.org.il/plans/enviroment/",
+        "https://be-yahad.org.il/plans/smb/",
+        "https://be-yahad.org.il/plans/religionandstate/",
+        "https://be-yahad.org.il/plans/personal-security/",
+        "https://be-yahad.org.il/plans/housing/",
+        "https://be-yahad.org.il/plans/natsec/"
+      ]
+    },
+    "yisrael-beitenu": {
+      "pages": ["https://beytenu.org.il/party-platform/"]
+    },
+    "joint-list": {
+      "pages": [
+        "https://jointlist.org.il/he/economic-plan/",
+        "https://jointlist.org.il/he/crime-plan/"
+      ],
+      "note": "Only two plans are published: economic-social and crime. There is no general platform."
+    },
+    "religious-zionism": {
+      "pages": [
+        "https://zionutdatit.org.il/מצע-המפלגה/",
+        "https://zionutdatit.org.il/wp-content/uploads/2022/10/יהדות-התפוצות-וקליטת-עליה.pdf",
+        "https://zionutdatit.org.il/wp-content/uploads/2021/12/זהות-יהודית.pdf",
+        "https://zionutdatit.org.il/wp-content/uploads/2021/12/משפט.pdf",
+        "https://zionutdatit.org.il/wp-content/uploads/2021/12/מסתננים.pdf",
+        "https://zionutdatit.org.il/wp-content/uploads/2021/12/דיני-משפחה.pdf",
+        "https://zionutdatit.org.il/wp-content/uploads/2021/12/מילואים.pdf",
+        "https://zionutdatit.org.il/wp-content/uploads/2021/12/התיישבות-ריבונית.pdf",
+        "https://zionutdatit.org.il/wp-content/uploads/2021/12/חינוך.pdf",
+        "https://zionutdatit.org.il/wp-content/uploads/2021/12/טרור.pdf",
+        "https://zionutdatit.org.il/wp-content/uploads/2021/12/כלכלה.pdf",
+        "https://zionutdatit.org.il/wp-content/uploads/2021/12/פשיעה-חקלאית.pdf",
+        "https://zionutdatit.org.il/wp-content/uploads/2021/12/טבע-וסביבה.pdf",
+        "https://zionutdatit.org.il/wp-content/uploads/2021/12/רווחה.pdf"
+      ],
+      "note": "The detailed plans are PDFs uploaded in 2021–2022, linked from the current platform page. They predate the 2026 run with Zehut."
+    },
+    "zionist-home": {
+      "pages": [
+        "https://www.themiluimnikim.org.il/platform/",
+        "https://www.themiluimnikim.org.il/מתווה-המילואימניקים/",
+        "https://www.themiluimnikim.org.il/תוכנית-המשילות/",
+        "https://www.themiluimnikim.org.il/חוזרים-מהקרב/"
+      ],
+      "note": "The Reservists' platform. The New Economic Party, its partner on the joint list, has none linked."
+    },
+    "amcha-israel": {
+      "pages": [
+        "https://amchaisrael.co.il/foundations",
+        "https://amchaisrael.co.il/inquiry",
+        "https://amchaisrael.co.il/security",
+        "https://amchaisrael.co.il/hasbara",
+        "https://amchaisrael.co.il/serving-plan"
+      ]
+    },
+    "democrats": {
+      "pages": [],
+      "note": "yes.democrats.org.il is a single-page app: the platform text is fetched by the browser at runtime and is in neither the HTML nor the script bundle."
+    },
+    "likud": {
+      "pages": [],
+      "note": "likud.org.il's robots.txt disallows everything (it carries a leftover 'STAGING' comment). The IDI link points to a values section of the home page, not a platform."
+    },
+    "shas": {"pages": [], "note": "No platform linked by the IDI."},
+    "yahadut-hatorah": {"pages": [], "note": "No platform linked by the IDI."},
+    "otzma": {"pages": [], "note": "No platform linked by the IDI."},
+    "raam": {"pages": [], "note": "No platform linked by the IDI."},
+    "kachol-lavan": {"pages": [], "note": "No platform linked by the IDI."}
+  }
+}
