@@ -4,3 +4,4 @@
 -r requirements.txt
 pandas>=2.2
 jupyterlab>=4.0
+sentence-transformers>=3.0   # embeddings for matching platform passages to quiz questions
