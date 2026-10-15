@@ -1,0 +1,26 @@
+party,question_id,axis,stance,confidence,passage,quote
+joint-list,q01,security,,not_covered,,
+joint-list,q02,security,,not_covered,,
+joint-list,q03,security,,not_covered,,
+joint-list,q04,security,,not_covered,,
+joint-list,q05,security,,not_covered,,
+joint-list,q06,economy,-1.0,sure,33.0,"לעומת עסקים קטנים, שאינם מקבלים שום תמיכה, חברות הענק והתאגידים זוכים להטבות מוגזמות. אנו נתמוך ברפורמה במיסוי שתאלץ את בעלי ההון, את התאגידים הפיננסיים ואת החברות הגדולות לשלם מס אמת: ביטול הטבות המס שלהם, והגדלת המס על הרווחים הפיננסיים, כולל רווחי בורסה, ל-30%. לצד זאת, נתמוך בפטור ממס הכנסה לשכירים ועצמאיים המשתכרים עד לשכר הממוצע במשק, ובהורדת המע""מ, הפוגע בשכבות המוחלשות, ל-10%. נתמוך גם בהחזרת המס המקביל, שבאמצעותו מימנו המעסיקים את מערכת הבריאות, עד ל-5% מהשכר ברוטו של העובד – כך ניתן יהיה להנהיג ביטוח סיעודי משופר לכלל האוכלוסייה."
+joint-list,q07,economy,,not_covered,,
+joint-list,q08,economy,,not_covered,,
+joint-list,q09,economy,1.0,sure,22.0,"מעלים את שכר המינימום ומצמידים אותו לשיעור של לא פחות מ- 70% מהשכר הממוצע במשק, שכיום יעמיד את שכר המינימום על 56 ש״ח לשעה לפחות. מגנים על השכר הריאלי ועל רמת החיים של העובדים ומשפחותיהם: תוספת יוקר של 100% בהתאם לעליית מדד המחירים, החל מאחוז ההתייקרות הראשון."
+joint-list,q10,economy,1.0,sure,37.0,"החזרת כל הכספים שנלקחו מהביטוח הלאומי במשך השנים למימון תקציב המדינה, והפסקת העברת היתרות לאוצר. ביטול כל ההקלות שניתנו למעסיקים בתשלום דמי הביטוח הלאומי. ביטול כל הקיצוצים בקצבאות – לרבות קצבת הילדים, הבטחת הכנסה ודמי האבטלה – והעלאת הקצבה הבסיסית, לרבות קצבת הזקנה, ל-25% מהשכר הממוצע במשק."
+joint-list,q11,religion,,not_covered,,
+joint-list,q12,religion,,not_covered,,
+joint-list,q13,religion,,not_covered,,
+joint-list,q14,religion,,not_covered,,
+joint-list,q15,religion,,not_covered,,
+joint-list,q16,governance,,not_covered,,
+joint-list,q17,governance,,not_covered,,
+joint-list,q18,governance,,not_covered,,
+joint-list,q19,governance,,not_covered,,
+joint-list,q20,governance,,not_covered,,
+joint-list,q21,society,1.0,sure,108.0,"נמשיך לקדם שוויון אזרחי מלא, כדי לחזק את האמון בין המדינה לאזרחיה הערבים ולהבטיח גישה שוויונית למשאבים, לשירותים ולהגנה."
+joint-list,q22,society,-1.0,partial,117.0,"רק מדינה דמוקרטית על מלא, שוויונית ונוכחת, יכולה לנצח את ארגוני הפשיעה ולהבטיח ביטחון אמיתי לכל אזרחיה."
+joint-list,q23,society,,not_covered,,
+joint-list,q24,society,,not_covered,,
+joint-list,q25,society,,not_covered,,

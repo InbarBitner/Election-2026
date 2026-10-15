@@ -1,0 +1,26 @@
+party,question_id,axis,stance,confidence,passage,quote
+zionist-home,q02,security,1.0,sure,71.0,"נפעל לחיזוק ההתיישבות ביהודה ושומרון, בנגב ובגליל ובגבולות המדינה. נקדם תמיכה בחקלאות מתוך ציונות, ביטחון והתיישבות. חקלאות הכרחית על מנת לאחוז בקרקע ולמען ביטחון המזון של אזרחי המדינה."
+zionist-home,q01,security,-1.0,sure,73.0,חיזוק ההתיישבות ביהודה ושומרון והכרעה במאבק על ההשתלטות העוינת על שטחי c
+zionist-home,q03,security,,not_covered,,
+zionist-home,q04,security,0.0,unclear,44.0,קידום שיתופי פעולה אזוריים להחלשת הציר האיראני.
+zionist-home,q05,security,1.0,partial,35.0,"על מדינת ישראל לאמץ מדיניות ביטחון אגרסיבית המעבירה את ההכרעה לשטח האויב – ממדיניות הכלה ותגובתיות למדיניות של יוזמה והתקפיות. נפעל להרתעה ממשית ומתמשכת המבוססת על עליונות מודיעינית וטכנולוגית לסיכול איומים מראש. נפעל כדי למנוע מדינה פלסטינית בצירים הדיפלומטיים והמדיניים, לצד יצירת מציאות של הכרעה בשטח. בנוסף נבצר את עצמאותנו הביטחונית באמצעות חיזוק תעשיות בטחון ישראליות ועידוד פיתוח וייצור נשק כחול לבן. נפעל לחיזוק ועיבוי ההתיישבות והנוכחות ברכסים השולטים בגבולות המדינה. לאור אתגרי הבטחון עלינו לחזק ולהגדיל את צבא הסדיר, הקבע והמילואים, לשדר עוצמה תמידיות ועליונות צבאית חד משמעית."
+zionist-home,q06,economy,,not_covered,,
+zionist-home,q07,economy,,not_covered,,
+zionist-home,q08,economy,,not_covered,,
+zionist-home,q09,economy,,not_covered,,
+zionist-home,q10,economy,,not_covered,,
+zionist-home,q11,religion,,not_covered,,
+zionist-home,q12,religion,1.0,sure,7.0,חוק גיוס לכולם
+zionist-home,q13,religion,,not_covered,,
+zionist-home,q14,religion,-1.0,partial,22.0,"תקציבי חינוך יינתנו רק למי שתורם למדינה, אין תקצוב ותמיכה למוסדות בלי שותפות בשירות."
+zionist-home,q15,religion,,not_covered,,
+zionist-home,q16,governance,0.0,unclear,68.0,תיקון האיזונים והבלמים בין הרשויות במדינת ישראל.
+zionist-home,q17,governance,0.0,unclear,61.0,נפעל לקדם תיקונים במערכת המשפט תחת הסכמות רחבות ובתהליך ציבורי משותף. נפעל לחידוש האמון ברשויות השלטון ונעגן בחקיקה את המעמד והאחריות של כל אחת מהרשויות.
+zionist-home,q18,governance,,not_covered,,
+zionist-home,q19,governance,,not_covered,,
+zionist-home,q20,governance,1.0,sure,9.0,וועדת חקירה
+zionist-home,q21,society,0.0,unclear,32.0,יצירת מסלולי שירות לאומי נוספים לחברה הערבית.
+zionist-home,q22,society,,not_covered,,
+zionist-home,q23,society,,not_covered,,
+zionist-home,q24,society,,not_covered,,
+zionist-home,q25,society,,not_covered,,
