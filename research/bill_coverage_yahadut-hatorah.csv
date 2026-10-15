@@ -1,0 +1,26 @@
+party,question_id,axis,stance,confidence,bill,billId,title,status,lead,sponsors,sourceUrl,labeler,note
+yahadut-hatorah,q01,security,-1.0,partial,217.0,2241438,"הצעת חוק החלת ריבונות על ערי יהודה והשומרון, התשפ""ו-2026",הונחה על שולחן הכנסת לדיון מוקדם,True,מאיר פרוש,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2241438,claude,"החלת ריבונות על ערי יו""ש – נגד ויתורים, לא הסדר במפורש"
+yahadut-hatorah,q02,security,1.0,sure,156.0,2223039,"הצעת חוק לביטול הפליה ברכישת מקרקעין ביהודה והשומרון, התשפ""ה-2024",מוזגה עם הצעת חוק אחרת,True,"יצחק זאב פינדרוס, משה רוט",https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2223039,claude,"ביטול ההפליה ברכישת מקרקעין ביו""ש"
+yahadut-hatorah,q03,security,,not_covered,,,,,,,,claude,
+yahadut-hatorah,q04,security,,not_covered,,,,,,,,claude,
+yahadut-hatorah,q05,security,,not_covered,,,,,,,,claude,
+yahadut-hatorah,q06,economy,1.0,partial,216.0,2241236,"הצעת חוק מס ערך מוסף (תיקון - הפחתת שיעור המס), התשפ""ו-2026",הונחה על שולחן הכנסת לדיון מוקדם,True,"יואל יעקב טסלר, יצחק זאב פינדרוס, יצחק יששכר גולדקנופ",https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2241236,claude,"הפחתת מע""מ; בלי התייחסות לרווחה (ובמקביל מציעים להגדיל קצבאות)"
+yahadut-hatorah,q07,economy,1.0,partial,117.0,2208591,"הצעת חוק מס ערך מוסף (תיקון - מס בשיעור אפס על תרופות), התשפ""ג-2023",נעצרה,True,משה רוט,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2208591,claude,"מע""מ אפס על תרופות – המדינה מורידה מחיר מוצר יסוד, דרך המס ולא פיקוח"
+yahadut-hatorah,q08,economy,,not_covered,,,,,,,,claude,
+yahadut-hatorah,q09,economy,1.0,sure,53.0,2192364,"הצעת חוק שכר מינימום (תיקון - העלאת שכר המינימום), התשפ""ב-2022",הונחה על שולחן הכנסת לדיון מוקדם,True,מאיר פרוש,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2192364,claude,העלאת שכר המינימום
+yahadut-hatorah,q10,economy,1.0,sure,77.0,2196516,"הצעת חוק הביטוח הלאומי (תיקון - הגדלת סכום קצבאות הילדים), התשפ""ג-2023",הונחה על שולחן הכנסת לדיון מוקדם,True,מאיר פרוש,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2196516,claude,הגדלת קצבאות הילדים
+yahadut-hatorah,q11,religion,,not_covered,,,,,,,,claude,
+yahadut-hatorah,q12,religion,,not_covered,,,,,,,,claude,
+yahadut-hatorah,q13,religion,,not_covered,,,,,,,,claude,
+yahadut-hatorah,q14,religion,,not_covered,,,,,,,,claude,
+yahadut-hatorah,q15,religion,1.0,partial,215.0,2241047,"הצעת חוק השבות (תיקון - הוספת המילה כהלכה), התשפ""ו-2026",הונחה על שולחן הכנסת לדיון מוקדם,True,מאיר פרוש,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2241047,claude,"חוק השבות: הוספת ""כהלכה"" – גיור לפי ההלכה; לא מונופול הרבנות במפורש"
+yahadut-hatorah,q16,governance,1.0,partial,33.0,2147489,הצעת חוק-יסוד: כבוד האדם וחירותו (תיקון - תוקפו של חוק חורג),הונחה על שולחן הכנסת לדיון מוקדם,True,אליהו ברוכי,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2147489,claude,"חוק יסוד כבוד האדם: ""תוקפו של חוק חורג"" – פסקת התגברות, מהכותרת בלבד"
+yahadut-hatorah,q17,governance,,not_covered,,,,,,,,claude,
+yahadut-hatorah,q18,governance,,not_covered,,,,,,,,claude,
+yahadut-hatorah,q19,governance,,not_covered,,,,,,,,claude,
+yahadut-hatorah,q20,governance,,not_covered,,,,,,,,claude,
+yahadut-hatorah,q21,society,0.0,unclear,190.0,2232636,"הצעת חוק שוויון זכויות לבני העדה הדרוזית, התשפ""ה-2025",הונחה על שולחן הכנסת לדיון מוקדם,True,יעקב אשר,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2232636,claude,שוויון לדרוזים – לא אזרחים ערבים בכלל
+yahadut-hatorah,q22,society,,not_covered,,,,,,,,claude,
+yahadut-hatorah,q23,society,,not_covered,,,,,,,,claude,
+yahadut-hatorah,q24,society,,not_covered,,,,,,,,claude,
+yahadut-hatorah,q25,society,,not_covered,,,,,,,,claude,

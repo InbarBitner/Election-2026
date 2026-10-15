@@ -1,0 +1,26 @@
+party,question_id,axis,stance,confidence,bill,billId,title,status,lead,sponsors,sourceUrl
+shas,q01,security,-1.0,partial,110.0,2192886.0,"הצעת חוק למניעת השתלטות תושבי הרשות הפלסטינית על שטחי c, התשפ""ב-2022",הונחה על שולחן הכנסת לדיון מוקדם,True,"אוריאל מנחם בוסו, חיים ביטון, מיכאל משה מלכיאלי",https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2192886
+shas,q02,security,1.0,sure,148.0,2205720.0,"הצעת חוק לביטול ההפליה ברכישת מקרקעין ביהודה והשומרון, התשפ""ו–2025",הונחה על שולחן הכנסת לקריאה ראשונה,True,יוסף טייב,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2205720
+shas,q03,security,,not_covered,,,,,,,
+shas,q04,security,,not_covered,,,,,,,
+shas,q05,security,,not_covered,,,,,,,
+shas,q06,economy,-1.0,partial,333.0,551740.0,"הצעת חוק הביטוח הלאומי (תיקון - זכאות לתלוש מזון בעד ילד הנמצא מתחת לקו העוני), התשע""ד-2014",הוסבה להצעה לסדר היום,True,אריה מכלוף דרעי,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=551740
+shas,q07,economy,1.0,sure,20.0,2161130.0,"הצעת חוק פיקוח על מחירי מצרכים ושירותים (תיקון - פיקוח על מוצרי מזון לתינוקות), התשפ""ב-2021",במליאה לדיון מוקדם,True,חיים ביטון,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2161130
+shas,q08,economy,0.0,unclear,318.0,479135.0,"הצעת חוק הרשויות המקומיות (סמכויות בתחום משק המים וביוב) (תיקוני חקיקה), התשע""ג-2013",הונחה על שולחן הכנסת לדיון מוקדם,True,אריה מכלוף דרעי,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=479135
+shas,q09,economy,1.0,sure,332.0,551355.0,"הצעת חוק שכר מינימום (תיקון - העלאת שכר המינימום), התשע""ד-2014",הונחה על שולחן הכנסת לדיון מוקדם,True,אריה מכלוף דרעי,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=551355
+shas,q10,economy,1.0,sure,336.0,553625.0,"הצעת חוק הביטוח הלאומי (תיקון - הגדלת סכום קצבת הילדים), התשע""ד-2014",במליאה לדיון מוקדם,True,אריה מכלוף דרעי,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=553625
+shas,q11,religion,-1.0,sure,32.0,2163953.0,"הצעת חוק לתיקון פקודת התעבורה (הגבלת הפעלת רכב ציבורי בימי מנוחה), התשפ""ב-2021",הונחה על שולחן הכנסת לדיון מוקדם,True,חיים ביטון,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2163953
+shas,q12,religion,,not_covered,,,,,,,
+shas,q13,religion,,not_covered,,,,,,,
+shas,q14,religion,1.0,partial,3.0,162139.0,"הצעת חוק חינוך מיוחד (הרחבה לגבי מוסדות שאינם מוכרים), התשנ""ז-1996",הונחה על שולחן הכנסת לדיון מוקדם,True,אריה מכלוף דרעי,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=162139
+shas,q15,religion,1.0,partial,303.0,2241107.0,"הצעת חוק השמירה על המקומות הקדושים (תיקון - סמכות הרבנות הראשית לישראל), התשפ""ו-2026",הונחה על שולחן הכנסת לדיון מוקדם,True,מיכאל משה מלכיאלי,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2241107
+shas,q16,governance,,not_covered,,,,,,,
+shas,q17,governance,,not_covered,,,,,,,
+shas,q18,governance,1.0,partial,13.0,2159711.0,"הצעת חוק שירות המדינה (מינויים) (תיקון - מינוי יועצים משפטיים של משרדים), התשפ""א-2021",נעצרה,True,אריה מכלוף דרעי,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2159711
+shas,q19,governance,,not_covered,,,,,,,
+shas,q20,governance,,not_covered,,,,,,,
+shas,q21,society,0.0,unclear,254.0,2232636.0,"הצעת חוק שוויון זכויות לבני העדה הדרוזית, התשפ""ה-2025",הונחה על שולחן הכנסת לדיון מוקדם,True,"יונתן מישרקי, יוסף טייב, ינון אזולאי",https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2232636
+shas,q22,society,,not_covered,,,,,,,
+shas,q23,society,,not_covered,,,,,,,
+shas,q24,society,1.0,partial,217.0,2225698.0,"הצעת חוק איסור לשון הרע (תיקון - פיצוי בגין האשמות שווא בדבר פשעי מלחמה), התשפ""ה-2025",הונחה על שולחן הכנסת לדיון מוקדם,True,"יונתן מישרקי, יוסף טייב",https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2225698
+shas,q25,society,,not_covered,,,,,,,

@@ -1,0 +1,26 @@
+party,question_id,axis,stance,confidence,bill,billId,title,status,lead,sponsors,sourceUrl,labeler,note
+likud,q01,security,-1.0,partial,332.0,2192886,"הצעת חוק למניעת השתלטות תושבי הרשות הפלסטינית על שטחי c, התשפ""ב-2022",הונחה על שולחן הכנסת לדיון מוקדם,True,"גילה גמליאל דמרי, יואב קיש, יריב גדעון לוין, ישראל כץ, מכלוף זוהר, ניר ברקת, שלמה קרעי",https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2192886,claude,מניעת השתלטות פלסטינית על שטחי C — נגד ויתור טריטוריאלי; כותרת בלבד
+likud,q02,security,1.0,sure,547.0,2228544,"הצעת חוק החלת החוק הישראלי על כל היישובים היהודיים בשטחי יהודה והשומרון, התשפ""ה-2025",הונחה על שולחן הכנסת לדיון מוקדם,True,אביחי אברהם בוארון,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2228544,claude,"החלת החוק הישראלי על כל היישובים היהודיים ביו""ש"
+likud,q03,security,,not_covered,,,,,,,,claude,
+likud,q04,security,,not_covered,,,,,,,,claude,
+likud,q05,security,1.0,partial,88.0,2142605,"הצעת חוק הגנה על ישראלים מפני מוסדות בין-לאומיים עוינים, התשפ""א-2020",הונחה על שולחן הכנסת לדיון מוקדם,True,חיים כץ,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2142605,claude,הגנה מפני מוסדות בינלאומיים עוינים — עדיפות למדיניות ביטחונית על פני לחץ בינלאומי
+likud,q06,economy,1.0,partial,657.0,2241236,"הצעת חוק מס ערך מוסף (תיקון - הפחתת שיעור המס), התשפ""ו-2026",הונחה על שולחן הכנסת לדיון מוקדם,True,אביחי אברהם בוארון,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2241236,claude,"הפחתת מע""מ; הכותרת לא מדברת על קיצוץ ברווחה"
+likud,q07,economy,1.0,partial,686.0,272070,"הצעת חוק מס ערך מוסף (תיקון - מס בשיעור אפס על מוצרי מזון בסיסיים), התשס""ח-2008",במליאה לדיון מוקדם,False,ישראל כץ,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=272070,claude,"מע""מ אפס על מזון בסיסי (2008) — התערבות במחיר מוצרי יסוד"
+likud,q08,economy,,not_covered,,,,,,,,claude,
+likud,q09,economy,1.0,partial,737.0,551355,"הצעת חוק שכר מינימום (תיקון - העלאת שכר המינימום), התשע""ד-2014",הונחה על שולחן הכנסת לדיון מוקדם,True,חיים כץ,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=551355,claude,העלאת שכר המינימום (2014); ההיקף לא ידוע
+likud,q10,economy,1.0,partial,118.0,2159148,"הצעת חוק הבטחת הכנסה (תיקון - גמלת הבטחת הכנסה לקשיש), התשפ""א-2021",הונחה על שולחן הכנסת לדיון מוקדם,True,יריב גדעון לוין,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2159148,claude,הגדלת גמלת הבטחת הכנסה לקשיש
+likud,q11,religion,,not_covered,,,,,,,,claude,
+likud,q12,religion,,not_covered,,,,,,,,claude,
+likud,q13,religion,,not_covered,,,,,,,,claude,
+likud,q14,religion,,not_covered,,,,,,,,claude,
+likud,q15,religion,0.0,unclear,663.0,2242994,"הצעת חוק הרבנות הראשית לישראל (תיקון - סמכות לעריכת בחינות), התשפ""ו-2026",הונחה על שולחן הכנסת לדיון מוקדם,True,חוה-אתי עטייה,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2242994,claude,"סמכות הרבנות לעריכת בחינות — נוגע ברבנות, הכיוון לא ברור מהכותרת"
+likud,q16,governance,,not_covered,,,,,,,,claude,
+likud,q17,governance,1.0,partial,623.0,2235427,"הצעת חוק שימוע למינויים בכירים ושופטים, התשפ״ו-2025",הונחה על שולחן הכנסת לדיון מוקדם,True,אביחי אברהם בוארון,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2235427,claude,שימוע (בכנסת) למינוי שופטים — מגדיל השפעה פוליטית; כותרת בלבד
+likud,q18,governance,1.0,partial,669.0,2245052,"הצעת חוק היועץ המשפטי לממשלה והתובע הכללי (מינוי, כהונה, תפקידים וסמכויות), התשפ""ו–2026",הכנה לקריאה שנייה ושלישית,True,"אביחי אברהם בוארון, בעז ביסמוט, חוה-אתי עטייה, עמית הלוי",https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2245052,claude,"פיצול תפקיד היועמ""ש ושינוי סמכויותיו (לקראת קריאה 2-3)"
+likud,q19,governance,,not_covered,,,,,,,,claude,
+likud,q20,governance,,not_covered,,,,,,,,claude,
+likud,q21,society,,not_covered,,,,,,,,claude,
+likud,q22,society,,not_covered,,,,,,,,claude,
+likud,q23,society,,not_covered,,,,,,,,claude,
+likud,q24,society,1.0,sure,323.0,2192342,"הצעת חוק איסור הנפת דגל הרשות הפלסטינית, התשפ""ב-2022",הונחה על שולחן הכנסת לדיון מוקדם,True,"אמיר אוחנה, שלמה קרעי",https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2192342,claude,איסור הנפת דגל הרשות הפלסטינית — הגבלת ביטוי
+likud,q25,society,0.0,unclear,126.0,2159382,"הצעת חוק-יסוד: כניסה, הגירה ומעמד בישראל",נעצרה,True,עמיחי שיקלי,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2159382,claude,"חוק-יסוד הגירה ומעמד (שיקלי) — רלוונטי, אבל אין תקציר לקביעת כיוון"

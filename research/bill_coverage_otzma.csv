@@ -1,0 +1,26 @@
+party,question_id,axis,stance,confidence,bill,billId,title,status,lead,sponsors,sourceUrl,labeler,note
+otzma,q01,security,-1.0,partial,44.0,2192886,"הצעת חוק למניעת השתלטות תושבי הרשות הפלסטינית על שטחי c, התשפ""ב-2022",הונחה על שולחן הכנסת לדיון מוקדם,True,איתמר בן גביר,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2192886,claude,"מניעת השתלטות פלסטינית על שטחי C – נגד ויתורים, לא הסדר במפורש"
+otzma,q02,security,1.0,partial,132.0,2233741,"הצעת חוק הליכים מזורזים להקמת יישובים חדשים (תיקוני חקיקה), התשפ""ה-2025",במליאה לדיון מוקדם,True,"יצחק קרויזר, לימור סון הר-מלך, רויטל טלי גוטליב",https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2233741,claude,"הליכים מזורזים להקמת יישובים חדשים – לא מזכיר יו""ש במפורש; נבחר במקום הצעות של גוטליב מתקופת הליכוד"
+otzma,q03,security,,not_covered,,,,,,,,claude,
+otzma,q04,security,,not_covered,,,,,,,,claude,
+otzma,q05,security,1.0,partial,127.0,2232946,"הצעת חוק איסור חימוש גורם עוין, התשפ""ה-2025",הונחה על שולחן הכנסת לדיון מוקדם,True,לימור סון הר-מלך,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2232946,claude,"איסור חימוש גורם עוין – קו נוקשה, מהכותרת בלבד; בלי ""במחיר בידוד"""
+otzma,q06,economy,1.0,partial,166.0,2241236,"הצעת חוק מס ערך מוסף (תיקון - הפחתת שיעור המס), התשפ""ו-2026",הונחה על שולחן הכנסת לדיון מוקדם,True,יצחק קרויזר,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2241236,claude,"הפחתת מע""מ; בלי התייחסות לרווחה"
+otzma,q07,economy,1.0,partial,103.0,2230439,"הצעת חוק תכנון משק החלב (תיקון - קביעת מחירים וחישוב עלויות ייצור חלב), התשפ""ה-2025",הונחה על שולחן הכנסת לדיון מוקדם,True,יצחק קרויזר,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2230439,claude,תכנון משק החלב: קביעת מחירים – המדינה קובעת מחיר מוצר יסוד; הכיוון הכלכלי לא ברור
+otzma,q08,economy,,not_covered,,,,,,,,claude,
+otzma,q09,economy,,not_covered,,,,,,,,claude,
+otzma,q10,economy,,not_covered,,,,,,,,claude,
+otzma,q11,religion,-1.0,sure,12.0,2163953,"הצעת חוק לתיקון פקודת התעבורה (הגבלת הפעלת רכב ציבורי בימי מנוחה), התשפ""ב-2021",הונחה על שולחן הכנסת לדיון מוקדם,True,איתמר בן גביר,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2163953,claude,הגבלת הפעלת רכב ציבורי בימי מנוחה (בן גביר)
+otzma,q12,religion,,not_covered,,,,,,,,claude,
+otzma,q13,religion,,not_covered,,,,,,,,claude,
+otzma,q14,religion,,not_covered,,,,,,,,claude,
+otzma,q15,religion,0.0,unclear,121.0,2232488,"הצעת חוק הרבנות הראשית לישראל (תיקון - מינוי מנהל כללי ותקציב הרבנות הראשית לישראל), התשפ""ה-2025",הונחה על שולחן הכנסת לדיון מוקדם,True,לימור סון הר-מלך,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2232488,claude,"מינוי מנכ""ל ותקציב לרבנות – עוסק ברבנות, לא במונופול"
+otzma,q16,governance,,not_covered,,,,,,,,claude,
+otzma,q17,governance,,not_covered,,,,,,,,claude,
+otzma,q18,governance,1.0,partial,172.0,2245052,"הצעת חוק היועץ המשפטי לממשלה והתובע הכללי (מינוי, כהונה, תפקידים וסמכויות), התשפ""ו–2026",הכנה לקריאה שנייה ושלישית,True,"יצחק קרויזר, רויטל טלי גוטליב",https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2245052,claude,"פיצול היועמ""ש והתובע הכללי (קרויזר); בעקביות עם תיוג עמך ישראל וישר!"
+otzma,q19,governance,,not_covered,,,,,,,,claude,
+otzma,q20,governance,0.0,unclear,65.0,2215901,"הצעת חוק ועדת חקירה לאירועים שקדמו למלחמת חרבות ברזל, התשפ""ד-2024",הונחה על שולחן הכנסת לדיון מוקדם,True,רויטל טלי גוטליב,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2215901,claude,ועדת חקירה לאירועים שקדמו למלחמה – לא ברור אם ממלכתית ועצמאית; של גוטליב
+otzma,q21,society,0.0,unclear,123.0,2232636,"הצעת חוק שוויון זכויות לבני העדה הדרוזית, התשפ""ה-2025",הונחה על שולחן הכנסת לדיון מוקדם,True,"יצחק קרויזר, לימור סון הר-מלך, רויטל טלי גוטליב",https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2232636,claude,שוויון לדרוזים – לא אזרחים ערבים בכלל
+otzma,q22,society,1.0,partial,85.0,2228723,"הצעת חוק ציונות כערך מנחה בפעולות הממשלה, התשפ""ה-2025",נעצרה,True,יצחק שמעון וסרלאוף,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2228723,claude,ציונות כערך מנחה בפעולות הממשלה – לא מתייחס במפורש לסתירה עם שוויון
+otzma,q23,society,,not_covered,,,,,,,,claude,
+otzma,q24,society,,not_covered,,,,,,,,claude,
+otzma,q25,society,1.0,sure,81.0,2227635,"הצעת חוק גירוש מסתננים תומכי המשטר במדינת אריתריאה ומסתננים שביצעו עבירות במדינת ישראל, התשפ""ה-2025",נעצרה,True,איתמר בן גביר,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2227635,claude,גירוש מסתננים תומכי המשטר באריתריאה ומסתננים עבריינים (בן גביר)

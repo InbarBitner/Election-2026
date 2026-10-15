@@ -1,0 +1,26 @@
+party,question_id,axis,stance,confidence,labeler,bill,billId,title,status,lead,sponsors,sourceUrl,note
+raam,q01,security,,not_covered,claude,,,,,,,,
+raam,q02,security,,not_covered,claude,,,,,,,,
+raam,q03,security,,not_covered,claude,,,,,,,,
+raam,q04,security,,not_covered,claude,,,,,,,,
+raam,q05,security,,not_covered,claude,,,,,,,,
+raam,q06,economy,1.0,partial,claude,50.0,2206208,"הצעת חוק מס ערך מוסף (תיקון - שיעור מס מופחת על מוצרי מזון בסיסיים) (הוראת שעה), התשפ""ג-2023",הונחה על שולחן הכנסת לדיון מוקדם,True,מנסור עבאס,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2206208,"מע""מ מופחת על מוצרי מזון בסיסיים; בלי התייחסות לרווחה (ובמקביל מציעים להרחיב קצבאות)"
+raam,q07,economy,1.0,sure,claude,113.0,2223997,"הצעת חוק פיקוח על מחירי מצרכים ושירותים (תיקון - פיקוח על מוצרי מזון בריא בסיסיים), התשפ""ה-2024",הונחה על שולחן הכנסת לדיון מוקדם,True,אימאן חטיב יאסין,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2223997,פיקוח על מחירי מוצרי מזון בריא בסיסיים = התערבות ישירה במחירים
+raam,q08,economy,,not_covered,claude,,,,,,,,
+raam,q09,economy,,not_covered,claude,,,,,,,,
+raam,q10,economy,1.0,sure,claude,43.0,2205930,"הצעת חוק הבטחת הכנסה (תיקון - תוספת לגמלה בעד הילד השלישי ואילך), התשפ""ג-2023",הונחה על שולחן הכנסת לדיון מוקדם,True,יאסר חוגיראת,https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2205930,תוספת לגמלת הבטחת הכנסה בעד הילד השלישי ואילך
+raam,q11,religion,,not_covered,claude,,,,,,,,
+raam,q12,religion,,not_covered,claude,,,,,,,,
+raam,q13,religion,,not_covered,claude,,,,,,,,
+raam,q14,religion,,not_covered,claude,,,,,,,,
+raam,q15,religion,,not_covered,claude,,,,,,,,
+raam,q16,governance,,not_covered,claude,,,,,,,,
+raam,q17,governance,,not_covered,claude,,,,,,,,
+raam,q18,governance,,not_covered,claude,,,,,,,,
+raam,q19,governance,,not_covered,claude,,,,,,,,
+raam,q20,governance,,not_covered,claude,,,,,,,,
+raam,q21,society,1.0,partial,claude,58.0,2208957,"הצעת חוק זכויות הסטודנט (תיקון - התאמות לאוכלוסייה הערבית - חגים), התשפ""ג-2023",במליאה לדיון מוקדם,True,"ווליד טאהא, יאסר חוגיראת, מנסור עבאס",https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2208957,"התאמות לאוכלוסייה הערבית בזכויות הסטודנט – שוויון בשירות אחד, לא בתקציבים ובייצוג"
+raam,q22,society,,not_covered,claude,,,,,,,,
+raam,q23,society,,not_covered,claude,,,,,,,,
+raam,q24,society,,not_covered,claude,,,,,,,,
+raam,q25,society,,not_covered,claude,,,,,,,,
