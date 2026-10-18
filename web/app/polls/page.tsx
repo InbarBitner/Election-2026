@@ -93,59 +93,64 @@ export default async function PollsPage({
       </Panel>
 
       <Panel>
-        <SectionTitle hint="הסקרים הגולמיים שמהם מחושב הממוצע, מהחדש לישן.">
+        <SectionTitle hint="הסקרים הגולמיים שמהם מחושב הממוצע, מהחדש לישן, כל אחד עם טעות הדגימה שלו.">
           הסקרים שנכללו
         </SectionTitle>
-        <div className="scroll-x">
-          <table className="table" style={{ minWidth: "44rem" }}>
-            <thead>
-              <tr>
-                <th>בית סקרים</th>
-                <th>מזמין</th>
-                <th>תאריך סיום</th>
-                <th>מדגם</th>
-                <th>טעות דגימה</th>
-                <th>שלוש הגדולות</th>
-                <th>מקור</th>
-              </tr>
-            </thead>
-            <tbody>
-              {polls.map((poll) => {
-                const top = [...poll.results]
-                  .sort((a, b) => b.seats - a.seats)
-                  .slice(0, 3);
-                return (
-                  <tr key={poll.id}>
-                    <td>{poll.pollster}</td>
-                    <td>{poll.sponsor}</td>
-                    <td>{formatDate(poll.fieldDateEnd)}</td>
-                    <td className="ltr-nums">
-                      {poll.sampleSize}
-                    </td>
-                    <td className="ltr-nums">
-                      ±{poll.marginOfError.toFixed(1)}%
-                    </td>
-                    <td>
-                      {top
-                        .map(
-                          (result) =>
-                            `${partyById.get(result.partyId)?.shortName ?? result.partyId} ${result.seats}`,
-                        )
-                        .join(" · ")}
-                    </td>
-                    <td>
-                      <SourceBadge
-                        url={poll.sourceUrl}
-                        name={poll.sourceName}
-                        label="פרסום"
-                      />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <details>
+          <summary className="btn btn-secondary" style={{ display: "inline-flex", listStyle: "none" }}>
+            הצג את <span className="ltr-nums">&nbsp;{polls.length}&nbsp;</span> הסקרים האחרונים
+          </summary>
+          <div className="scroll-x" style={{ marginTop: "14px" }}>
+            <table className="table" style={{ minWidth: "44rem" }}>
+              <thead>
+                <tr>
+                  <th>בית סקרים</th>
+                  <th>מזמין</th>
+                  <th>תאריך סיום</th>
+                  <th>מדגם</th>
+                  <th>טעות דגימה</th>
+                  <th>שלוש הגדולות</th>
+                  <th>מקור</th>
+                </tr>
+              </thead>
+              <tbody>
+                {polls.map((poll) => {
+                  const top = [...poll.results]
+                    .sort((a, b) => b.seats - a.seats)
+                    .slice(0, 3);
+                  return (
+                    <tr key={poll.id}>
+                      <td>{poll.pollster}</td>
+                      <td>{poll.sponsor}</td>
+                      <td>{formatDate(poll.fieldDateEnd)}</td>
+                      <td className="ltr-nums">
+                        {poll.sampleSize}
+                      </td>
+                      <td className="ltr-nums">
+                        ±{poll.marginOfError.toFixed(1)}%
+                      </td>
+                      <td>
+                        {top
+                          .map(
+                            (result) =>
+                              `${partyById.get(result.partyId)?.shortName ?? result.partyId} ${result.seats}`,
+                          )
+                          .join(" · ")}
+                      </td>
+                      <td>
+                        <SourceBadge
+                          url={poll.sourceUrl}
+                          name={poll.sourceName}
+                          label="פרסום"
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </details>
       </Panel>
     </>
   );

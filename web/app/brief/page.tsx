@@ -23,7 +23,6 @@ export default async function BriefPage() {
   }
 
   const [latest, ...archive] = briefs;
-  const facts = safeParse(latest.factsJson);
 
   return (
     <>
@@ -38,40 +37,13 @@ export default async function BriefPage() {
       <Callout>
         הסקירה נוצרת אוטומטית. זיהוי האירועים והמספרים נעשה בקוד דטרמיניסטי על
         נתוני מסד הנתונים; אם נעשה שימוש במודל שפה, תפקידו ניסוח בלבד והוא מקבל
-        אך ורק את העובדות שזוהו — הן מוצגות במלואן בתחתית העמוד.
+        אך ורק את העובדות שזוהו. המספרים שבסקירה הם אותם מספרים שבדף הסקרים.
       </Callout>
 
       <Panel style={{ marginBottom: "24px" }}>
         <h2 style={{ marginTop: 0, fontSize: "34px", lineHeight: 1.1 }}>{latest.headline}</h2>
         <Markdown source={latest.bodyMarkdown} />
       </Panel>
-
-      {facts && (
-        <Panel style={{ marginBottom: "24px" }}>
-          <SectionTitle hint="בדיוק המידע שעמד בבסיס הסקירה שלמעלה — לבדיקה עצמאית של כל טענה בה.">
-            העובדות שמהן נוצרה הסקירה
-          </SectionTitle>
-          <details>
-            <summary style={{ cursor: "pointer", fontSize: "0.87rem" }}>
-              הצגת הנתונים הגולמיים
-            </summary>
-            <pre
-              dir="ltr"
-              className="scroll-x"
-              style={{
-                background: "color-mix(in srgb, var(--color-text) 6%, transparent)",
-                border: "1px solid var(--color-divider)",
-                borderRadius: 0,
-                padding: "0.8rem",
-                fontSize: "0.75rem",
-                marginTop: "0.6rem",
-              }}
-            >
-              {JSON.stringify(facts, null, 2)}
-            </pre>
-          </details>
-        </Panel>
-      )}
 
       {archive.length > 0 && (
         <Panel>
@@ -93,14 +65,6 @@ export default async function BriefPage() {
       )}
     </>
   );
-}
-
-function safeParse(value: string): unknown {
-  try {
-    return JSON.parse(value);
-  } catch {
-    return null;
-  }
 }
 
 /**

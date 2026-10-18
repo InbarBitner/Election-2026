@@ -65,7 +65,6 @@ export default function CoalitionBuilder({
   // At most a few thousand subsets: cheap enough to recount on every click.
   const options = completions(seats, included.map((p) => p.id), excluded);
 
-  const blocs = [...new Set(parties.map((p) => p.bloc))];
   const set = (ids: string[], value: State) =>
     setState((prev) => ({ ...prev, ...Object.fromEntries(ids.map((id) => [id, value])) }));
 
@@ -98,16 +97,6 @@ export default function CoalitionBuilder({
       </div>
 
       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "14px" }}>
-        {blocs.map((bloc) => (
-          <button
-            key={bloc}
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => set(parties.filter((p) => p.bloc === bloc).map((p) => p.id), "in")}
-          >
-            + {BLOC_NAMES[bloc] ?? bloc}
-          </button>
-        ))}
         <button type="button" className="btn btn-ghost" onClick={() => setState({})}>
           איפוס
         </button>

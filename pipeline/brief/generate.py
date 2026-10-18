@@ -44,6 +44,11 @@ MAX_TOKENS = 2000
 SWING_THRESHOLD = 1.5
 # Distance from the threshold, in seats, that counts as "on the bubble".
 BUBBLE_MARGIN = 1.0
+# Two parties whose averages differ by less than this are level in the polls.
+# The brief ranks by projected seats, the bottom line, but when the leaders are
+# level in the average it says so: a one-seat gap that comes only from how the
+# remainders and surplus agreements fall is not a lead in the polls.
+LEAD_MARGIN = 1.0
 
 BLOC_NAMES = {
     "right": "הגוש הימני",
@@ -124,12 +129,31 @@ def recent_events(connection, target: date, lookback_days: int) -> list[dict]:
     return out
 
 
+def lead_fact(parties: list[dict]) -> dict | None:
+    """Who heads the seat projection, and whether the polls themselves agree.
+
+    `parties` must already be sorted by projected seats, largest first.
+    """
+    if len(parties) < 2:
+        return None
+    first, second = parties[0], parties[1]
+    return {
+        "first": first["name"],
+        "second": second["name"],
+        "seats": [first["projectedSeats"], second["projectedSeats"]],
+        "averages": [first["average"], second["average"]],
+        "levelInAverage": abs(first["average"] - second["average"]) < LEAD_MARGIN,
+    }
+
+
 def collect_facts(connection, target: date, window_days: int, lookback_days: int) -> dict:
     """Everything the brief is allowed to talk about, and nothing else."""
     stats = poll_stats(window_days=window_days, trend_days=1)
     weekly = {p["id"]: p["change"] for p in poll_stats(window_days=window_days, trend_days=7)["parties"]}
 
-    parties = sorted(stats["parties"], key=lambda p: -p["average"])
+    # By projected seats — what the polls would mean in the Knesset, and the
+    # order the polls page shows — then by average.
+    parties = sorted(stats["parties"], key=lambda p: (-p["projectedSeats"], -p["average"]))
 
     swings = [
         {
@@ -172,6 +196,7 @@ def collect_facts(connection, target: date, window_days: int, lookback_days: int
             {"party": p["name"], "average": p["average"], "seats": p["projectedSeats"]}
             for p in parties[:5]
         ],
+        "lead": lead_fact(parties),
         "swings": swings,
         "onTheBubble": on_the_bubble,
         "blocs": blocs,
@@ -190,6 +215,8 @@ SYSTEM_PROMPT = """אתה עורך חדשות המנסח סקירה יומית �
 - אל תמציא ציטוטים, שמות, מספרים או אירועים. אם אין מספיק נתונים ליום מסוים — כתוב זאת במפורש.
 - שמור על ניטרליות מוחלטת. תאר מה הנתונים מראים, בלי להביע עמדה לטובת מפלגה או גוש.
 - ציין תמיד שמדובר בממוצע סקרים ולא בתחזית תוצאות.
+- דרג ותאר את המפלגות לפי המנדטים בתחזית ההקצאה ("seats"), לא לפי הממוצע.
+- אם "lead.levelInAverage" הוא true, ציין שבממוצע הסקרים שתי המפלגות שבראש צמודות, ושהפער בתחזית נובע מחלוקת המנדטים העודפים ומהסכמי העודפים.
 - כתוב בעברית תקנית, 150-250 מילים.
 
 פורמט הפלט — JSON בלבד, ללא טקסט נוסף:
@@ -270,8 +297,17 @@ def render_from_template(facts: dict) -> tuple[str, str]:
         )
     elif events:
         headline = events[0]["headline"]
+    elif facts.get("lead"):
+        lead = facts["lead"]
+        (s1, s2), name1, name2 = lead["seats"], lead["first"], lead["second"]
+        if s1 == s2:
+            headline = f"{name1} ו{name2} שוות בראש התחזית עם {s1} מנדטים"
+        elif s1 - s2 == 1:
+            headline = f"בראש התחזית: {name1} עם {s1} מנדטים, {name2} עם {s2}"
+        else:
+            headline = f"בראש התחזית: {name1} עם {s1} מנדטים"
     elif leaders:
-        headline = f"{leaders[0]['party']} מוביל עם {leaders[0]['average']:.1f} מנדטים בממוצע"
+        headline = f"בראש התחזית: {leaders[0]['party']} עם {leaders[0]['seats']} מנדטים"
     else:
         headline = "אין נתוני סקרים חדשים להיום"
 
@@ -283,11 +319,19 @@ def render_from_template(facts: dict) -> tuple[str, str]:
     )
 
     if leaders:
-        lines.append("\n### בראש הטבלה\n")
+        lines.append("\n### בראש התחזית\n")
         for leader in leaders:
             lines.append(
-                f"- **{leader['party']}** — {leader['average']:.1f} מנדטים בממוצע "
-                f"({leader['seats']} מנדטים בתחזית ההקצאה)."
+                f"- **{leader['party']}** — {leader['seats']} מנדטים בתחזית "
+                f"({leader['average']:.1f} בממוצע הסקרים)."
+            )
+        lead = facts.get("lead")
+        if lead and lead["levelInAverage"] and lead["seats"][0] != lead["seats"][1]:
+            a1, a2 = lead["averages"]
+            lines.append(
+                f"\nבממוצע הסקרים {lead['first']} ו{lead['second']} צמודות "
+                f"({a1:.1f} מול {a2:.1f}). הפער ביניהן בתחזית נובע מחלוקת המנדטים "
+                f"העודפים ומהסכמי העודפים, לא מהבדל בסקרים."
             )
 
     if swings:
