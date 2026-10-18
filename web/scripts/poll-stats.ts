@@ -56,8 +56,12 @@ async function main() {
     const latest = latestAverages(points);
     const movement = trend(points, trendDays);
 
+    // Same surplus agreements the site applies, so the brief's seat counts
+    // match the polls page.
+    const agreements = await prisma.surplusAgreement.findMany();
     const projections = projectSeats(
       partyIds.map((id) => ({ partyId: id, averageSeats: latest.get(id)?.mean ?? 0 })),
+      agreements.map((a): [string, string] => [a.partyAId, a.partyBId]),
     );
     const blocOf = new Map(parties.map((p) => [p.id, p.bloc]));
     const blocs = seatsByBloc(projections, blocOf);

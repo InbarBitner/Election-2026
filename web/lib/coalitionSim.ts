@@ -4,8 +4,9 @@
  *
  * The method was worked out in research/09_coalition_montecarlo.ipynb. Each
  * simulated election draws every party's seats around its poll average and
- * runs the result through the real allocation (threshold + Bader-Ofer, from
- * seats.ts); a coalition's chance is the share of draws in which it holds 61.
+ * runs the result through the real allocation (threshold, surplus agreements
+ * and Bader-Ofer, from seats.ts); a coalition's chance is the share of draws
+ * in which it holds 61.
  *
  * Three modelling choices, each stated rather than hidden:
  *
@@ -29,7 +30,7 @@
 
 import { houseEffectOf, type HouseEffects } from "./houseEffects.ts";
 import { dedupePolls, seatsOf, startOfDayMs, type RawPoll } from "./pollAverage.ts";
-import { projectSeats } from "./seats.ts";
+import { projectSeats, type SurplusAgreement } from "./seats.ts";
 import { MAJORITY } from "./coalitions.ts";
 
 export const SD_FLOOR = 1;
@@ -105,7 +106,13 @@ function normalSampler(random: () => number): () => number {
  */
 export function simulate(
   parties: SimParty[],
-  options: { n?: number; correlation?: number; seed?: number } = {},
+  options: {
+    n?: number;
+    correlation?: number;
+    seed?: number;
+    /** Applied in every draw, as in the projection; a pair counts only when both pass. */
+    agreements?: SurplusAgreement[];
+  } = {},
 ): Uint8Array {
   const n = options.n ?? SIMULATIONS;
   const rho = options.correlation ?? BLOC_CORRELATION;
@@ -125,7 +132,7 @@ export function simulate(
         p.mean + p.sd * (shared * blocShift.get(p.bloc)! + own * normal()),
       ),
     }));
-    projectSeats(inputs).forEach((projection, i) => {
+    projectSeats(inputs, options.agreements).forEach((projection, i) => {
       out[row * k + i] = projection.seats;
     });
   }

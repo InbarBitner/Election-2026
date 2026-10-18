@@ -38,6 +38,7 @@ export default async function CoalitionsPage() {
   // the polls do.
   const draws = simulate(
     ranked.map((p) => ({ id: p.id, bloc: p.bloc, mean: means.get(p.id)!, sd: spread.get(p.id)! })),
+    { agreements: snapshot.agreements.map((a) => a.parties) },
   );
   const passChance = thresholdProbability(draws, ranked.length);
 

@@ -57,7 +57,7 @@ cd web && node scripts/house-effects.ts [--json|--stdin]
 - **The poll maths lives only in TypeScript** (`web/lib/`):
   - `pollAverage.ts` holds the moving average: one poll per firm per day, √n × age-decay weights, and a missing party counts as 0. Only raw polls are stored; the average is computed per request.
   - `houseEffects.ts` holds the shrunk per-firm lean correction.
-  - `seats.ts` converts seats to an allocation: 3.25% threshold, Bader-Ofer with surplus agreements, 120 seats exactly.
+  - `seats.ts` converts seats to an allocation: 3.25% threshold, Bader-Ofer with surplus agreements, 120 seats exactly. The signed agreements live in `data/seed/surplus_agreements.json` (sourced; the seed replaces the `SurplusAgreement` table from it). `getPollSnapshot`, `coalitionSim` and `scripts/poll-stats.ts` all apply them, so every page and the brief agree.
   - `cosine.ts` powers quiz matching.
   - `coalitions.ts` (minimal completions to 61) and `coalitionSim.ts` (seeded Monte Carlo through `projectSeats`) power `/coalitions`. The simulation's spread is measured after house effects, with a floor of 1 seat and 0.5 within-bloc correlation, all chosen in `research/09`.
   - Every page gets its aggregate through `getPollSnapshot` in `web/lib/queries.ts`, so all pages agree.

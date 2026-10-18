@@ -82,6 +82,16 @@ describe("simulate", () => {
     expect([...draws.slice(parties.length * 2)]).toEqual(expected);
   });
 
+  it("applies surplus agreements in every draw, as the projection does", () => {
+    const certain = parties.map((p) => ({ ...p, sd: 0 }));
+    const agreements: [string, string][] = [["d", "e"]];
+    const expected = projectSeats(
+      certain.map((p) => ({ partyId: p.id, averageSeats: p.mean })),
+      agreements,
+    ).map((p) => p.seats);
+    expect([...simulate(certain, { n: 1, agreements })]).toEqual(expected);
+  });
+
   it("repeats itself for the same seed", () => {
     expect(simulate(parties, { n: 200, seed: 7 })).toEqual(simulate(parties, { n: 200, seed: 7 }));
     expect(simulate(parties, { n: 200, seed: 7 })).not.toEqual(simulate(parties, { n: 200, seed: 8 }));

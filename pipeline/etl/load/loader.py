@@ -238,6 +238,46 @@ def load_quiz(connection, questions: list[dict]) -> int:
     return upsert(connection, "QuizQuestion", rows, key=["id"])
 
 
+def surplus_agreement_rows(agreements: list[dict], party_ids: set[str]) -> list[dict]:
+    """Validate the agreements and shape them as SurplusAgreement rows.
+
+    A list can sign with exactly one other list, so a party appearing twice, an
+    agreement with itself, or an unknown party id is a data error and stops the
+    load rather than being skipped.
+    """
+    rows, seen = [], set()
+    for agreement in agreements:
+        require_source(agreement, f"הסכם עודפים {agreement.get('parties')}")
+        a, b = sorted(agreement["parties"])
+        if a == b:
+            raise ValueError(f"הסכם עודפים של מפלגה עם עצמה: {a}")
+        for party_id in (a, b):
+            if party_id not in party_ids:
+                raise ValueError(f"הסכם עודפים עם מפלגה לא מוכרת: {party_id}")
+            if party_id in seen:
+                raise ValueError(f"מפלגה בשני הסכמי עודפים: {party_id}")
+            seen.add(party_id)
+        signed = agreement.get("signedOn")
+        rows.append(
+            {
+                "id": f"{a}+{b}",
+                "partyAId": a,
+                "partyBId": b,
+                "signedOn": to_db_datetime(signed) if signed else None,
+                "sourceUrl": agreement["sourceUrl"],
+                "sourceName": agreement["sourceName"],
+            }
+        )
+    return rows
+
+
+def load_surplus_agreements(connection, rows: list[dict]) -> int:
+    # The file is the whole picture: replacing the table keeps a cancelled
+    # agreement from lingering.
+    connection.execute(table("SurplusAgreement").delete())
+    return upsert(connection, "SurplusAgreement", rows, key=["id"])
+
+
 def load_party_vectors(
     connection,
     vectors: dict[str, dict[str, float]],

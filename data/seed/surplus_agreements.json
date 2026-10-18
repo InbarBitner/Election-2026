@@ -1,0 +1,35 @@
+{
+  "_comment": "Surplus-vote agreements (הסכמי עודפים) for the election to the 26th Knesset. The deadline to file them with the Central Elections Committee was 16 October 2026; this is the picture reported on that day (Emess, 12:35, and Kikar HaShabbat both list the same five, and no others). The committee had not yet published its official list when this file was written — check it against that list once it is out. Parties are referenced by Party.id. An agreement only takes effect when both sides clear the threshold, which lib/seats.ts enforces.",
+  "agreements": [
+    {
+      "parties": ["likud", "religious-zionism"],
+      "signedOn": "2026-10-06",
+      "sourceUrl": "https://www.ynet.co.il/news/elections2026/article/skpacqgjfe",
+      "sourceName": "ynet"
+    },
+    {
+      "parties": ["shas", "yahadut-hatorah"],
+      "signedOn": "2026-10-11",
+      "sourceUrl": "https://www.haaretz.co.il/news/elections/2026-10-11/ty-article/000001a1-2ab0-d4fa-a5b9-efb40ed20000",
+      "sourceName": "הארץ"
+    },
+    {
+      "parties": ["yashar", "democrats"],
+      "signedOn": "2026-09-10",
+      "sourceUrl": "https://www.haaretz.co.il/news/elections/2026-09-10/ty-article/.premium/000001a0-8b93-d9dc-a9a9-8bd719110000",
+      "sourceName": "הארץ"
+    },
+    {
+      "parties": ["yachad", "yisrael-beitenu"],
+      "signedOn": "2026-09-10",
+      "sourceUrl": "https://www.jpost.com/israel-election-2026/article-908296",
+      "sourceName": "The Jerusalem Post"
+    },
+    {
+      "parties": ["raam", "joint-list"],
+      "signedOn": null,
+      "sourceUrl": "https://www.emess.co.il/radio/1945293",
+      "sourceName": "אמס"
+    }
+  ]
+}

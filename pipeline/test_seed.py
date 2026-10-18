@@ -7,6 +7,10 @@ from __future__ import annotations
 
 import unittest
 
+import json
+from pathlib import Path
+
+from .etl.load.loader import surplus_agreement_rows
 from .seed import plan_seed
 
 
@@ -59,6 +63,35 @@ class PlanSeedTests(unittest.TestCase):
         self.assertEqual(plan["votes"], [row("cand_shas_1")])
         self.assertEqual(plan["bills"], [])
         self.assertEqual(plan["quotes"], [row("cand_shas_1")])
+
+
+def agreement(a: str, b: str) -> dict:
+    return {"parties": [a, b], "signedOn": "2026-10-06", "sourceUrl": "https://example.org", "sourceName": "x"}
+
+
+class SurplusAgreementTests(unittest.TestCase):
+    parties = {"likud", "religious-zionism", "shas", "yahadut-hatorah"}
+
+    def test_a_pair_becomes_one_row_with_a_stable_id(self):
+        [row] = surplus_agreement_rows([agreement("religious-zionism", "likud")], self.parties)
+        self.assertEqual(row["id"], "likud+religious-zionism")
+        self.assertEqual((row["partyAId"], row["partyBId"]), ("likud", "religious-zionism"))
+
+    def test_a_party_cannot_sign_twice(self):
+        with self.assertRaises(ValueError):
+            surplus_agreement_rows(
+                [agreement("likud", "shas"), agreement("likud", "religious-zionism")], self.parties
+            )
+
+    def test_an_unknown_party_stops_the_load(self):
+        with self.assertRaises(ValueError):
+            surplus_agreement_rows([agreement("likud", "nobody")], self.parties)
+
+    def test_the_committed_file_is_valid(self):
+        root = Path(__file__).resolve().parent.parent / "data" / "seed"
+        parties = {p["id"] for p in json.loads((root / "parties.json").read_text())["parties"]}
+        agreements = json.loads((root / "surplus_agreements.json").read_text())["agreements"]
+        self.assertEqual(len(surplus_agreement_rows(agreements, parties)), len(agreements))
 
 
 if __name__ == "__main__":

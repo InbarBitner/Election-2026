@@ -18,7 +18,7 @@ import {
   type RawPoll,
 } from "./pollAverage";
 import { estimateHouseEffects, houseEffectMagnitude, type HouseEffects } from "./houseEffects";
-import { projectSeats, seatsByBloc, type SeatProjection } from "./seats";
+import { projectSeats, seatsByBloc, type SeatProjection, type SurplusAgreement } from "./seats";
 
 export type PartyRow = {
   id: string;
@@ -34,6 +34,13 @@ export type PartyRow = {
   sourceName: string;
 };
 
+export type SurplusAgreementRow = {
+  parties: SurplusAgreement;
+  signedOn: Date | null;
+  sourceUrl: string;
+  sourceName: string;
+};
+
 export type PollSnapshot = {
   parties: PartyRow[];
   points: AveragePoint[];
@@ -41,6 +48,9 @@ export type PollSnapshot = {
   latest: Map<string, AveragePoint>;
   changes: Map<string, number>;
   projections: SeatProjection[];
+  /** The same projection with no surplus agreements, to show what they change. */
+  projectionsWithoutAgreements: SeatProjection[];
+  agreements: SurplusAgreementRow[];
   blocSeats: { bloc: string; seats: number }[];
   pollCount: number;
   asOf: string | null;
@@ -59,13 +69,20 @@ export async function getPollSnapshot(
   windowDays: number = DEFAULT_WINDOW_DAYS,
   trendDays = 7,
 ): Promise<PollSnapshot> {
-  const [parties, polls] = await Promise.all([
+  const [parties, polls, agreementRows] = await Promise.all([
     prisma.party.findMany({ where: { isActive: true }, orderBy: { name: "asc" } }),
     prisma.poll.findMany({
       include: { results: true },
       orderBy: { fieldDateEnd: "asc" },
     }),
+    prisma.surplusAgreement.findMany({ orderBy: { id: "asc" } }),
   ]);
+  const agreements: SurplusAgreementRow[] = agreementRows.map((a) => ({
+    parties: [a.partyAId, a.partyBId],
+    signedOn: a.signedOn,
+    sourceUrl: a.sourceUrl,
+    sourceName: a.sourceName,
+  }));
 
   const raw: RawPoll[] = polls.map((poll) => ({
     id: poll.id,
@@ -84,9 +101,9 @@ export async function getPollSnapshot(
   const latest = latestAverages(points);
   const changes = trend(points, trendDays);
 
-  const projections = projectSeats(
-    partyIds.map((id) => ({ partyId: id, averageSeats: latest.get(id)?.mean ?? 0 })),
-  );
+  const seatInputs = partyIds.map((id) => ({ partyId: id, averageSeats: latest.get(id)?.mean ?? 0 }));
+  const projections = projectSeats(seatInputs, agreements.map((a) => a.parties));
+  const projectionsWithoutAgreements = projectSeats(seatInputs);
   const blocOf = new Map(parties.map((p) => [p.id, p.bloc]));
   const blocSeats = [...seatsByBloc(projections, blocOf).entries()]
     .map(([bloc, seats]) => ({ bloc, seats }))
@@ -104,6 +121,8 @@ export async function getPollSnapshot(
     latest,
     changes,
     projections,
+    projectionsWithoutAgreements,
+    agreements,
     blocSeats,
     pollCount: polls.length,
     asOf,

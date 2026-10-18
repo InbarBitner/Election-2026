@@ -89,6 +89,7 @@ export default async function PollsPage({
           changes={snapshot.changes}
           blocSeats={snapshot.blocSeats}
         />
+        <SurplusAgreements snapshot={snapshot} partyById={partyById} />
       </Panel>
 
       <Panel>
@@ -150,3 +151,58 @@ export default async function PollsPage({
   );
 }
 
+
+/**
+ * The agreements in force and what they change. A pair pools its leftover
+ * votes, so it can win a seat neither would win alone — usually at the expense
+ * of whichever list held the last remainder.
+ */
+function SurplusAgreements({
+  snapshot,
+  partyById,
+}: {
+  snapshot: Awaited<ReturnType<typeof getPollSnapshot>>;
+  partyById: Map<string, { name: string }>;
+}) {
+  if (snapshot.agreements.length === 0) return null;
+  const name = (id: string) => partyById.get(id)?.name ?? id;
+  const without = new Map(snapshot.projectionsWithoutAgreements.map((p) => [p.partyId, p.seats]));
+  const shifts = snapshot.projections
+    .map((p) => ({ id: p.partyId, delta: p.seats - (without.get(p.partyId) ?? 0) }))
+    .filter((s) => s.delta !== 0)
+    .sort((a, b) => b.delta - a.delta);
+
+  return (
+    <div style={{ marginTop: "22px", fontSize: "13px" }}>
+      <h3 style={{ fontSize: "16px", margin: "0 0 6px" }}>הסכמי עודפים</h3>
+      <p className="text-muted" style={{ margin: "0 0 8px" }}>
+        התחזית כוללת את הסכמי העודפים שנחתמו. הסכם חל רק כששתי הרשימות עוברות את אחוז החסימה.
+      </p>
+      <ul style={{ margin: "0 0 8px", paddingInlineStart: "1.2rem" }}>
+        {snapshot.agreements.map((a) => (
+          <li key={a.parties.join("+")}>
+            {name(a.parties[0])} ו{name(a.parties[1])}{" "}
+            <a href={a.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-muted">
+              ({a.sourceName})
+            </a>
+          </li>
+        ))}
+      </ul>
+      <p style={{ margin: 0 }}>
+        {shifts.length === 0 ? (
+          "לפי הממוצע הנוכחי, ההסכמים לא משנים אף מנדט."
+        ) : (
+          <>
+            מה ההסכמים משנים בתחזית:{" "}
+            {shifts.map((s, i) => (
+              <span key={s.id}>
+                {i > 0 && ", "}
+                {name(s.id)} <span className="ltr-nums">{s.delta > 0 ? `+${s.delta}` : s.delta}</span>
+              </span>
+            ))}
+          </>
+        )}
+      </p>
+    </div>
+  );
+}

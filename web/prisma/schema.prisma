@@ -45,6 +45,8 @@ model Party {
   pollResults PollResult[]
   vector      PartyVector?
   platform    PlatformPlank[]
+  surplusAsA  SurplusAgreement[] @relation("SurplusA")
+  surplusAsB  SurplusAgreement[] @relation("SurplusB")
 
   @@index([bloc])
 }
@@ -107,6 +109,22 @@ model PollResult {
 }
 
 /// One position of a party on a policy axis, taken from its platform.
+/// Two lists that pool their remainder votes in the seat allocation
+/// ("הסכם עודפים"). Loaded from data/seed/surplus_agreements.json; it only
+/// takes effect when both lists clear the threshold (lib/seats.ts).
+model SurplusAgreement {
+  /// The two party ids, sorted and joined with "+".
+  id         String    @id
+  partyAId   String
+  partyBId   String
+  signedOn   DateTime?
+  sourceUrl  String
+  sourceName String
+
+  partyA Party @relation("SurplusA", fields: [partyAId], references: [id], onDelete: Cascade)
+  partyB Party @relation("SurplusB", fields: [partyBId], references: [id], onDelete: Cascade)
+}
+
 model PlatformPlank {
   id        String @id
   partyId   String

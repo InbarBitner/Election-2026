@@ -418,10 +418,14 @@ def main() -> int:
     parties_config = _load("parties.json")
     quiz_config = _load("quiz.json")
     anchors_config = _load("poll_anchors.json")
+    surplus_config = _load("surplus_agreements.json")
 
     parties = parties_config["parties"]
     for party in parties:
         party["provenance"] = "seed"
+    surplus_rows = loader.surplus_agreement_rows(
+        surplus_config["agreements"], {p["id"] for p in parties}
+    )
 
     planks_by_party = {
         party["id"]: {plank["axis"]: float(plank["position"]) for plank in party["planks"]}
@@ -483,6 +487,7 @@ def main() -> int:
         loader.load_polls(connection, plan["polls"])
         loader.load_events(connection, events)
         loader.load_quiz(connection, quiz_config["questions"])
+        loader.load_surplus_agreements(connection, surplus_rows)
 
     if real_polls:
         log.info("סקרי ההדגמה לא נטענו: במסד יש %d סקרים אמיתיים", real_polls)
