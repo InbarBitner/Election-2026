@@ -238,11 +238,18 @@ def load_quiz(connection, questions: list[dict]) -> int:
     return upsert(connection, "QuizQuestion", rows, key=["id"])
 
 
-def load_party_vectors(connection, vectors: dict[str, dict[str, float]], derived_from: str) -> int:
+def load_party_vectors(
+    connection,
+    vectors: dict[str, dict[str, float]],
+    derived_from: str,
+    evidence: dict[str, dict[str, dict]] | None = None,
+) -> int:
+    evidence = evidence or {}
     rows = [
         {
             "partyId": party_id,
             "vectorJson": json.dumps(vector, ensure_ascii=False, sort_keys=True),
+            "evidenceJson": json.dumps(evidence.get(party_id, {}), ensure_ascii=False, sort_keys=True),
             "derivedFrom": derived_from,
             "updatedAt": now_ms(),
         }

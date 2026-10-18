@@ -1,131 +1,137 @@
 import { describe, expect, it } from "vitest";
 import {
-  answersToVector,
-  cosineSimilarity,
+  answerPosition,
+  maskedCosine,
   matchBlocs,
   matchParties,
+  shrink,
+  toPercent,
+  type PartyVector,
   type QuizAnswer,
-  type Vector,
 } from "./cosine";
 
-function answer(
-  questionId: string,
-  axis: string,
-  value: number,
-  important = false,
-  polarity = 1,
-): QuizAnswer {
-  return { questionId, axis, value, important, polarity, weight: 1, shortLabel: axis };
+// The cases mirror the checks in research/07_match_function.ipynb, so the
+// notebook and the site agree on what a match is.
+
+function answer(questionId: string, value: number, important = false, weight = 1): QuizAnswer {
+  return { questionId, value, important, weight, shortLabel: questionId };
 }
 
-describe("cosineSimilarity", () => {
-  it("is 1 for identical directions", () => {
-    expect(cosineSimilarity({ x: 1, y: 1 }, { x: 2, y: 2 })).toBeCloseTo(1, 6);
-  });
-
-  it("is -1 for opposite directions", () => {
-    expect(cosineSimilarity({ x: 1, y: 1 }, { x: -1, y: -1 })).toBeCloseTo(-1, 6);
-  });
-
-  it("is 0 for orthogonal vectors", () => {
-    expect(cosineSimilarity({ x: 1, y: 0 }, { x: 0, y: 1 })).toBeCloseTo(0, 6);
-  });
-
-  it("returns 0 rather than NaN for a zero vector", () => {
-    expect(cosineSimilarity({ x: 0 }, { x: 1 })).toBe(0);
-  });
-
-  it("treats a missing axis as zero", () => {
-    expect(cosineSimilarity({ x: 1 }, { x: 1, y: 5 })).toBeCloseTo(1 / Math.sqrt(26), 6);
+describe("answerPosition", () => {
+  it("maps the Likert scale onto -1..1 with 3 as neutral", () => {
+    expect([1, 2, 3, 4, 5].map(answerPosition)).toEqual([-1, -0.5, 0, 0.5, 1]);
   });
 });
 
-describe("answersToVector", () => {
-  it("maps the Likert scale onto -1..1 with 3 as neutral", () => {
-    expect(answersToVector([answer("q1", "security", 5)])).toEqual({ security: 1 });
-    expect(answersToVector([answer("q2", "security", 1)])).toEqual({ security: -1 });
-    expect(answersToVector([answer("q3", "security", 3)])).toEqual({ security: 0 });
+describe("maskedCosine", () => {
+  const one = { q01: 1 };
+
+  it("can only be +1 or -1 on a single shared question", () => {
+    expect(maskedCosine({ q01: 0.5 }, { q01: 1 }, one)).toEqual({ cos: 1, shared: 1 });
+    expect(maskedCosine({ q01: -0.5 }, { q01: 1 }, one)).toEqual({ cos: -1, shared: 1 });
   });
 
-  it("averages several questions on the same axis", () => {
-    const v = answersToVector([answer("q1", "economy", 5), answer("q2", "economy", 3)]);
-    expect(v.economy).toBeCloseTo(0.5, 6);
-  });
-
-  it("flips a reversed statement onto the other pole", () => {
-    // Agreeing with a polarity -1 statement must land on the negative pole.
-    expect(answersToVector([answer("q1", "security", 5, false, -1)])).toEqual({
-      security: -1,
-    });
-    expect(answersToVector([answer("q2", "security", 1, false, -1)])).toEqual({
-      security: 1,
+  it("ignores questions only one side has", () => {
+    expect(maskedCosine({ q01: 1, q02: -1 }, { q01: 1, q03: 1 }, { q01: 1, q02: 1 })).toEqual({
+      cos: 1,
+      shared: 1,
     });
   });
 
-  it("cancels out when the user agrees with both a statement and its reverse", () => {
-    const v = answersToVector([
-      answer("q1", "security", 5, false, 1),
-      answer("q2", "security", 5, false, -1),
-    ]);
-    expect(v.security).toBeCloseTo(0, 6);
+  it("is 0, not NaN, with nothing shared or a neutral user", () => {
+    expect(maskedCosine({ q01: 1 }, { q02: 1 }, one)).toEqual({ cos: 0, shared: 0 });
+    expect(maskedCosine({ q01: 0 }, { q01: 1 }, one)).toEqual({ cos: 0, shared: 1 });
   });
 
-  it("gives an important question double weight", () => {
-    const v = answersToVector([
-      answer("q1", "economy", 5, true),
-      answer("q2", "economy", 3),
-    ]);
-    // (1*2 + 0*1) / 3
-    expect(v.economy).toBeCloseTo(2 / 3, 6);
+  it("lets a heavier question pull the score its way", () => {
+    const user = { q01: 1, q02: 1 };
+    const party = { q01: 1, q02: -1 };
+    expect(maskedCosine(user, party, { q01: 1, q02: 1 }).cos).toBeCloseTo(0, 9);
+    expect(maskedCosine(user, party, { q01: 3, q02: 1 }).cos).toBeGreaterThan(0.4);
+  });
+});
+
+describe("shrink and toPercent", () => {
+  it("pulls a score towards 0 by n/(n+k)", () => {
+    expect(shrink(1, 1, 3)).toBe(0.25);
+    expect(shrink(0.75, 15, 3)).toBeCloseTo((0.75 * 15) / 18, 12);
+    expect(shrink(1, 5, 0)).toBe(1);
+    expect(shrink(0, 0, 0)).toBe(0);
+  });
+
+  it("maps -1..1 onto 0..100 with no information at 50", () => {
+    expect([-1, 0, 1].map(toPercent)).toEqual([0, 50, 100]);
   });
 });
 
 describe("matchParties", () => {
-  const parties: { partyId: string; vector: Vector }[] = [
-    { partyId: "aligned", vector: { security: 1, economy: 1 } },
-    { partyId: "opposed", vector: { security: -1, economy: -1 } },
-    { partyId: "orthogonal", vector: { religion: 1 } },
+  const parties: PartyVector[] = [
+    { partyId: "aligned", vector: { q01: 1, q02: 1 } },
+    { partyId: "opposed", vector: { q01: -1, q02: -1 } },
+    { partyId: "unknown", vector: { q09: 1 } },
   ];
-  const answers = [answer("q1", "security", 5), answer("q2", "economy", 5)];
+  const answers = [answer("q01", 5), answer("q02", 5)];
 
-  it("scores an identical party 100 and an opposite one 0", () => {
+  it("ranks agreement above ignorance above disagreement", () => {
     const results = matchParties(answers, parties);
-    expect(results[0].partyId).toBe("aligned");
-    expect(results[0].score).toBe(100);
-    expect(results.find((r) => r.partyId === "opposed")!.score).toBe(0);
-    expect(results.find((r) => r.partyId === "orthogonal")!.score).toBe(50);
+    expect(results.map((r) => r.partyId)).toEqual(["aligned", "unknown", "opposed"]);
+    expect(results.find((r) => r.partyId === "unknown")).toMatchObject({ score: 50, shared: 0 });
   });
 
-  it("is sorted from best match to worst", () => {
-    const scores = matchParties(answers, parties).map((r) => r.score);
-    expect(scores).toEqual([...scores].sort((a, b) => b - a));
+  it("does not give 100% for agreeing on a single question", () => {
+    const [result] = matchParties([answer("q01", 5)], [{ partyId: "p", vector: { q01: 1 } }]);
+    expect(result.score).toBe(Math.round(toPercent(1 / 11)));
   });
 
-  it("explains the score with agreeing and disagreeing axes", () => {
+  it("ranks a party that agrees on many questions above one that agrees on one", () => {
+    // The case that motivated the shrinkage: B agrees on 13 of 15, A on 1 of 1.
+    const qs = Array.from({ length: 15 }, (_, i) => `q${String(i + 1).padStart(2, "0")}`);
+    const many = Object.fromEntries(qs.map((q, i) => [q, i < 13 ? 1 : -1]));
     const results = matchParties(
-      [answer("q1", "security", 5), answer("q2", "economy", 1)],
-      [{ partyId: "p", vector: { security: 1, economy: 1 } }],
+      qs.map((q) => answer(q, 5)),
+      [
+        { partyId: "a", vector: { q01: 1 } },
+        { partyId: "b", vector: many },
+      ],
     );
-    expect(results[0].agreements.map((a) => a.axis)).toEqual(["security"]);
-    expect(results[0].disagreements.map((a) => a.axis)).toEqual(["economy"]);
+    expect(results[0].partyId).toBe("b");
+  });
+
+  it("explains a score with the questions and their evidence", () => {
+    const [result] = matchParties(
+      [answer("q01", 5), answer("q02", 1)],
+      [
+        {
+          partyId: "p",
+          vector: { q01: 1, q02: 1 },
+          evidence: { q01: { kind: "bill", text: "הצעת חוק", url: "https://example.org/b" } },
+        },
+      ],
+    );
+    expect(result.agreements.map((r) => r.questionId)).toEqual(["q01"]);
+    expect(result.agreements[0].evidence?.url).toBe("https://example.org/b");
+    expect(result.disagreements.map((r) => r.questionId)).toEqual(["q02"]);
   });
 
   it("returns at most three reasons on each side", () => {
-    const many = ["a", "b", "c", "d", "e"].map((ax, i) => answer(`q${i}`, ax, 5));
-    const vector = Object.fromEntries(["a", "b", "c", "d", "e"].map((ax) => [ax, 1]));
-    const results = matchParties(many, [{ partyId: "p", vector }]);
-    expect(results[0].agreements).toHaveLength(3);
+    const qs = ["q01", "q02", "q03", "q04", "q05"];
+    const [result] = matchParties(
+      qs.map((q) => answer(q, 5)),
+      [{ partyId: "p", vector: Object.fromEntries(qs.map((q) => [q, 1])) }],
+    );
+    expect(result.agreements).toHaveLength(3);
   });
 });
 
 describe("matchBlocs", () => {
   it("weights party scores by their projected seats", () => {
     const matches = matchParties(
-      [answer("q1", "security", 5)],
+      [answer("q01", 5)],
       [
-        { partyId: "big", vector: { security: 1 } },
-        { partyId: "small", vector: { security: -1 } },
+        { partyId: "big", vector: { q01: 1 } },
+        { partyId: "small", vector: { q01: -1 } },
       ],
+      0,
     );
     const blocs = matchBlocs(
       matches,
@@ -143,10 +149,7 @@ describe("matchBlocs", () => {
   });
 
   it("ignores parties with no projected seats", () => {
-    const matches = matchParties(
-      [answer("q1", "security", 5)],
-      [{ partyId: "out", vector: { security: 1 } }],
-    );
+    const matches = matchParties([answer("q01", 5)], [{ partyId: "out", vector: { q01: 1 } }]);
     expect(matchBlocs(matches, new Map([["out", "right"]]), new Map([["out", 0]]))).toEqual([]);
   });
 });

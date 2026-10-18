@@ -4,6 +4,5 @@
 SQLAlchemy>=2.0,<3.0     # warehouse access, reflected from the Prisma schema
 requests>=2.31           # polite HTTP client for the extractors
 feedparser>=6.0          # RSS/Atom parsing for the news connector
-scikit-learn>=1.4        # TF-IDF signal in the party-vector builder
 anthropic>=1.0           # optional: phrasing for the daily brief
 pypdf>=4.0              # official candidate-list PDFs

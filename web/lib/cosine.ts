@@ -1,132 +1,165 @@
 /**
  * Voter-recommendation matching.
  *
- * The user's answers and every party's platform are reduced to a vector over
- * the same policy axes, and the match is the cosine similarity between them,
- * rescaled from [-1, 1] to a 0-100% score. Cosine is used rather than plain
- * distance so that *direction* of opinion matters more than intensity: a voter
- * who feels mildly right-wing across the board still matches a strongly
- * right-wing party.
+ * Both sides are compared question by question. A party's position on each
+ * quiz statement comes from hand labels of its platform or its MKs' bills
+ * (data/positions/party_positions.json): +1 agrees with the statement, -1
+ * disagrees, 0 takes no side, and a question the party is not covered on is
+ * absent. The user's answer is placed on the same scale, so no polarity is
+ * needed: both are measured against the same sentence.
+ *
+ * The similarity is a weighted cosine over the questions both sides have a
+ * position on, and nothing else. Treating a missing party position as 0 would
+ * read "we don't know" as "takes no side".
+ *
+ * Masking alone rewards ignorance: with one shared question the cosine can
+ * only be +1 or -1, so a party we know little about can hit 100% by chance.
+ * The score is therefore shrunk towards 0 ("no information", 50%) by
+ * n / (n + k), n being the number of shared questions. k = 10 was chosen in
+ * research/08_bias_diagnostics.ipynb: against random answers the parties'
+ * win rates barely depend on how many positions we have for them (Spearman
+ * -0.19), while 80% of simulated voters who think like a party get it first.
+ * Re-run that notebook before changing k or after adding many positions.
+ *
+ * The method was worked out in research/07_match_function.ipynb, and the tests
+ * in cosine.test.ts repeat its checks.
  */
 
 export type Vector = Record<string, number>;
 
 export type QuizAnswer = {
   questionId: string;
-  axis: string;
   /** 1..5 Likert; 3 is neutral. */
   value: number;
-  /**
-   * +1 when agreeing with the statement points towards the axis' positive
-   * pole, -1 when it points towards the negative one. Roughly half the
-   * statements are reversed, so that a user who agrees with everything does
-   * not land at an extreme.
-   */
-  polarity: number;
   /** Weight multiplier when the user marks the question as important. */
   important: boolean;
-  /** Base weight of the question inside its axis. */
+  /** Base weight of the question. */
   weight: number;
   shortLabel: string;
 };
 
-export type MatchResult = {
-  partyId: string;
-  /** 0..100 */
-  score: number;
-  /** Axes that pulled the score up, strongest first. */
-  agreements: { axis: string; label: string; contribution: number }[];
-  /** Axes that pulled the score down, strongest first. */
-  disagreements: { axis: string; label: string; contribution: number }[];
+/** The platform passage or bill a party's position rests on. */
+export type Evidence = {
+  kind: "platform" | "bill";
+  text: string;
+  url?: string;
+  /** A bill's legislative status. */
+  status?: string;
 };
 
-const IMPORTANT_MULTIPLIER = 2;
+export type Reason = {
+  questionId: string;
+  label: string;
+  /** Signed share of the weighted dot product: positive pulls the score up. */
+  contribution: number;
+  evidence?: Evidence;
+};
 
-export function cosineSimilarity(a: Vector, b: Vector): number {
-  const axes = new Set([...Object.keys(a), ...Object.keys(b)]);
+export type MatchResult = {
+  partyId: string;
+  /** 0..100; 50 means no information either way. */
+  score: number;
+  /** How many answered questions the party has a position on. */
+  shared: number;
+  /** Questions that pulled the score up, strongest first. */
+  agreements: Reason[];
+  /** Questions that pulled the score down, strongest first. */
+  disagreements: Reason[];
+};
+
+export type PartyVector = {
+  partyId: string;
+  vector: Vector;
+  evidence?: Record<string, Evidence>;
+};
+
+export const IMPORTANT_MULTIPLIER = 2;
+export const SHRINKAGE_K = 10;
+const REASONS_PER_SIDE = 3;
+
+/** 1..5 → -1..1, with 3 as 0. */
+export function answerPosition(value: number): number {
+  return (value - 3) / 2;
+}
+
+/** The weighted cosine over the questions both vectors have, and how many there are. */
+export function maskedCosine(
+  user: Vector,
+  party: Vector,
+  weights: Vector,
+): { cos: number; shared: number } {
+  const shared = Object.keys(user).filter((q) => q in party);
   let dot = 0;
-  let normA = 0;
-  let normB = 0;
-  for (const axis of axes) {
-    const x = a[axis] ?? 0;
-    const y = b[axis] ?? 0;
-    dot += x * y;
-    normA += x * x;
-    normB += y * y;
+  let sumUser = 0;
+  let sumParty = 0;
+  for (const q of shared) {
+    const w = weights[q] ?? 1;
+    dot += w * user[q] * party[q];
+    sumUser += w * user[q] ** 2;
+    sumParty += w * party[q] ** 2;
   }
-  if (normA === 0 || normB === 0) return 0;
-  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+  if (sumUser === 0 || sumParty === 0) return { cos: 0, shared: shared.length };
+  return { cos: dot / (Math.sqrt(sumUser) * Math.sqrt(sumParty)), shared: shared.length };
 }
 
-/**
- * Turn quiz answers into an axis vector in -1..1.
- *
- * Several questions can share an axis; they are combined as a weighted mean so
- * an axis with more questions does not automatically dominate the vector.
- */
-export function answersToVector(answers: QuizAnswer[]): Vector {
-  const sums = new Map<string, { wx: number; w: number }>();
-  for (const a of answers) {
-    const position = ((a.value - 3) / 2) * (a.polarity >= 0 ? 1 : -1); // 1..5 -> -1..1
-    const weight = a.weight * (a.important ? IMPORTANT_MULTIPLIER : 1);
-    const entry = sums.get(a.axis) ?? { wx: 0, w: 0 };
-    entry.wx += position * weight;
-    entry.w += weight;
-    sums.set(a.axis, entry);
-  }
-  const vector: Vector = {};
-  for (const [axis, { wx, w }] of sums) vector[axis] = w === 0 ? 0 : wx / w;
-  return vector;
+/** Pull a cosine towards 0 the fewer questions it rests on. */
+export function shrink(cos: number, shared: number, k = SHRINKAGE_K): number {
+  return shared + k === 0 ? 0 : (cos * shared) / (shared + k);
 }
 
-/** Per-axis weight of the user's answers, used to explain the result. */
-export function answerWeights(answers: QuizAnswer[]): Map<string, { weight: number; label: string }> {
-  const out = new Map<string, { weight: number; label: string }>();
-  for (const a of answers) {
-    const weight = a.weight * (a.important ? IMPORTANT_MULTIPLIER : 1);
-    const entry = out.get(a.axis);
-    if (entry) entry.weight += weight;
-    else out.set(a.axis, { weight, label: a.shortLabel });
-  }
-  return out;
+/** -1..1 → 0..100. */
+export function toPercent(score: number): number {
+  return (score + 1) * 50;
 }
 
 export function matchParties(
   answers: QuizAnswer[],
-  partyVectors: { partyId: string; vector: Vector }[],
+  parties: PartyVector[],
+  k = SHRINKAGE_K,
 ): MatchResult[] {
-  const userVector = answersToVector(answers);
-  const weights = answerWeights(answers);
+  const user: Vector = {};
+  const weights: Vector = {};
+  const labels = new Map<string, string>();
+  for (const a of answers) {
+    user[a.questionId] = answerPosition(a.value);
+    weights[a.questionId] = a.weight * (a.important ? IMPORTANT_MULTIPLIER : 1);
+    labels.set(a.questionId, a.shortLabel);
+  }
 
-  const results = partyVectors.map(({ partyId, vector }) => {
-    const similarity = cosineSimilarity(userVector, vector);
-    // A perfectly opposed party scores 0, an identical one 100.
-    const score = Math.round(((similarity + 1) / 2) * 100);
+  const results = parties.map(({ partyId, vector, evidence }) => {
+    const { cos, shared } = maskedCosine(user, vector, weights);
+    const score = shrink(cos, shared, k);
 
-    // Contribution of each axis to the dot product, weighted by how much the
-    // user said that axis matters. This is what the explanation is built from.
-    const contributions = Object.keys(userVector).map((axis) => {
-      const w = weights.get(axis)?.weight ?? 1;
-      return {
-        axis,
-        label: weights.get(axis)?.label ?? axis,
-        contribution: userVector[axis] * (vector[axis] ?? 0) * w,
-      };
-    });
+    const reasons: Reason[] = Object.keys(user)
+      .filter((q) => q in vector)
+      .map((q) => ({
+        questionId: q,
+        label: labels.get(q) ?? q,
+        contribution: weights[q] * user[q] * vector[q],
+        evidence: evidence?.[q],
+      }));
 
-    const agreements = contributions
-      .filter((c) => c.contribution > 0)
-      .sort((a, b) => b.contribution - a.contribution)
-      .slice(0, 3);
-    const disagreements = contributions
-      .filter((c) => c.contribution < 0)
-      .sort((a, b) => a.contribution - b.contribution)
-      .slice(0, 3);
-
-    return { partyId, score, agreements, disagreements };
+    return {
+      raw: score,
+      result: {
+        partyId,
+        score: Math.round(toPercent(score)),
+        shared,
+        agreements: reasons
+          .filter((r) => r.contribution > 0)
+          .sort((a, b) => b.contribution - a.contribution)
+          .slice(0, REASONS_PER_SIDE),
+        disagreements: reasons
+          .filter((r) => r.contribution < 0)
+          .sort((a, b) => a.contribution - b.contribution)
+          .slice(0, REASONS_PER_SIDE),
+      },
+    };
   });
 
-  return results.sort((a, b) => b.score - a.score || (a.partyId < b.partyId ? -1 : 1));
+  return results
+    .sort((a, b) => b.raw - a.raw || (a.result.partyId < b.result.partyId ? -1 : 1))
+    .map((r) => r.result);
 }
 
 /**

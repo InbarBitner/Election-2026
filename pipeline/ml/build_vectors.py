@@ -1,77 +1,79 @@
-"""Read platform data from the warehouse, build party vectors, write them back."""
+"""Load the parties' quiz positions into PartyVector.
+
+    python3 -m pipeline.ml.build_vectors [--dry-run]
+
+The positions come from data/positions/party_positions.json, built from the
+hand labels by `python3 -m pipeline.ml.positions`. Each vector holds one value
+per quiz question the party is covered on (-1..1, relative to the statement);
+the evidence alongside it is what the quiz result cites. The matching itself
+lives in web/lib/cosine.ts.
+"""
 
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 
 from sqlalchemy import select
 
 from ..db import get_engine, table
 from ..etl.load.loader import load_party_vectors
-from .vectorize import build_vectors
+from .positions import OUT as POSITIONS_FILE
 
 log = logging.getLogger(__name__)
 
+EVIDENCE_FIELDS = ("kind", "text", "url", "status")
 
-def collect_inputs(connection) -> tuple[dict[str, dict[str, float]], dict[str, str]]:
-    parties = table("Party")
-    planks_table = table("PlatformPlank")
-    quotes = table("Quote")
-    candidates = table("Candidate")
 
-    planks: dict[str, dict[str, float]] = {}
-    texts: dict[str, str] = {}
+def build(positions: dict[str, dict[str, dict]], party_ids: dict[str, str]):
+    """Vectors and evidence keyed by Party.id, for every active party.
 
-    for row in connection.execute(
-        select(parties.c.id, parties.c.platformText).where(parties.c.isActive == True)  # noqa: E712
-    ):
-        planks[row.id] = {}
-        texts[row.id] = row.platformText or ""
-
-    for row in connection.execute(
-        select(planks_table.c.partyId, planks_table.c.axis, planks_table.c.position, planks_table.c.text)
-    ):
-        if row.partyId not in planks:
-            continue
-        planks[row.partyId][row.axis] = float(row.position)
-        texts[row.partyId] += " " + (row.text or "")
-
-    # A candidate's recorded statements are part of what the party is saying.
-    for row in connection.execute(
-        select(candidates.c.partyId, quotes.c.text).select_from(
-            quotes.join(candidates, quotes.c.candidateId == candidates.c.id)
-        )
-    ):
-        if row.partyId in texts:
-            texts[row.partyId] += " " + (row.text or "")
-
-    return planks, texts
+    `party_ids` maps slug → id. A party with no positions still gets an empty
+    vector, so it is listed (at 50%, "no information") rather than missing.
+    """
+    vectors, evidence = {}, {}
+    for slug, party_id in party_ids.items():
+        stated = positions.get(slug, {})
+        vectors[party_id] = {qid: p["value"] for qid, p in stated.items()}
+        evidence[party_id] = {
+            qid: {k: p[k] for k in EVIDENCE_FIELDS if p.get(k) is not None}
+            for qid, p in stated.items()
+        }
+    return vectors, evidence
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="בניית וקטורי עמדות למפלגות")
+    parser = argparse.ArgumentParser(description="טעינת וקטורי העמדות של המפלגות")
     parser.add_argument("--dry-run", action="store_true", help="הצג בלבד, ללא כתיבה")
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 
+    positions = json.loads(POSITIONS_FILE.read_text(encoding="utf-8"))["parties"]
+    parties = table("Party")
     engine = get_engine()
     with engine.begin() as connection:
-        planks, texts = collect_inputs(connection)
-        if not planks:
+        party_ids = {
+            row.slug: row.id
+            for row in connection.execute(
+                select(parties.c.slug, parties.c.id).where(parties.c.isActive == True)  # noqa: E712
+            )
+        }
+        if not party_ids:
             log.error("אין מפלגות במסד הנתונים. הרץ קודם python -m pipeline.seed")
             return 1
+        unknown = sorted(set(positions) - set(party_ids))
+        if unknown:
+            log.warning("עמדות למפלגות שאינן פעילות במסד: %s", unknown)
 
-        vectors, derived_from = build_vectors(planks, texts)
-        log.info("נבנו %d וקטורים (%s)", len(vectors), derived_from)
-        for party_id, vector in sorted(vectors.items()):
-            log.info("  %-20s %s", party_id, {k: round(v, 2) for k, v in vector.items()})
+        vectors, evidence = build(positions, party_ids)
+        for slug, party_id in sorted(party_ids.items()):
+            log.info("  %-20s %2d שאלות", slug, len(vectors[party_id]))
 
         if args.dry_run:
             log.info("dry-run — לא נכתב דבר")
             return 0
-
-        load_party_vectors(connection, vectors, derived_from)
+        load_party_vectors(connection, vectors, "labels", evidence)
     log.info("נשמרו %d וקטורים", len(vectors))
     return 0
 

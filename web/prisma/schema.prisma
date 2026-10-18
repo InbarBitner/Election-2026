@@ -224,9 +224,14 @@ model QuizQuestion {
 /// Party position vector, written by pipeline/ml/build_vectors.py.
 model PartyVector {
   partyId     String   @id
-  /// JSON object: { "<axis>": number } with values in -1..1
+  /// JSON object: { "<questionId>": number } — the party's position on each
+  /// quiz statement, -1..1. A question the party is not covered on is absent,
+  /// which is not the same as 0 (covered, no direction).
   vectorJson  String
-  /// One of: platform | platform+tfidf
+  /// JSON object: { "<questionId>": { kind, text, url, ... } } — the platform
+  /// passage or bill each position rests on.
+  evidenceJson String @default("{}")
+  /// Where the positions came from, e.g. "labels" (data/positions/party_positions.json).
   derivedFrom String
   updatedAt   DateTime @updatedAt
 

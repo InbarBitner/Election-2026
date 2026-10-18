@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AXIS_NAMES, BLOC_NAMES } from "@/lib/format";
 
@@ -14,6 +14,13 @@ export type Question = {
 
 type Answer = { value: number; important: boolean };
 
+type Reason = {
+  questionId: string;
+  label: string;
+  contribution: number;
+  evidence?: { kind: "platform" | "bill"; text: string; url?: string; status?: string };
+};
+
 type MatchResponse = {
   answered: number;
   totalQuestions: number;
@@ -25,9 +32,11 @@ type MatchResponse = {
     colorDark: string;
     bloc: string;
     score: number;
+    /** Answered questions the party has a known position on. */
+    shared: number;
     projectedSeats: number;
-    agreements: { axis: string; label: string; contribution: number }[];
-    disagreements: { axis: string; label: string; contribution: number }[];
+    agreements: Reason[];
+    disagreements: Reason[];
   }[];
   blocs: { bloc: string; score: number }[];
 };
@@ -43,17 +52,20 @@ const SCALE = [
 const STORAGE_KEY = "election2026:quiz";
 
 export default function QuizWizard({ questions }: { questions: Question[] }) {
-  const [answers, setAnswers] = useState<Record<string, Answer>>(() => {
+  const [answers, setAnswers] = useState<Record<string, Answer>>({});
+  useEffect(() => {
     // Answers live only in the reader's own browser — they are never stored
-    // on the server, and the scoring request keeps nothing.
-    if (typeof window === "undefined") return {};
+    // on the server, and the scoring request keeps nothing. They are read
+    // after the first render: reading them during it made the server's HTML
+    // (no answers) disagree with the browser's, and React threw a hydration
+    // error whenever answers had been saved.
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
-      return saved ? (JSON.parse(saved) as Record<string, Answer>) : {};
+      if (saved) setAnswers(JSON.parse(saved) as Record<string, Answer>);
     } catch {
-      return {};
+      // Storage blocked or corrupt: start empty.
     }
-  });
+  }, []);
   const [result, setResult] = useState<MatchResponse | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -369,18 +381,18 @@ function Results({
 
             {/* The explanation is the point: a bare percentage is not an answer. */}
             <div style={{ fontSize: "0.8rem", color: "color-mix(in srgb, var(--color-text) 75%, transparent)" }}>
-              {party.agreements.length > 0 && (
-                <div>
-                  <span style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>מסכימים בעיקר על: </span>
-                  {party.agreements.map((a) => a.label).join(", ")}
-                </div>
-              )}
-              {party.disagreements.length > 0 && (
-                <div>
-                  <span style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>חלוקים בעיקר על: </span>
-                  {party.disagreements.map((a) => a.label).join(", ")}
-                </div>
-              )}
+              <div style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
+                {party.shared === 0 ? (
+                  "אין לנו מידע על עמדות המפלגה בשאלות שענית עליהן"
+                ) : (
+                  <>
+                    על סמך <span className="ltr-nums">{party.shared}</span>{" "}
+                    {party.shared === 1 ? "שאלה" : "שאלות"} שידועה בהן עמדת המפלגה
+                  </>
+                )}
+              </div>
+              <Reasons title="מסכימים בעיקר על" reasons={party.agreements} />
+              <Reasons title="חלוקים בעיקר על" reasons={party.disagreements} />
             </div>
           </li>
         ))}
@@ -422,9 +434,12 @@ function Results({
           color: "color-mix(in srgb, var(--color-text) 75%, transparent)",
         }}
       >
-        ההתאמה מחושבת כדמיון קוסינוס בין העמדות שסימנת לבין וקטור העמדות של כל
-        מפלגה, שנבנה ממצעה המפורסם. זהו כלי עזר להתמצאות — לא המלצה למי להצביע,
-        ואינו מביא בחשבון שיקולים קואליציוניים, אמון אישי או סוגיות שלא נכללו בשאלון.
+        ההתאמה משווה את תשובותיך, שאלה אחר שאלה, לעמדות המפלגה כפי שתויגו ממצעה
+        המפורסם או, למפלגה שאין לה מצע, מהצעות החוק של חבריה. לכל עמדה מצוין המקור.
+        שאלה שאין לנו בה מידע על המפלגה אינה נספרת, וציון שנשען על מעט שאלות מתקרב
+        ל-50% — כדי שמפלגה לא תקבל התאמה גבוהה רק מפני שידוע עליה מעט. זהו כלי עזר
+        להתמצאות — לא המלצה למי להצביע, ואינו מביא בחשבון שיקולים קואליציוניים,
+        אמון אישי או סוגיות שלא נכללו בשאלון.
       </p>
 
       <button
@@ -444,6 +459,32 @@ function Results({
       >
         למלא מחדש
       </button>
+    </div>
+  );
+}
+
+function Reasons({ title, reasons }: { title: string; reasons: Reason[] }) {
+  if (reasons.length === 0) return null;
+  return (
+    <div style={{ marginTop: "0.2rem" }}>
+      <span style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>{title}: </span>
+      {reasons.map((r, i) => (
+        <span key={r.questionId}>
+          {i > 0 && ", "}
+          {r.evidence?.url ? (
+            <a
+              href={r.evidence.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={`${r.evidence.kind === "bill" ? "הצעת חוק" : "מהמצע"}: ${r.evidence.text}`}
+            >
+              {r.label}
+            </a>
+          ) : (
+            r.label
+          )}
+        </span>
+      ))}
     </div>
   );
 }

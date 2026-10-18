@@ -17,7 +17,8 @@ npm run db:push --prefix web               # create/update tables from the Prism
 
 # Populate (safe to re-run after a change to data/seed/: it updates parties in place and never overlays demo data on real data)
 python3 -m pipeline.seed                   # add --candidates-per-party 6 for fictional dev candidates
-python3 -m pipeline.ml.build_vectors
+python3 -m pipeline.ml.positions          # after changing the labels in research/: rebuilds data/positions/
+python3 -m pipeline.ml.build_vectors      # loads data/positions/party_positions.json
 python3 -m pipeline.brief.generate --date today --no-llm   # --print prints without saving; drop --no-llm to use Claude
 
 # Live ETL (fetches for real, including in --dry-run, which only skips the write)
@@ -87,7 +88,18 @@ cd web && node scripts/house-effects.ts [--json|--stdin]
   - `KNS_Bill.PublicationDate` exists only for bills that became law. Proposals have none. `LastUpdatedDate` is not a bill date: for older bills it is 2021-06-29, the day the records were migrated. So `Bill.date` is nullable, and `knessetNum` plus `year` (taken from the title) place undated bills.
   - Each member keeps their 50 most recent bills (`BILLS_PER_MEMBER`). The query orders by `BillID`, which is only roughly chronological, so the final cut uses date-or-year. The X-ray API orders the same way in code, because ordering by the date column would put every old law above every new proposal.
 - **Daily brief (`pipeline/brief/generate.py`)** has two separate stages. Deterministic code first detects the facts. Claude then only phrases those facts and is never the source of one. Without an API key, or if the call fails, a deterministic template writes the brief. The facts are stored alongside the text and shown on `/brief`.
-- **Voter match.** `pipeline/ml/vectorize.py` builds 5-axis party vectors: 75% stated positions plus 25% character n-gram TF-IDF. `/api/match` computes cosine similarity with an explanation. Quiz answers are never stored on the server (localStorage only).
+- **Voter match** works per quiz question, not per axis.
+  - **Positions are hand labels:**
+    - Each party's platform, or its MKs' bills when it has no platform, is read against the 25 statements in `research/03` and `research/05` and stored as `research/*_coverage_*.csv`.
+    - `python3 -m pipeline.ml.positions` merges them into the committed `data/positions/party_positions.json`. Values are sure ±1, partial ±0.5, unclear 0. A missing key means no information, which is not 0. A platform wins over bills per question.
+    - Every position keeps the passage or bill it rests on, plus a link. Platform links are resolved from the gitignored `data/platforms/`, so build the file locally and commit it.
+    - `build_vectors` loads it into `PartyVector.vectorJson` / `evidenceJson`.
+  - **Matching (`web/lib/cosine.ts`):**
+    - User value is (v−3)/2, with no polarity, because both sides are measured against the same statement.
+    - Weighted cosine over shared questions only, then shrinkage `n/(n+10)`.
+    - k=10 comes from `research/08_bias_diagnostics.ipynb`. Re-run it before changing k or after adding many positions.
+    - The tests mirror the checks in `research/07`.
+  - Quiz answers are never stored on the server (localStorage only).
 
 ## Data-integrity rules enforced on purpose
 

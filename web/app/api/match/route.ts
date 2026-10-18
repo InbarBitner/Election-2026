@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { matchBlocs, matchParties, type QuizAnswer, type Vector } from "@/lib/cosine";
+import {
+  matchBlocs,
+  matchParties,
+  type Evidence,
+  type QuizAnswer,
+  type Vector,
+} from "@/lib/cosine";
 import { getPollSnapshot } from "@/lib/queries";
 
 type RequestBody = {
@@ -47,9 +53,7 @@ export async function POST(request: Request) {
     }
     answers.push({
       questionId: question.id,
-      axis: question.axis,
       value,
-      polarity: question.polarity,
       important: Boolean(given.important),
       weight: question.weight,
       shortLabel: question.shortLabel,
@@ -65,6 +69,7 @@ export async function POST(request: Request) {
     .map((row) => ({
       partyId: row.partyId,
       vector: JSON.parse(row.vectorJson) as Vector,
+      evidence: JSON.parse(row.evidenceJson) as Record<string, Evidence>,
     }));
 
   if (partyVectors.length === 0) {
@@ -95,6 +100,7 @@ export async function POST(request: Request) {
         colorDark: party?.colorDark ?? "#888",
         bloc: party?.bloc ?? "",
         score: match.score,
+        shared: match.shared,
         projectedSeats: seatsOf.get(match.partyId) ?? 0,
         agreements: match.agreements,
         disagreements: match.disagreements,
