@@ -133,7 +133,7 @@ export default function CandidateXray({
           border: "1px solid var(--color-divider)",
           background: "transparent",
           color: "var(--color-accent)",
-          borderRadius: 0,
+          borderRadius: "var(--radius-md)",
           padding: "0.2rem 0.6rem",
           fontSize: "0.78rem",
           cursor: "pointer",
@@ -170,7 +170,7 @@ export default function CandidateXray({
             style={{
               background: "var(--color-bg)",
               border: "1px solid var(--color-divider)",
-              borderRadius: 0,
+              borderRadius: "var(--radius-md)",
               maxWidth: "42rem",
               width: "100%",
               maxHeight: "85vh",
@@ -236,7 +236,7 @@ export default function CandidateXray({
                         background: "var(--color-warning-bg)",
                         color: "var(--color-warning)",
                         border: "1px solid var(--color-divider)",
-                        borderRadius: 0,
+                        borderRadius: "var(--radius-md)",
                         padding: "0.6rem 0.8rem",
                         fontSize: "0.82rem",
                         margin: "0 0 0.9rem",
@@ -419,7 +419,7 @@ function Votes({ data }: { data: XrayData }) {
                     fontSize: "0.72rem",
                     color: "var(--color-warning)",
                     border: "1px solid var(--color-warning)",
-                    borderRadius: 0,
+                    borderRadius: "var(--radius-md)",
                     padding: "0 0.45rem",
                   }}
                 >

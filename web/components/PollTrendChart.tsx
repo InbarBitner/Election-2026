@@ -187,7 +187,7 @@ export default function PollTrendChart({
                 contentStyle={{
                   background: "var(--color-bg)",
                   border: "1px solid var(--color-divider)",
-                  borderRadius: 0,
+                  borderRadius: "var(--radius-md)",
                   direction: "rtl",
                   fontSize: "13px",
                   color: "var(--color-text)",
@@ -273,7 +273,7 @@ export default function PollTrendChart({
                   ? "color-mix(in srgb, var(--color-text) 7%, transparent)"
                   : "transparent",
                 opacity: disabled ? 0.45 : 1,
-                borderRadius: 0,
+                borderRadius: "var(--radius-md)",
                 padding: "5px 10px",
                 fontSize: "13px",
                 color: "inherit",

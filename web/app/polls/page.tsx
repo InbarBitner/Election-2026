@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import PollsChartSection from "@/components/PollsChartSection";
-import SeatProjectionTable from "@/components/SeatProjection";
 import { Callout, Panel, SectionTitle, SourceBadge } from "@/components/ui";
 import { formatDate } from "@/lib/format";
 import { DEFAULT_WINDOW_DAYS } from "@/lib/pollAverage";
@@ -52,23 +51,15 @@ export default async function PollsPage({
 
   return (
     <>
-      <h1 style={{ fontSize: "44px", margin: "0 0 6px" }}>סקרים ומגמות</h1>
-      <p className="text-muted" style={{ marginTop: 0, fontSize: "13px" }}>
+      <h1 style={{ margin: "0 0 4px" }}>סקרים ומגמות</h1>
+      <p className="text-muted" style={{ marginTop: 0, fontSize: "14px" }}>
         <span className="ltr-nums">{snapshot.pollCount}</span> סקרים
-        {snapshot.asOf && <> · עודכן ל-{formatDate(snapshot.asOf)}</>}
+        {snapshot.asOf && <> · עודכן ל-{formatDate(snapshot.asOf)}</>} ·{" "}
+        <strong>ממוצע סקרים אינו תחזית תוצאות</strong>
       </p>
 
-      <Callout>
-        הממוצע משוקלל לפי שורש גודל המדגם ודועך אקספוננציאלית עם גיל הסקר (מחצית
-        משקל אחרי שבוע), ומכל בית סקרים נכלל סקר אחד ליום כדי שתדירות פרסום גבוהה
-        לא תטה את התוצאה. <strong>ממוצע סקרים אינו תחזית תוצאות</strong> — לכל סקר
-        טעות דגימה משלו, המוצגת בטבלה שלמטה.
-      </Callout>
-
       <Panel style={{ marginBottom: "24px" }}>
-        <SectionTitle hint="מגמת הממוצע הנע לאורך זמן. אפשר לשנות את חלון הממוצע ולבחור אילו מפלגות להציג.">
-          מגמות
-        </SectionTitle>
+        <SectionTitle hint="הממוצע הנע של כל מפלגה לאורך זמן.">מגמות</SectionTitle>
         <Suspense fallback={<p style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>טוען גרף…</p>}>
           <PollsChartSection
             rows={snapshot.chartRows}
@@ -78,24 +69,10 @@ export default async function PollsPage({
         </Suspense>
       </Panel>
 
-      <Panel style={{ marginBottom: "24px" }}>
-        <SectionTitle hint="הקצאת 120 המנדטים לפי הממוצע הנוכחי.">
-          תחזית מנדטים
-        </SectionTitle>
-        <SeatProjectionTable
-          parties={snapshot.parties}
-          projections={snapshot.projections}
-          averages={snapshot.latest}
-          changes={snapshot.changes}
-          blocSeats={snapshot.blocSeats}
-        />
-        <SurplusAgreements snapshot={snapshot} partyById={partyById} />
-      </Panel>
+      <SurplusAgreements snapshot={snapshot} partyById={partyById} />
 
       <Panel>
-        <SectionTitle hint="הסקרים הגולמיים שמהם מחושב הממוצע, מהחדש לישן, כל אחד עם טעות הדגימה שלו.">
-          הסקרים שנכללו
-        </SectionTitle>
+        <SectionTitle hint="מהחדש לישן, כל אחד עם טעות הדגימה שלו.">הסקרים עצמם</SectionTitle>
         <details>
           <summary className="btn btn-secondary" style={{ display: "inline-flex", listStyle: "none" }}>
             הצג את <span className="ltr-nums">&nbsp;{polls.length}&nbsp;</span> הסקרים האחרונים
@@ -152,6 +129,17 @@ export default async function PollsPage({
           </div>
         </details>
       </Panel>
+
+      <details style={{ marginTop: "20px", fontSize: "14px" }}>
+        <summary style={{ cursor: "pointer", color: "var(--color-accent)" }}>איך מחושב הממוצע</summary>
+        <p style={{ margin: "10px 0 0", maxWidth: "70ch", color: "color-mix(in srgb, var(--color-text) 78%, transparent)" }}>
+          כל סקר מקבל משקל לפי שורש גודל המדגם, והמשקל דועך עם גיל הסקר — מחצית
+          משקל אחרי שבוע. מכל בית סקרים נכלל סקר אחד ליום, כדי שמי שמפרסם הרבה לא
+          ישלוט בממוצע, ומכל סקר מוסרת הנטייה הקבועה של בית הסקרים שערך אותו. מפלגה
+          שנעדרת מסקר נספרת בו כאפס. המנדטים בדף הבית מחולקים מהממוצע הזה לפי אחוז
+          החסימה, שיטת בדר-עופר והסכמי העודפים.
+        </p>
+      </details>
     </>
   );
 }
@@ -178,22 +166,19 @@ function SurplusAgreements({
     .sort((a, b) => b.delta - a.delta);
 
   return (
-    <div style={{ marginTop: "22px", fontSize: "13px" }}>
-      <h3 style={{ fontSize: "16px", margin: "0 0 6px" }}>הסכמי עודפים</h3>
-      <p className="text-muted" style={{ margin: "0 0 8px" }}>
-        התחזית כוללת את הסכמי העודפים שנחתמו. הסכם חל רק כששתי הרשימות עוברות את אחוז החסימה.
-      </p>
-      <ul style={{ margin: "0 0 8px", paddingInlineStart: "1.2rem" }}>
-        {snapshot.agreements.map((a) => (
-          <li key={a.parties.join("+")}>
-            {name(a.parties[0])} ו{name(a.parties[1])}{" "}
-            <a href={a.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-muted">
-              ({a.sourceName})
+    <Panel style={{ marginBottom: "24px" }}>
+      <SectionTitle hint="חלים רק כששתי הרשימות עוברות את אחוז החסימה.">הסכמי עודפים</SectionTitle>
+      <p style={{ margin: "0 0 8px", fontSize: "14px" }}>
+        {snapshot.agreements.map((a, i) => (
+          <span key={a.parties.join("+")}>
+            {i > 0 && " · "}
+            <a href={a.sourceUrl} target="_blank" rel="noopener noreferrer" title={a.sourceName}>
+              {name(a.parties[0])} ו{name(a.parties[1])}
             </a>
-          </li>
+          </span>
         ))}
-      </ul>
-      <p style={{ margin: 0 }}>
+      </p>
+      <p style={{ margin: 0, fontSize: "14px" }}>
         {shifts.length === 0 ? (
           "לפי הממוצע הנוכחי, ההסכמים לא משנים אף מנדט."
         ) : (
@@ -208,6 +193,6 @@ function SurplusAgreements({
           </>
         )}
       </p>
-    </div>
+    </Panel>
   );
 }

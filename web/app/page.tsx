@@ -1,23 +1,18 @@
 import Link from "next/link";
-import Countdown from "@/components/Countdown";
 import SeatProjectionTable from "@/components/SeatProjection";
-import {
-  ButtonLink,
-  Callout,
-  EmptyState,
-  Kicker,
-  Panel,
-  PartySwatch,
-  SectionTitle,
-} from "@/components/ui";
-import { formatDate } from "@/lib/format";
-import { getLatestBrief, getPollSnapshot, rankedParties } from "@/lib/queries";
+import { ButtonLink, Callout, Kicker, Panel, SectionTitle } from "@/components/ui";
+import { daysUntilElection, formatDate } from "@/lib/format";
+import { getLatestBrief, getPollSnapshot } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * The front page reads like the top of a news site: today's story first, then
+ * the seat projection, and a way into the tools. Everything else has its own
+ * page in the navigation.
+ */
 export default async function HomePage() {
   const [snapshot, brief] = await Promise.all([getPollSnapshot(), getLatestBrief()]);
-  const ranked = rankedParties(snapshot);
 
   if (snapshot.pollCount === 0) {
     return (
@@ -32,66 +27,51 @@ export default async function HomePage() {
     );
   }
 
+  const days = daysUntilElection();
+
   return (
     <>
-      {/* Hero — the design's opening statement, with the countdown beside it. */}
-      <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(20rem, 1fr))",
-          gap: "40px",
-          alignItems: "start",
-          marginBottom: "48px",
-        }}
-      >
-        <div>
-          <Kicker>בחירות לכנסת ה־26 · 27 באוקטובר 2026</Kicker>
-          <h1
-            style={{
-              fontSize: "clamp(40px, 6vw, 64px)",
-              lineHeight: 1.02,
-              margin: "0 0 18px",
-              maxWidth: "14ch",
-            }}
-          >
-            הנתונים לפני הדעות.
-          </h1>
-          <p
-            style={{
-              fontSize: "17px",
-              lineHeight: 1.6,
-              maxWidth: "46ch",
-              color: "color-mix(in srgb, var(--color-text) 75%, transparent)",
-            }}
-          >
-            אגרגטור סקרים, אינדקס מפלגות ומנוע התאמה — במקום אחד. כל מספר כאן מגיע
-            מסקר מפורסם, עם מקור, תאריך וטווח טעות.
-          </p>
-          <div style={{ display: "flex", gap: "10px", marginTop: "26px", flexWrap: "wrap" }}>
-            <ButtonLink href="/quiz" withCorners>
-              מצאו את ההתאמה שלכם
-            </ButtonLink>
-            <ButtonLink href="/polls" variant="secondary">
-              לגרפים המלאים
-            </ButtonLink>
-          </div>
-        </div>
-
-        <Countdown />
+      <section style={{ marginBottom: "28px", maxWidth: "62ch" }}>
+        <Kicker>
+          בחירות לכנסת ה־26 · 27 באוקטובר 2026
+          {days > 0 && (
+            <>
+              {" "}· עוד <span className="ltr-nums">{days}</span> {days === 1 ? "יום" : "ימים"}
+            </>
+          )}
+        </Kicker>
+        {brief ? (
+          <>
+            <h1 style={{ margin: "6px 0 10px" }}>{brief.headline}</h1>
+            <p
+              style={{
+                fontSize: "17px",
+                color: "color-mix(in srgb, var(--color-text) 78%, transparent)",
+                margin: "0 0 8px",
+              }}
+            >
+              {firstParagraph(brief.bodyMarkdown)}
+            </p>
+            <p className="text-muted" style={{ fontSize: "13px", margin: 0 }}>
+              <Link href="/brief">לסקירה המלאה ←</Link> · {formatDate(brief.date)}
+            </p>
+          </>
+        ) : (
+          <h1 style={{ margin: "6px 0 10px" }}>ממוצע הסקרים לבחירות 2026</h1>
+        )}
       </section>
 
-      <Panel style={{ marginBottom: "44px" }}>
+      <Panel style={{ marginBottom: "24px" }}>
         <SectionTitle
-          hint="הקצאת 120 המנדטים לפי ממוצע הסקרים, אחוז חסימה של 3.25% ושיטת בדר-עופר. אינה תחזית תוצאות."
+          hint="ממוצע הסקרים, אחרי אחוז החסימה והסכמי העודפים. אינו תחזית תוצאות."
           aside={
             <>
-              ממוצע נע של <span className="ltr-nums">{snapshot.windowDays}</span> ימים ·{" "}
               <span className="ltr-nums">{snapshot.pollCount}</span> סקרים
               {snapshot.asOf && <> · עודכן ל-{formatDate(snapshot.asOf)}</>}
             </>
           }
         >
-          ממוצע הסקרים — מנדטים
+          כמה מנדטים לכל מפלגה
         </SectionTitle>
 
         <SeatProjectionTable
@@ -102,138 +82,17 @@ export default async function HomePage() {
           blocSeats={snapshot.blocSeats}
         />
 
-        <p style={{ marginTop: "20px", marginBottom: 0, fontSize: "14px" }}>
-          <Link href="/polls">לגרף המגמות ולרשימת הסקרים ←</Link>
+        <p style={{ marginTop: "16px", marginBottom: 0, fontSize: "14px" }}>
+          <Link href="/polls">למגמות ולסקרים עצמם ←</Link>
         </p>
       </Panel>
 
-      <div
-        style={{
-          display: "grid",
-          gap: "24px",
-          gridTemplateColumns: "repeat(auto-fit, minmax(20rem, 1fr))",
-          marginBottom: "44px",
-        }}
-      >
-        <Panel>
-          <SectionTitle hint="נוצרת אוטומטית מנתוני היום שנאספו בצינור ה-ETL.">
-            הסקירה היומית
-          </SectionTitle>
-          {brief ? (
-            <>
-              <h3 style={{ fontSize: "20px", margin: "0 0 8px" }}>{brief.headline}</h3>
-              <p
-                style={{
-                  fontSize: "14px",
-                  color: "color-mix(in srgb, var(--color-text) 75%, transparent)",
-                  margin: "0 0 16px",
-                }}
-              >
-                {firstParagraph(brief.bodyMarkdown)}
-              </p>
-              <div
-                style={{
-                  display: "flex",
-                  gap: "12px",
-                  alignItems: "baseline",
-                  flexWrap: "wrap",
-                  fontSize: "14px",
-                }}
-              >
-                <Link href="/brief">לסקירה המלאה ←</Link>
-                <span className="text-muted" style={{ fontSize: "11px" }}>
-                  {formatDate(brief.date)} ·{" "}
-                  {brief.generator === "llm" ? "נוסחה במודל שפה" : "נוסחה אוטומטית"}
-                </span>
-              </div>
-            </>
-          ) : (
-            <EmptyState>
-              טרם נוצרה סקירה. הרץ <code>python -m pipeline.brief.generate</code>.
-            </EmptyState>
-          )}
-        </Panel>
-
-        <Panel>
-          <SectionTitle hint="שאלון עמדות קצר שמשווה את תשובותיך למצעי המפלגות.">
-            למי אני מתאים?
-          </SectionTitle>
-          <p
-            style={{
-              fontSize: "14px",
-              color: "color-mix(in srgb, var(--color-text) 75%, transparent)",
-            }}
-          >
-            עונים על עד 25 היגדים בחמישה תחומים, ומקבלים אחוזי התאמה לכל מפלגה ולכל
-            גוש — יחד עם הסבר אילו נושאים הכריעו את התוצאה. התשובות נשמרות בדפדפן
-            שלך בלבד.
-          </p>
-          <div>
-            <ButtonLink href="/quiz" variant="secondary">
-              למילוי השאלון
-            </ButtonLink>
-          </div>
-        </Panel>
+      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+        <ButtonLink href="/quiz">למי אני מתאים?</ButtonLink>
+        <ButtonLink href="/coalitions" variant="secondary">
+          בונה קואליציות
+        </ButtonLink>
       </div>
-
-      <Panel>
-        <SectionTitle hint="לחיצה על מפלגה פותחת את מצעה ואת עמדותיה לפי תחום.">
-          מפלגות
-        </SectionTitle>
-        <ul
-          style={{
-            listStyle: "none",
-            padding: 0,
-            margin: 0,
-            display: "grid",
-            gap: "1px",
-            gridTemplateColumns: "repeat(auto-fill, minmax(14rem, 1fr))",
-          }}
-        >
-          {/*
-            The hairline grid is drawn with an outline on each cell rather than
-            by showing a coloured parent through 1px gaps: with an odd number of
-            lists the last row is incomplete, and the gap trick paints those
-            empty cells as a solid block.
-          */}
-          {ranked.map((party) => (
-            <li
-              key={party.id}
-              style={{ outline: "1px solid var(--color-divider)" }}
-            >
-              <Link
-                href={`/parties/${party.slug}`}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  padding: "12px 14px",
-                  textDecoration: "none",
-                  color: "inherit",
-                  fontSize: "14px",
-                }}
-              >
-                <PartySwatch color={party.color} />
-                <span
-                  style={{
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {party.name}
-                </span>
-                <span
-                  className="num ltr-nums text-muted"
-                  style={{ marginInlineStart: "auto", fontSize: "16px" }}
-                >
-                  {(snapshot.latest.get(party.id)?.mean ?? 0).toFixed(1)}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </Panel>
     </>
   );
 }
@@ -242,7 +101,11 @@ function firstParagraph(markdown: string): string {
   const paragraph = markdown
     .split("\n")
     .map((line) => line.trim())
-    .find((line) => line.length > 0 && !line.startsWith("#") && !line.startsWith("-"));
+    // The opening line of every brief is the same boilerplate about the
+    // window and the poll count, so the first *distinctive* paragraph is the
+    // one worth showing.
+    .filter((line) => line.length > 0 && !line.startsWith("#") && !line.startsWith("-"))
+    .find((line) => !line.startsWith("סקירה ליום"));
   const plain = (paragraph ?? "").replace(/\*\*/g, "");
-  return plain.length > 200 ? `${plain.slice(0, 200)}…` : plain;
+  return plain.length > 220 ? `${plain.slice(0, 220)}…` : plain;
 }

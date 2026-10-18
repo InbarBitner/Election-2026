@@ -210,15 +210,14 @@ export function Callout({
     <p
       className={tone === "warning" ? "tag-warning" : undefined}
       style={{
-        border: tone === "warning" ? undefined : "1px solid var(--color-divider)",
-        borderInlineStart:
-          tone === "warning" ? undefined : "3px solid var(--color-accent)",
+        background: tone === "warning" ? undefined : "color-mix(in srgb, var(--color-accent) 7%, var(--color-card))",
+        borderRadius: "var(--radius-md)",
         padding: "12px 16px",
-        fontSize: "13px",
-        lineHeight: 1.6,
+        fontSize: "14px",
+        lineHeight: 1.65,
         margin: "0 0 24px",
         display: "block",
-        color: tone === "warning" ? undefined : "color-mix(in srgb, var(--color-text) 75%, transparent)",
+        color: tone === "warning" ? undefined : "color-mix(in srgb, var(--color-text) 80%, transparent)",
       }}
     >
       {children}

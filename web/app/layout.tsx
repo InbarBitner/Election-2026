@@ -22,7 +22,7 @@ const barlowCondensed = Barlow_Condensed({
 });
 const heebo = Heebo({
   subsets: ["hebrew", "latin"],
-  weight: ["300", "400", "500", "700"],
+  weight: ["300", "400", "500", "700", "800"],
   variable: "--font-heebo",
   display: "swap",
 });
@@ -86,7 +86,7 @@ export default async function RootLayout({
             position: "sticky",
             top: 0,
             zIndex: 40,
-            background: "color-mix(in srgb, var(--color-bg) 92%, transparent)",
+            background: "color-mix(in srgb, var(--color-card) 94%, transparent)",
             backdropFilter: "blur(6px)",
             borderBottom: "1px solid var(--color-divider)",
             flexWrap: "wrap",

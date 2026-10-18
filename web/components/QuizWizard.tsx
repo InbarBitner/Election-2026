@@ -196,7 +196,7 @@ export default function QuizWizard({ questions }: { questions: Question[] }) {
                 key={question.id}
                 style={{
                   border: "1px solid var(--color-divider)",
-                  borderRadius: 0,
+                  borderRadius: "var(--radius-md)",
                   padding: "0.8rem 1rem",
                   marginBottom: "0.7rem",
                   background: "var(--color-bg)",
@@ -227,7 +227,7 @@ export default function QuizWizard({ questions }: { questions: Question[] }) {
                           }`,
                           background: selected ? "var(--tag-accent-bg)" : "transparent",
                           color: selected ? "var(--color-accent)" : "color-mix(in srgb, var(--color-text) 75%, transparent)",
-                          borderRadius: 0,
+                          borderRadius: "var(--radius-md)",
                           padding: "0.3rem 0.65rem",
                           fontSize: "0.82rem",
                           cursor: "pointer",
@@ -276,7 +276,7 @@ export default function QuizWizard({ questions }: { questions: Question[] }) {
           background: answered === 0 ? "var(--color-divider)" : "var(--color-accent)",
           color: "#fff",
           border: "none",
-          borderRadius: 0,
+          borderRadius: "var(--radius-md)",
           padding: "0.6rem 1.4rem",
           fontSize: "0.95rem",
           cursor: answered === 0 ? "not-allowed" : "pointer",
@@ -308,7 +308,7 @@ function Results({
         style={{
           background: "var(--color-bg)",
           border: "1px solid var(--color-divider)",
-          borderRadius: 0,
+          borderRadius: "var(--radius-md)",
           padding: "1.2rem",
           marginBottom: "1.2rem",
         }}
@@ -435,7 +435,7 @@ function Results({
         style={{
           background: "color-mix(in srgb, var(--color-text) 6%, transparent)",
           border: "1px solid var(--color-divider)",
-          borderRadius: 0,
+          borderRadius: "var(--radius-md)",
           padding: "0.8rem 1rem",
           fontSize: "0.83rem",
           color: "color-mix(in srgb, var(--color-text) 75%, transparent)",
@@ -457,7 +457,7 @@ function Results({
           border: "1px solid var(--color-divider)",
           background: "transparent",
           color: "color-mix(in srgb, var(--color-text) 75%, transparent)",
-          borderRadius: 0,
+          borderRadius: "var(--radius-md)",
           padding: "0.5rem 1rem",
           cursor: "pointer",
           font: "inherit",
