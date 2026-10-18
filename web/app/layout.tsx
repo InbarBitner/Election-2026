@@ -36,6 +36,7 @@ export const metadata: Metadata = {
 const NAV = [
   { href: "/", label: "ראשי" },
   { href: "/polls", label: "סקרים" },
+  { href: "/coalitions", label: "קואליציות" },
   { href: "/parties", label: "מפלגות" },
   { href: "/quiz", label: "למי אני מתאים?" },
   { href: "/brief", label: "סקירה יומית" },

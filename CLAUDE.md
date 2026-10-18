@@ -59,6 +59,7 @@ cd web && node scripts/house-effects.ts [--json|--stdin]
   - `houseEffects.ts` holds the shrunk per-firm lean correction.
   - `seats.ts` converts seats to an allocation: 3.25% threshold, Bader-Ofer with surplus agreements, 120 seats exactly.
   - `cosine.ts` powers quiz matching.
+  - `coalitions.ts` (minimal completions to 61) and `coalitionSim.ts` (seeded Monte Carlo through `projectSeats`) power `/coalitions`. The simulation's spread is measured after house effects, with a floor of 1 seat and 0.5 within-bloc correlation, all chosen in `research/09`.
   - Every page gets its aggregate through `getPollSnapshot` in `web/lib/queries.ts`, so all pages agree.
   - The Python daily brief **shells out to `node web/scripts/poll-stats.ts`** instead of reimplementing the average. Never add a Python copy of this logic.
 - **ETL (`pipeline/run_etl.py`)** runs extract → transform → load per source:

@@ -17,7 +17,7 @@ import {
   type ChartRow,
   type RawPoll,
 } from "./pollAverage";
-import { estimateHouseEffects, houseEffectMagnitude } from "./houseEffects";
+import { estimateHouseEffects, houseEffectMagnitude, type HouseEffects } from "./houseEffects";
 import { projectSeats, seatsByBloc, type SeatProjection } from "./seats";
 
 export type PartyRow = {
@@ -47,6 +47,10 @@ export type PollSnapshot = {
   windowDays: number;
   /** Each firm's distance from the field, largest first, for disclosure. */
   houseEffects: { pollster: string; rms: number }[];
+  /** The per-firm, per-party leans the average corrects for. */
+  leans: HouseEffects;
+  /** Every poll, as the average reads them; the coalition odds need them too. */
+  rawPolls: RawPoll[];
   /** True while any displayed poll is demo data. */
   hasSeedData: boolean;
 };
@@ -105,6 +109,8 @@ export async function getPollSnapshot(
     asOf,
     windowDays,
     houseEffects: houseEffectMagnitude(houseEffects),
+    leans: houseEffects,
+    rawPolls: raw,
     hasSeedData: polls.some((p) => p.provenance === "seed"),
   };
 }
