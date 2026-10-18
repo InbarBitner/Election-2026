@@ -91,13 +91,14 @@ cd web && node scripts/house-effects.ts [--json|--stdin]
 - **Voter match** works per quiz question, not per axis.
   - **Positions are hand labels:**
     - Each party's platform, or its MKs' bills when it has no platform, is read against the 25 statements in `research/03` and `research/05` and stored as `research/*_coverage_*.csv`.
-    - `python3 -m pipeline.ml.positions` merges them into the committed `data/positions/party_positions.json`. Values are sure ±1, partial ±0.5, unclear 0. A missing key means no information, which is not 0. A platform wins over bills per question.
+    - A third layer, `statement_coverage_*.csv`, holds the leader's direct quotes, with speaker, date and link. It only fills questions the platform and bills leave uncovered.
+    - `python3 -m pipeline.ml.positions` merges them into the committed `data/positions/party_positions.json`. Values are sure ±1, partial ±0.5, unclear 0. A missing key means no information, which is not 0. Per question, platform > bills > statements.
     - Every position keeps the passage or bill it rests on, plus a link. Platform links are resolved from the gitignored `data/platforms/`, so build the file locally and commit it.
     - `build_vectors` loads it into `PartyVector.vectorJson` / `evidenceJson`.
   - **Matching (`web/lib/cosine.ts`):**
     - User value is (v−3)/2, with no polarity, because both sides are measured against the same statement.
-    - Weighted cosine over shared questions only, then shrinkage `n/(n+10)`.
-    - k=10 comes from `research/08_bias_diagnostics.ipynb`. Re-run it before changing k or after adding many positions.
+    - Weighted cosine over shared questions only, then shrinkage `n/(n+16)`.
+    - k=16 comes from the simulation in `research/08_bias_diagnostics.ipynb`. A party's scores spread most when its position count is near k, so adding a few positions to a sparse party can raise the bias. Re-run it before changing k or after adding positions.
     - The tests mirror the checks in `research/07`.
   - Quiz answers are never stored on the server (localStorage only).
 

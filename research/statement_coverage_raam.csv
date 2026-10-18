@@ -1,0 +1,4 @@
+party,question_id,axis,stance,confidence,quote,speaker,date,sourceUrl,sourceName,labeler,note
+raam,q01,security,1.0,partial,دعم حق الفلسطينيين في تقرير المصير وإلى جانب إقامة دولة فلسطينية,מנסור עבאס,2026-08-26,https://www.i24news.tv/ar/%D8%A3%D8%AE%D8%A8%D8%A7%D8%B1/israeli-election-2026/artc-63df53d8,i24NEWS,claude,"פוסט של עבאס: תמיכה במדינה פלסטינית ו""שתי מדינות עצמאיות"". הניסוח הוא סיכום של הכתב ולא ציטוט ישיר, ולכן partial"
+raam,q16,governance,-1.0,sure,"לבג""ץ, אחרת זו עוד הידרדרות לעריצות הרוב",מנסור עבאס,2023-03-22,https://www.maariv.co.il/news/politics/Article-990029,מעריב,claude,"על השאלה למי המילה האחרונה כשבג""ץ פוסל חוק. מחוץ לחלון 2025 — נכלל בהחלטת המשתמש, אותו יו""ר"
+raam,q22,society,0.0,unclear,يهودية دولة إسرائيل هي واقع قائم فُرض علينا,מנסור עבאס,2026-08-26,https://www.i24news.tv/ar/%D8%A3%D8%AE%D8%A8%D8%A7%D8%B1/israeli-election-2026/artc-63df53d8,i24NEWS,claude,מקבל את יהדות המדינה כעובדה כפויה; לא אומר מה גובר בסתירה עם שוויון

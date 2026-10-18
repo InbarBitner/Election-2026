@@ -15,10 +15,12 @@
  * Masking alone rewards ignorance: with one shared question the cosine can
  * only be +1 or -1, so a party we know little about can hit 100% by chance.
  * The score is therefore shrunk towards 0 ("no information", 50%) by
- * n / (n + k), n being the number of shared questions. k = 10 was chosen in
- * research/08_bias_diagnostics.ipynb: against random answers the parties'
- * win rates barely depend on how many positions we have for them (Spearman
- * -0.19), while 80% of simulated voters who think like a party get it first.
+ * n / (n + k), n being the number of shared questions. k = 16 was chosen with
+ * the simulation in research/08_bias_diagnostics.ipynb: against random answers
+ * the parties' win rates barely depend on how many positions we have for them
+ * (Spearman -0.08), while 81% of simulated voters who think like a party get it
+ * first. A party's score spreads most when its position count is near k, so k
+ * has to sit above the sparsely covered parties (6-7 positions).
  * Re-run that notebook before changing k or after adding many positions.
  *
  * The method was worked out in research/07_match_function.ipynb, and the tests
@@ -38,13 +40,16 @@ export type QuizAnswer = {
   shortLabel: string;
 };
 
-/** The platform passage or bill a party's position rests on. */
+/** The platform passage, bill or leader's statement a party's position rests on. */
 export type Evidence = {
-  kind: "platform" | "bill";
+  kind: "platform" | "bill" | "statement";
   text: string;
   url?: string;
   /** A bill's legislative status. */
   status?: string;
+  /** Who made a statement, and when (YYYY-MM-DD). */
+  speaker?: string;
+  date?: string;
 };
 
 export type Reason = {
@@ -74,7 +79,7 @@ export type PartyVector = {
 };
 
 export const IMPORTANT_MULTIPLIER = 2;
-export const SHRINKAGE_K = 10;
+export const SHRINKAGE_K = 16;
 const REASONS_PER_SIDE = 3;
 
 /** 1..5 → -1..1, with 3 as 0. */

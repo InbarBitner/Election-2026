@@ -5,6 +5,7 @@ import {
   matchBlocs,
   matchParties,
   shrink,
+  SHRINKAGE_K,
   toPercent,
   type PartyVector,
   type QuizAnswer,
@@ -80,7 +81,7 @@ describe("matchParties", () => {
 
   it("does not give 100% for agreeing on a single question", () => {
     const [result] = matchParties([answer("q01", 5)], [{ partyId: "p", vector: { q01: 1 } }]);
-    expect(result.score).toBe(Math.round(toPercent(1 / 11)));
+    expect(result.score).toBe(Math.round(toPercent(1 / (1 + SHRINKAGE_K))));
   });
 
   it("ranks a party that agrees on many questions above one that agrees on one", () => {

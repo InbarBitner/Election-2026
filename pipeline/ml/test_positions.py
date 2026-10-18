@@ -39,6 +39,15 @@ class MergeTest(unittest.TestCase):
         ])
         self.assertEqual(merged["p"]["q01"]["kind"], "bill")
 
+    def test_a_statement_only_fills_what_platform_and_bills_leave(self):
+        merged = positions.merge([
+            row("p", "q01", "statement", "-1.0", "sure"),
+            row("p", "q01", "bill", "1.0", "partial"),
+            row("p", "q02", "statement", "1.0", "sure"),
+        ])
+        self.assertEqual(merged["p"]["q01"]["kind"], "bill")
+        self.assertEqual(merged["p"]["q02"]["kind"], "statement")
+
     def test_a_question_covered_by_neither_is_absent(self):
         merged = positions.merge([row("p", "q01", "platform", "", "not_covered")])
         self.assertNotIn("p", merged)

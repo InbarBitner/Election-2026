@@ -266,6 +266,16 @@
    }
   },
   "joint-list": {
+   "q01": {
+    "value": 1.0,
+    "confidence": "sure",
+    "kind": "statement",
+    "text": "הקמת מדינה פלסטינית לצד מדינת ישראל שתחיה כמובן בשלום איתה",
+    "url": "https://www.maariv.co.il/news/politics/article-1376561",
+    "speaker": "יוסף ג'בארין",
+    "date": "2026-10-13",
+    "labeler": "claude"
+   },
    "q06": {
     "value": -1.0,
     "confidence": "sure",
@@ -303,6 +313,16 @@
    }
   },
   "kachol-lavan": {
+   "q01": {
+    "value": -0.5,
+    "confidence": "partial",
+    "kind": "statement",
+    "text": "recognition of a Palestinian state \"as it stands today\" would reward the PA",
+    "url": "https://www.yahoo.com/news/articles/gantz-palestinian-recognition-not-against-050513853.html",
+    "speaker": "בני גנץ",
+    "date": "2025-09-24",
+    "labeler": "claude"
+   },
    "q07": {
     "value": 0.5,
     "confidence": "partial",
@@ -328,6 +348,16 @@
     "text": "הצעת חוק סיוע כלכלי לעידוד לומדי תורה וסטודנטים נזקקים (תיקון - קיום הוראות חוק שירות ביטחון כתנאי לסיוע), התשפ\"ה-2025",
     "url": "https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2230396",
     "status": "הונחה על שולחן הכנסת לדיון מוקדם",
+    "labeler": "claude"
+   },
+   "q17": {
+    "value": 0.0,
+    "confidence": "unclear",
+    "kind": "statement",
+    "text": "המתווה... אינו מתווה הסכמות לאומי",
+    "url": "https://www.srugim.co.il/1080229-גנץ-על-מתווה-לוין-קץ-התביעות-תנאי-לניס",
+    "speaker": "בני גנץ",
+    "date": "2025-01-11",
     "labeler": "claude"
    },
    "q20": {
@@ -570,6 +600,16 @@
    }
   },
   "raam": {
+   "q01": {
+    "value": 0.5,
+    "confidence": "partial",
+    "kind": "statement",
+    "text": "دعم حق الفلسطينيين في تقرير المصير وإلى جانب إقامة دولة فلسطينية",
+    "url": "https://www.i24news.tv/ar/%D8%A3%D8%AE%D8%A8%D8%A7%D8%B1/israeli-election-2026/artc-63df53d8",
+    "speaker": "מנסור עבאס",
+    "date": "2026-08-26",
+    "labeler": "claude"
+   },
    "q06": {
     "value": 0.5,
     "confidence": "partial",
@@ -597,6 +637,16 @@
     "status": "הונחה על שולחן הכנסת לדיון מוקדם",
     "labeler": "claude"
    },
+   "q16": {
+    "value": -1.0,
+    "confidence": "sure",
+    "kind": "statement",
+    "text": "לבג\"ץ, אחרת זו עוד הידרדרות לעריצות הרוב",
+    "url": "https://www.maariv.co.il/news/politics/Article-990029",
+    "speaker": "מנסור עבאס",
+    "date": "2023-03-22",
+    "labeler": "claude"
+   },
    "q21": {
     "value": 0.5,
     "confidence": "partial",
@@ -604,6 +654,16 @@
     "text": "הצעת חוק זכויות הסטודנט (תיקון - התאמות לאוכלוסייה הערבית - חגים), התשפ\"ג-2023",
     "url": "https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=2208957",
     "status": "במליאה לדיון מוקדם",
+    "labeler": "claude"
+   },
+   "q22": {
+    "value": 0.0,
+    "confidence": "unclear",
+    "kind": "statement",
+    "text": "يهودية دولة إسرائيل هي واقع قائم فُرض علينا",
+    "url": "https://www.i24news.tv/ar/%D8%A3%D8%AE%D8%A8%D8%A7%D8%B1/israeli-election-2026/artc-63df53d8",
+    "speaker": "מנסור עבאס",
+    "date": "2026-08-26",
     "labeler": "claude"
    }
   },

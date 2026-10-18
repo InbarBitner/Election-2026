@@ -18,7 +18,14 @@ type Reason = {
   questionId: string;
   label: string;
   contribution: number;
-  evidence?: { kind: "platform" | "bill"; text: string; url?: string; status?: string };
+  evidence?: {
+    kind: "platform" | "bill" | "statement";
+    text: string;
+    url?: string;
+    status?: string;
+    speaker?: string;
+    date?: string;
+  };
 };
 
 type MatchResponse = {
@@ -463,6 +470,13 @@ function Results({
   );
 }
 
+function evidenceLabel(evidence: NonNullable<Reason["evidence"]>): string {
+  if (evidence.kind === "bill") return "הצעת חוק";
+  if (evidence.kind === "platform") return "מהמצע";
+  const date = evidence.date ? new Date(evidence.date).toLocaleDateString("he-IL") : "";
+  return [evidence.speaker, date].filter(Boolean).join(", ");
+}
+
 function Reasons({ title, reasons }: { title: string; reasons: Reason[] }) {
   if (reasons.length === 0) return null;
   return (
@@ -476,7 +490,7 @@ function Reasons({ title, reasons }: { title: string; reasons: Reason[] }) {
               href={r.evidence.url}
               target="_blank"
               rel="noopener noreferrer"
-              title={`${r.evidence.kind === "bill" ? "הצעת חוק" : "מהמצע"}: ${r.evidence.text}`}
+              title={`${evidenceLabel(r.evidence)}: ${r.evidence.text}`}
             >
               {r.label}
             </a>

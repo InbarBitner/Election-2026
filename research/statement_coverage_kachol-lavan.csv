@@ -1,0 +1,3 @@
+party,question_id,axis,stance,confidence,quote,speaker,date,sourceUrl,sourceName,labeler,note
+kachol-lavan,q01,security,-1.0,partial,"recognition of a Palestinian state ""as it stands today"" would reward the PA",בני גנץ,2025-09-24,https://www.yahoo.com/news/articles/gantz-palestinian-recognition-not-against-050513853.html,The Jerusalem Post (על מאמר בניו יורק טיימס),claude,נגד הכרה במדינה פלסטינית כעת; אוטונומיה רחבה רק אחרי מבחן ממשל ארוך. לא שולל הסדר לעולם — partial
+kachol-lavan,q17,governance,0.0,unclear,המתווה... אינו מתווה הסכמות לאומי,בני גנץ,2025-01-11,https://www.srugim.co.il/1080229-גנץ-על-מתווה-לוין-קץ-התביעות-תנאי-לניס,סרוגים,claude,"דורש הסכמה רחבה על הוועדה, בלי לומר אם להגדיל או להקטין את ההשפעה הפוליטית"

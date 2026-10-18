@@ -23,7 +23,7 @@ from .positions import OUT as POSITIONS_FILE
 
 log = logging.getLogger(__name__)
 
-EVIDENCE_FIELDS = ("kind", "text", "url", "status")
+EVIDENCE_FIELDS = ("kind", "text", "url", "status", "speaker", "date")
 
 
 def build(positions: dict[str, dict[str, dict]], party_ids: dict[str, str]):

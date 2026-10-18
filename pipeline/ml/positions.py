@@ -2,9 +2,15 @@
 
     python3 -m pipeline.ml.positions
 
-The positions are hand labels made in research/ (notebooks 03 and 05): each
-party's platform, or for a party without one its MKs' bills, read against the
-25 quiz statements. A label says whether the source agrees with the statement
+The positions are hand labels made in research/, read against the 25 quiz
+statements, from three kinds of source:
+
+- the party's platform (platform_coverage_*.csv, notebook 03);
+- its MKs' bills, for a party without a platform (bill_coverage_*.csv,
+  notebook 05);
+- direct statements by the party's leader (statement_coverage_*.csv), used
+  only for questions neither of the others covers.
+ A label says whether the source agrees with the statement
 (+1), disagrees (-1) or touches it without a direction (0), and how surely:
 
     sure ±1, partial ±0.5, unclear 0, not covered → absent
@@ -13,8 +19,8 @@ A question a party is not covered on is left out rather than set to 0: 0 is
 "takes no side", absence is "we don't know", and the matching treats the two
 differently.
 
-Where a party has both a platform and bills, the platform wins question by
-question and the bills fill only what it leaves uncovered.
+Question by question, a platform wins over bills and bills over statements;
+each fills only what the ones before it leave uncovered.
 
 Every position carries the passage or bill it rests on and a link to it, so
 the site can show why a party is said to agree. Platform links are resolved
@@ -43,8 +49,8 @@ OUT = REPO_ROOT / "data" / "positions" / "party_positions.json"
 CONFIDENCE_WEIGHT = {"sure": 1.0, "partial": 0.5, "unclear": 1.0}
 # The label files were named before these slugs settled.
 SLUG_ALIASES = {"democrats": "the-democrats", "otzma": "otzma-yehudit", "yachad": "beyachad"}
-# Lower wins when a party has both.
-SOURCE_PRIORITY = {"platform": 0, "bill": 1}
+# Lower wins when a party has more than one.
+SOURCE_PRIORITY = {"platform": 0, "bill": 1, "statement": 2}
 
 
 def label_value(stance: str, confidence: str) -> float | None:
@@ -101,10 +107,15 @@ def position(row: dict, pages: list[tuple[str, set[str]]], fallback_url: str | N
         quote = (row.get("quote") or "").strip()
         out["text"] = quote
         out["url"] = platform_url(quote, pages, fallback_url)
-    else:
+    elif row["kind"] == "bill":
         out["text"] = row["title"].strip()
         out["url"] = row["sourceUrl"]
         out["status"] = row.get("status") or None
+    else:
+        out["text"] = row["quote"].strip()
+        out["url"] = row["sourceUrl"]
+        out["speaker"] = row["speaker"]
+        out["date"] = row["date"]
     if row.get("labeler"):
         out["labeler"] = row["labeler"]
     return out
