@@ -93,8 +93,33 @@
       ]
     },
     "democrats": {
-      "pages": [],
-      "note": "yes.democrats.org.il is a single-page app: the platform text is fetched by the browser at runtime and is in neither the HTML nor the script bundle."
+      "pages": [
+        "https://democrats-media.s3.us-east-1.amazonaws.com/מדיני+ביטחוני.pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/דמוקרטיה+ומשפט.pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/כלכלי+חברתי+(1).pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/דת+ומדינה.pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/חברה+ערבית.pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/להטב+(1).pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/גיוס+וחלוקת+הנטל.pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/חינוך+(1).pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/תקשורת.pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/תיקון+שגיאות+-+ביטחון+פנים.pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/חיסול+הפשע+המאורגן+(1).pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/תוכנית+עלייה+וקליטה+(1).pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/שיקום+ופיתוח+הצפון.pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/תוכנית+לפיתוח+הצפון+והדרום.pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/תחבורה.pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/בריאות.pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/תוכנית+לאומית+לשיקום+נפשי.pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/מצע+סביבה.pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/שיוויון+מגדרי.pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/תרבות.pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/מילואימניקים.pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/המרחב+הכפרי+ושמירה+על+החקלאות+הישראלית.pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/אזרחים+ותיקים+(2).pdf",
+        "https://democrats-media.s3.us-east-1.amazonaws.com/אנשים+עם+מוגבלות.pdf"
+      ],
+      "note": "The site is a single-page app whose topic pages carry only a short summary; each links its full plan as a PDF on the party's S3 bucket. These are those PDFs, read off the 24 Hebrew topic pages in a browser on 2026-10-15 (the Russian and Arabic pages translate two of them). '+' in the S3 keys is literal."
     },
     "likud": {
       "pages": [],

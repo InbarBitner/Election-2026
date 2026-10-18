@@ -50,6 +50,13 @@ def _robots(origin: str) -> urllib.robotparser.RobotFileParser | None:
     The Accept header carries a fallback for the same reason: idi.org.il
     answers a bare "text/plain" with 406, which would otherwise read as a ban
     on the whole host although its robots.txt permits what we fetch.
+
+    Status codes follow RFC 9309 §2.3.1: any 4xx means the file is
+    unavailable, so nothing is restricted; a 5xx means the server could not
+    say, so everything is. A 403 used to block the host, and it hid the
+    Democrats' platform: their PDFs sit in an S3 bucket, which answers 403 for
+    any key that does not exist — robots.txt included — while the party's own
+    site links every file for download.
     """
     url = f"{origin}/robots.txt"
     try:
@@ -62,10 +69,10 @@ def _robots(origin: str) -> urllib.robotparser.RobotFileParser | None:
         log.warning("could not read robots.txt for %s: %s", origin, exc)
         return None
 
-    if response.status_code == 404:
-        # No robots.txt at all: nothing is stated, so nothing is restricted.
+    if 400 <= response.status_code < 500:
+        # No readable robots.txt: nothing is stated, so nothing is restricted.
         return None
-    if response.status_code >= 400:
+    if response.status_code >= 500:
         log.warning(
             "robots.txt for %s returned %s — treating the host as off limits",
             origin,

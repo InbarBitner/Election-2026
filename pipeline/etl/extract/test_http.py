@@ -63,9 +63,20 @@ class RobotsTest(unittest.TestCase):
         with mock.patch.object(http.requests, "get", return_value=_Response(404)):
             self.assertTrue(http.is_allowed("https://example.com/anything"))
 
-    def test_a_forbidden_robots_file_still_blocks_the_host(self):
-        """A 403 is not treated as permission — only as not-a-404."""
-        with mock.patch.object(http.requests, "get", return_value=_Response(403)):
+    def test_a_forbidden_robots_file_restricts_nothing(self):
+        """RFC 9309: every 4xx means "unavailable", 403 included.
+
+        S3 answers 403 for a key that does not exist, so a bucket with no
+        robots.txt looked like a bucket that forbids everything.
+        """
+        for status in (401, 403, 410):
+            http._robots.cache_clear()
+            with mock.patch.object(http.requests, "get", return_value=_Response(status)):
+                self.assertTrue(http.is_allowed("https://example.com/anything"), status)
+
+    def test_a_server_error_on_robots_blocks_the_host(self):
+        """RFC 9309: a 5xx leaves the rules unknown, so assume the strictest."""
+        with mock.patch.object(http.requests, "get", return_value=_Response(503)):
             self.assertFalse(http.is_allowed("https://example.com/anything"))
 
     def test_an_unreachable_robots_file_does_not_block_the_host(self):
