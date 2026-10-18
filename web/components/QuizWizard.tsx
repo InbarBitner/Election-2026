@@ -477,28 +477,68 @@ function evidenceLabel(evidence: NonNullable<Reason["evidence"]>): string {
   return [evidence.speaker, date].filter(Boolean).join(", ");
 }
 
+/**
+ * The topics behind a score. Each one opens its evidence — the quote, the
+ * bill or the statement — on tap rather than on hover, so it can be read on a
+ * phone too.
+ */
 function Reasons({ title, reasons }: { title: string; reasons: Reason[] }) {
+  const [open, setOpen] = useState<string | null>(null);
   if (reasons.length === 0) return null;
+  const shown = reasons.find((r) => r.questionId === open && r.evidence);
+
   return (
     <div style={{ marginTop: "0.2rem" }}>
       <span style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>{title}: </span>
       {reasons.map((r, i) => (
         <span key={r.questionId}>
           {i > 0 && ", "}
-          {r.evidence?.url ? (
-            <a
-              href={r.evidence.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              title={`${evidenceLabel(r.evidence)}: ${r.evidence.text}`}
+          {r.evidence ? (
+            <button
+              type="button"
+              onClick={() => setOpen(open === r.questionId ? null : r.questionId)}
+              aria-expanded={open === r.questionId}
+              style={{
+                background: "none",
+                border: "none",
+                padding: 0,
+                font: "inherit",
+                color: "var(--color-accent)",
+                textDecoration: "underline dotted",
+                textUnderlineOffset: "3px",
+                cursor: "pointer",
+              }}
             >
               {r.label}
-            </a>
+            </button>
           ) : (
             r.label
           )}
         </span>
       ))}
+      {shown?.evidence && (
+        <div
+          style={{
+            margin: "0.35rem 0 0.2rem",
+            padding: "0.5rem 0.7rem",
+            borderInlineStart: "3px solid var(--color-divider)",
+            background: "color-mix(in srgb, var(--color-text) 4%, transparent)",
+          }}
+        >
+          <div style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
+            {shown.label} · {evidenceLabel(shown.evidence)}
+            {shown.evidence.status && ` · ${shown.evidence.status}`}
+          </div>
+          <q dir="auto" style={{ display: "block", margin: "0.2rem 0" }}>
+            {shown.evidence.text}
+          </q>
+          {shown.evidence.url && (
+            <a href={shown.evidence.url} target="_blank" rel="noopener noreferrer">
+              למקור
+            </a>
+          )}
+        </div>
+      )}
     </div>
   );
 }
