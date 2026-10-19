@@ -33,6 +33,14 @@ class FetchError(RuntimeError):
     """Raised when a source cannot be fetched. Never fatal to the whole run."""
 
 
+class ClientError(FetchError):
+    """A 4xx answer. Asking again will not change it, so it is not retried."""
+
+    def __init__(self, message: str, status: int) -> None:
+        super().__init__(message)
+        self.status = status
+
+
 @lru_cache(maxsize=64)
 def _robots(origin: str) -> urllib.robotparser.RobotFileParser | None:
     """Fetch and parse a host's robots.txt.
@@ -125,8 +133,15 @@ def fetch(url: str, *, params: dict | None = None, accept: str = "application/js
             )
             if response.status_code >= 500:
                 raise FetchError(f"{url} החזיר {response.status_code}")
+            # 429 asks us to slow down, so it is retried after the backoff;
+            # any other 4xx is an answer, not a hiccup — a missing page stays
+            # missing, and retrying it only costs the source three requests.
+            if 400 <= response.status_code < 500 and response.status_code != 429:
+                raise ClientError(f"{url} החזיר {response.status_code}", response.status_code)
             response.raise_for_status()
             return response
+        except ClientError:
+            raise
         except Exception as exc:  # noqa: BLE001 — retried below
             last_error = exc
             if attempt < MAX_RETRIES - 1:

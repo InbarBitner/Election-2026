@@ -168,3 +168,50 @@ export async function getLatestBrief() {
 export async function getQuizQuestions() {
   return prisma.quizQuestion.findMany({ orderBy: { order: "asc" } });
 }
+
+export type SeatEdge = {
+  partyId: string;
+  name: string;
+  color: string;
+  seats: number;
+  /** The candidate at the party's last projected seat. */
+  lastIn: { id: string; name: string; listPosition: number } | null;
+  /** The next one down the list — in with one more seat. */
+  nextUp: { id: string; name: string; listPosition: number } | null;
+};
+
+/**
+ * For every party the projection gives seats to, who holds its last seat and
+ * who is first in line for one more — the people a one-seat swing decides.
+ *
+ * Only official candidates (provenance "etl") are named; where the list has no
+ * one at that place, the slot is null rather than filled in.
+ */
+export async function getSeatEdges(snapshot: PollSnapshot): Promise<SeatEdge[]> {
+  const byId = new Map(snapshot.parties.map((p) => [p.id, p]));
+  const seated = snapshot.projections
+    .filter((p) => p.seats > 0)
+    .sort((a, b) => b.seats - a.seats || b.share - a.share);
+  if (seated.length === 0) return [];
+
+  const candidates = await prisma.candidate.findMany({
+    where: {
+      provenance: "etl",
+      OR: seated.map((p) => ({ partyId: p.partyId, listPosition: { in: [p.seats, p.seats + 1] } })),
+    },
+    select: { id: true, name: true, listPosition: true, partyId: true },
+  });
+  const at = (partyId: string, position: number) => {
+    const c = candidates.find((x) => x.partyId === partyId && x.listPosition === position);
+    return c ? { id: c.id, name: c.name, listPosition: c.listPosition } : null;
+  };
+
+  return seated.map((p) => ({
+    partyId: p.partyId,
+    name: byId.get(p.partyId)?.name ?? p.partyId,
+    color: byId.get(p.partyId)?.color ?? "#888",
+    seats: p.seats,
+    lastIn: at(p.partyId, p.seats),
+    nextUp: at(p.partyId, p.seats + 1),
+  }));
+}

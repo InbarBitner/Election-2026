@@ -58,6 +58,11 @@ model Candidate {
   name            String
   listPosition    Int
   bio             String   @default("")
+  /// Opening paragraph of the candidate's Hebrew Wikipedia article — who they
+  /// are, and their military and civilian roles. Empty when no article could
+  /// be matched to them with confidence (pipeline/load_overviews.py).
+  overview          String  @default("")
+  overviewSourceUrl String?
   /// Knesset member id in the open-data feeds (null for newcomers).
   knessetMemberId String?
   sourceUrl       String

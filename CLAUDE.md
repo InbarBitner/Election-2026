@@ -29,6 +29,9 @@ python3 -m pipeline.run_etl
 python3 -m pipeline.load_candidates --dry-run
 python3 -m pipeline.load_candidates --party likud
 
+# Candidate overviews from Hebrew Wikipedia (slow: skips anyone who already has one; --refresh redoes all)
+python3 -m pipeline.load_overviews --dry-run
+
 # Web
 npm run dev --prefix web                   # http://localhost:3000
 npm run test --prefix web                  # vitest, lib/**/*.test.ts only
@@ -78,6 +81,11 @@ cd web && node scripts/house-effects.ts [--json|--stdin]
   - A longer name is reordered only from `data/sources/candidate_names.json`, which is hand-written. Without an entry it stays in the official order and the load warns.
   - Don't reintroduce automatic splitting: a lexicon-based attempt confidently produced wrong names.
   - The same file holds the owner's corrections, which can differ from the print.
+- **Candidate overviews (`pipeline/load_overviews.py`, `pipeline/etl/extract/candidate_bios.py`)** are the opening paragraph of the candidate's Hebrew Wikipedia article, with a link, and are never written from memory.
+  - An article is accepted only if it is not a disambiguation page, its lead names the person (surname plus another name word, ignoring niqqud, ו/י spelling and hyphens), and it mentions the party or the nominating party. A Knesset-linked candidate can also pass if the article says they served in the Knesset.
+  - Name variants are tried, because the committee prints legal names: without a bracketed nickname, without a middle name, and with a geresh.
+  - A namesake fails these checks and is left empty.
+  - The overview lives in `Candidate.overview`/`overviewSourceUrl`, not `bio`, which `load_candidates` rewrites.
 - **Candidate → Knesset links** live in `data/sources/candidate_knesset_links.json`, keyed by the official printed name, and each one was reviewed by hand. A same-name MK from another party, or one long out of office, is left unlinked on purpose. The Knesset ETL loads bills and votes only for linked candidates.
 - **Transform rules.** `require_source` in `pipeline/etl/transform/normalize.py` rejects any record missing `sourceUrl`/`sourceName`. Unrecognised party names are reported, never guessed. The fix is to add an alias in `party_mapping.py`.
 - **Shared HTTP client (`pipeline/etl/extract/http.py`).** It identifies itself, obeys `robots.txt`, waits 1.5s between requests to the same host, and retries with backoff. Nothing is scraped by default: live sources are opt-in through `data/sources/*.json` (copy the `.example` files and set `"enabled": true`). News is read from RSS only.

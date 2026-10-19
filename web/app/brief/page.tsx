@@ -1,6 +1,8 @@
-import { Callout, Panel, SectionTitle } from "@/components/ui";
+import CandidateXray from "@/components/CandidateXray";
+import { Callout, PartySwatch, Panel, SectionTitle } from "@/components/ui";
 import { prisma } from "@/lib/db";
 import { formatDate } from "@/lib/format";
+import { getPollSnapshot, getSeatEdges, type SeatEdge } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +25,7 @@ export default async function BriefPage() {
   }
 
   const [latest, ...archive] = briefs;
+  const edges = await getSeatEdges(await getPollSnapshot());
 
   return (
     <>
@@ -45,6 +48,15 @@ export default async function BriefPage() {
         <Markdown source={latest.bodyMarkdown} />
       </Panel>
 
+      {edges.length > 0 && (
+        <Panel style={{ marginBottom: "24px" }}>
+          <SectionTitle hint="לפי תחזית המנדטים הנוכחית: מי מחזיק במנדט האחרון של כל מפלגה, ומי נכנס אם היא מקבלת עוד מנדט אחד. לחיצה על שם פותחת את רנטגן המועמד.">
+            על הקו
+          </SectionTitle>
+          <SeatEdgesTable edges={edges} />
+        </Panel>
+      )}
+
       {archive.length > 0 && (
         <Panel>
           <SectionTitle>סקירות קודמות</SectionTitle>
@@ -64,6 +76,51 @@ export default async function BriefPage() {
         </Panel>
       )}
     </>
+  );
+}
+
+function SeatEdgesTable({ edges }: { edges: SeatEdge[] }) {
+  const muted = { color: "color-mix(in srgb, var(--color-text) 55%, transparent)" };
+  const cell = (candidate: SeatEdge["lastIn"]) =>
+    candidate ? (
+      <span style={{ display: "inline-flex", gap: "6px", alignItems: "baseline" }}>
+        <span className="ltr-nums" style={{ ...muted, fontSize: "12px" }}>
+          {candidate.listPosition}
+        </span>
+        <CandidateXray candidateId={candidate.id} candidateName={candidate.name} asLink />
+      </span>
+    ) : (
+      <span style={muted}>—</span>
+    );
+
+  return (
+    <div className="scroll-x">
+      <table className="table" style={{ minWidth: "30rem" }}>
+        <thead>
+          <tr>
+            <th>מפלגה</th>
+            <th>מנדטים</th>
+            <th>נכנס אחרון</th>
+            <th>הבא בתור</th>
+          </tr>
+        </thead>
+        <tbody>
+          {edges.map((edge) => (
+            <tr key={edge.partyId}>
+              <td>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                  <PartySwatch color={edge.color} />
+                  {edge.name}
+                </span>
+              </td>
+              <td className="ltr-nums">{edge.seats}</td>
+              <td>{cell(edge.lastIn)}</td>
+              <td>{cell(edge.nextUp)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 

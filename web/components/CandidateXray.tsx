@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   BILL_STATUSES,
-  CONNECTION_KINDS,
   VOTE_POSITIONS,
   formatDate,
 } from "@/lib/format";
@@ -13,6 +12,8 @@ type XrayData = {
     id: string;
     name: string;
     bio: string;
+    overview: string;
+    overviewSourceUrl: string | null;
     listPosition: number;
     provenance: string;
     sourceUrl: string;
@@ -51,30 +52,12 @@ type XrayData = {
     sourceUrl: string;
     sourceName: string;
   }[];
-  quotes: {
-    id: string;
-    text: string;
-    context: string;
-    topic: string;
-    date: string;
-    sourceUrl: string;
-    sourceName: string;
-  }[];
-  connections: {
-    id: string;
-    kind: string;
-    targetName: string;
-    description: string;
-    sourceUrl: string;
-    sourceName: string;
-  }[];
 };
 
 const TABS = [
+  { id: "overview", label: "סקירה כללית" },
   { id: "votes", label: "היסטוריית הצבעות" },
   { id: "bills", label: "הצעות חוק" },
-  { id: "quotes", label: "התבטאויות" },
-  { id: "connections", label: "קשרים פוליטיים" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -82,14 +65,17 @@ type TabId = (typeof TABS)[number]["id"];
 export default function CandidateXray({
   candidateId,
   candidateName,
+  asLink = false,
 }: {
   candidateId: string;
   candidateName: string;
+  /** Show the candidate's name as the trigger, styled as a link, instead of a "רנטגן מועמד" button. */
+  asLink?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<XrayData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<TabId>("votes");
+  const [tab, setTab] = useState<TabId>("overview");
   const dialogRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLButtonElement>(null);
 
@@ -129,19 +115,32 @@ export default function CandidateXray({
           void load();
         }}
         aria-haspopup="dialog"
-        style={{
-          border: "1px solid var(--color-divider)",
-          background: "transparent",
-          color: "var(--color-accent)",
-          borderRadius: "var(--radius-md)",
-          padding: "0.2rem 0.6rem",
-          fontSize: "0.78rem",
-          cursor: "pointer",
-          font: "inherit",
-          whiteSpace: "nowrap",
-        }}
+        title={asLink ? `רנטגן מועמד: ${candidateName}` : undefined}
+        style={
+          asLink
+            ? {
+                border: "none",
+                background: "none",
+                padding: 0,
+                font: "inherit",
+                color: "var(--color-accent)",
+                cursor: "pointer",
+                textAlign: "start",
+              }
+            : {
+                border: "1px solid var(--color-divider)",
+                background: "transparent",
+                color: "var(--color-accent)",
+                borderRadius: "var(--radius-md)",
+                padding: "0.2rem 0.6rem",
+                fontSize: "0.78rem",
+                cursor: "pointer",
+                font: "inherit",
+                whiteSpace: "nowrap",
+              }
+        }
       >
-        רנטגן מועמד
+        {asLink ? candidateName : "רנטגן מועמד"}
       </button>
 
       {open && (
@@ -242,11 +241,14 @@ export default function CandidateXray({
                         margin: "0 0 0.9rem",
                       }}
                     >
-                      זהו מועמד בדיוני. ההצבעות, הצעות החוק וההתבטאויות שלהלן נוצרו
+                      זהו מועמד בדיוני. ההצבעות והצעות החוק שלהלן נוצרו
                       לצורך הדגמת הפיצ׳ר בלבד ואינן מתייחסות לאדם אמיתי.
                     </p>
                   )}
 
+                  {/* A newcomer has no Knesset record: a row of dashes and zeros
+                      says nothing, so the figures appear only when there are some. */}
+                  {(data.summary.voteCount > 0 || data.summary.billCount > 0) && (
                   <div
                     style={{
                       display: "flex",
@@ -274,6 +276,7 @@ export default function CandidateXray({
                       value={String(data.summary.leadSponsorCount)}
                     />
                   </div>
+                  )}
 
                   <div
                     role="tablist"
@@ -312,10 +315,9 @@ export default function CandidateXray({
                     ))}
                   </div>
 
+                  {tab === "overview" && <Overview data={data} />}
                   {tab === "votes" && <Votes data={data} />}
                   {tab === "bills" && <Bills data={data} />}
-                  {tab === "quotes" && <Quotes data={data} />}
-                  {tab === "connections" && <Connections data={data} />}
                 </>
               )}
             </div>
@@ -356,6 +358,30 @@ function Source({ url, name }: { url: string; name: string }) {
 function Empty({ children }: { children: React.ReactNode }) {
   return (
     <p style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)", fontSize: "0.88rem" }}>{children}</p>
+  );
+}
+
+function Overview({ data }: { data: XrayData }) {
+  const { overview, overviewSourceUrl, bio } = data.candidate;
+  return (
+    <div style={{ fontSize: "0.95rem", lineHeight: 1.7 }}>
+      {bio && (
+        <p style={{ margin: "0 0 0.6rem", color: "color-mix(in srgb, var(--color-text) 60%, transparent)", fontSize: "0.85rem" }}>
+          {bio}
+        </p>
+      )}
+      {overview ? (
+        <>
+          <p style={{ margin: "0 0 0.5rem" }}>{overview}</p>
+          {overviewSourceUrl && <Source url={overviewSourceUrl} name="ויקיפדיה" />}
+        </>
+      ) : (
+        <Empty>
+          אין עדיין סקירה כללית למועמד/ת — לא נמצא ערך בוויקיפדיה העברית שאפשר לשייך
+          בוודאות.
+        </Empty>
+      )}
+    </div>
   );
 }
 
@@ -491,77 +517,6 @@ function Bills({ data }: { data: XrayData }) {
             <span>{bill.topic}</span>
             <span>{billWhen(bill)}</span>
             <Source url={bill.sourceUrl} name={bill.sourceName} />
-          </div>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function Quotes({ data }: { data: XrayData }) {
-  if (data.quotes.length === 0)
-    return <Empty>לא נמצאו התבטאויות מתועדות עבור מועמד/ת זה/זו.</Empty>;
-  return (
-    <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-      {data.quotes.map((quote) => (
-        <li key={quote.id} style={{ padding: "0.6rem 0", borderBottom: "1px solid var(--color-divider)" }}>
-          <blockquote
-            style={{
-              margin: 0,
-              paddingInlineStart: "0.8rem",
-              borderInlineStart: "3px solid var(--color-divider)",
-              fontSize: "0.9rem",
-            }}
-          >
-            {quote.text}
-          </blockquote>
-          <div
-            style={{
-              display: "flex",
-              gap: "0.7rem",
-              flexWrap: "wrap",
-              fontSize: "0.76rem",
-              color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
-              marginTop: "0.3rem",
-            }}
-          >
-            {quote.context && <span>{quote.context}</span>}
-            <span>{formatDate(quote.date)}</span>
-            <Source url={quote.sourceUrl} name={quote.sourceName} />
-          </div>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function Connections({ data }: { data: XrayData }) {
-  if (data.connections.length === 0)
-    return <Empty>לא נמצאו קשרים פוליטיים מתועדים עבור מועמד/ת זה/זו.</Empty>;
-  return (
-    <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-      {data.connections.map((connection) => (
-        <li
-          key={connection.id}
-          style={{ padding: "0.5rem 0", borderBottom: "1px solid var(--color-divider)" }}
-        >
-          <div style={{ fontSize: "0.88rem" }}>
-            <span style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
-              {CONNECTION_KINDS[connection.kind] ?? connection.kind}:{" "}
-            </span>
-            <strong>{connection.targetName}</strong>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              gap: "0.7rem",
-              flexWrap: "wrap",
-              fontSize: "0.76rem",
-              color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
-            }}
-          >
-            {connection.description && <span>{connection.description}</span>}
-            <Source url={connection.sourceUrl} name={connection.sourceName} />
           </div>
         </li>
       ))}

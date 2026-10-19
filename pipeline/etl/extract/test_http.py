@@ -115,6 +115,36 @@ class _JsonResponse:
         return None
 
 
+class RetryTest(unittest.TestCase):
+    """A 4xx is an answer, not a hiccup: asking again only costs the source requests."""
+
+    def setUp(self):
+        http._robots.cache_clear()
+
+    def _response(self, status):
+        r = mock.Mock(status_code=status)
+        r.raise_for_status.side_effect = Exception(str(status))
+        return r
+
+    def test_a_missing_page_is_asked_for_once(self):
+        with mock.patch.object(http, "is_allowed", return_value=True), \
+             mock.patch.object(http, "_throttle"), \
+             mock.patch.object(http.requests, "get", return_value=self._response(404)) as get:
+            with self.assertRaises(http.ClientError) as caught:
+                http.fetch("https://example.com/missing")
+        self.assertEqual(get.call_count, 1)
+        self.assertEqual(caught.exception.status, 404)
+
+    def test_too_many_requests_is_retried(self):
+        with mock.patch.object(http, "is_allowed", return_value=True), \
+             mock.patch.object(http, "_throttle"), \
+             mock.patch.object(http.time, "sleep"), \
+             mock.patch.object(http.requests, "get", return_value=self._response(429)) as get:
+            with self.assertRaises(http.FetchError):
+                http.fetch("https://example.com/busy")
+        self.assertEqual(get.call_count, http.MAX_RETRIES)
+
+
 class FetchJsonTest(unittest.TestCase):
     """A 200 that is not JSON must read as an unreachable source.
 

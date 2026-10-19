@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
 /**
- * The candidate "X-ray": voting record, bills, statements and connections.
+ * The candidate "X-ray": a short overview, the voting record and bills.
  *
  * Loaded on demand rather than with the party page, because a list page shows
  * dozens of candidates and almost none of them get opened.
@@ -27,8 +27,6 @@ export async function GET(
       votes: { orderBy: { date: "desc" }, take: 60 },
       // Ordered below, not here: see `billRecency`.
       bills: true,
-      quotes: { orderBy: { date: "desc" }, take: 20 },
-      connections: true,
     },
   });
 
@@ -63,6 +61,8 @@ export async function GET(
       id: candidate.id,
       name: candidate.name,
       bio: candidate.bio,
+      overview: candidate.overview,
+      overviewSourceUrl: candidate.overviewSourceUrl,
       listPosition: candidate.listPosition,
       provenance: candidate.provenance,
       sourceUrl: candidate.sourceUrl,
@@ -83,7 +83,5 @@ export async function GET(
     },
     votes: candidate.votes,
     bills,
-    quotes: candidate.quotes,
-    connections: candidate.connections,
   });
 }
