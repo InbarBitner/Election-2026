@@ -24,6 +24,7 @@ python3 -m pipeline.brief.generate --date today --no-llm   # --print prints with
 # Live ETL (fetches for real, including in --dry-run, which only skips the write)
 python3 -m pipeline.run_etl --dry-run
 python3 -m pipeline.run_etl
+python3 -m pipeline.run_etl --skip-knesset   # polls only; the Knesset API can stall a run for hours
 
 # Official candidate lists (fetches the PDFs; replaces only the named party's candidates)
 python3 -m pipeline.load_candidates --dry-run

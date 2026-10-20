@@ -90,7 +90,12 @@ def _isolate(name: str, extract, empty: dict) -> dict:
         return {**empty, "error": f"{type(exc).__name__}: {exc}"}
 
 
-def run(dry_run: bool = False, since_days: int = 7, knesset_number: int = 25) -> int:
+def run(
+    dry_run: bool = False,
+    since_days: int = 7,
+    knesset_number: int = 25,
+    skip_knesset: bool = False,
+) -> int:
     run_id = f"etl_{datetime.now(timezone.utc):%Y%m%d%H%M%S}_{uuid.uuid4().hex[:6]}"
     stats: dict[str, dict] = {
         "polls": _source_stats(),
@@ -160,7 +165,18 @@ def run(dry_run: bool = False, since_days: int = 7, knesset_number: int = 25) ->
     # who served only in an earlier Knesset would otherwise get nothing.
     with engine.connect() as connection:
         linked = sorted(_candidates_by_knesset_id(connection))
-    if linked:
+    if skip_knesset:
+        # The Knesset API can be slow enough to hold the whole run for hours,
+        # while the polls behind it are what changes day to day; bills barely
+        # move between runs. Recorded with a note so it is never read as a
+        # silent source.
+        knesset_result = {
+            "members": [],
+            "votes": [],
+            "bills": [],
+            "note": "דולג בהרצה זו (--skip-knesset); הנתונים הקיימים נשארו במסד.",
+        }
+    elif linked:
         knesset_result = _isolate(
             "כנסת",
             lambda: knesset_api.extract(knesset_number, member_ids=linked),
@@ -283,9 +299,17 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true", help="שלוף ונקה בלי לכתוב")
     parser.add_argument("--since-days", type=int, default=7, help="כמה ימים אחורה בפידי החדשות")
     parser.add_argument("--knesset", type=int, default=25, help="מספר הכנסת לשליפת נתונים")
+    parser.add_argument(
+        "--skip-knesset", action="store_true", help="לדלג על שליפת נתוני הכנסת (הצעות חוק והצבעות)"
+    )
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
-    return run(dry_run=args.dry_run, since_days=args.since_days, knesset_number=args.knesset)
+    return run(
+        dry_run=args.dry_run,
+        since_days=args.since_days,
+        knesset_number=args.knesset,
+        skip_knesset=args.skip_knesset,
+    )
 
 
 if __name__ == "__main__":

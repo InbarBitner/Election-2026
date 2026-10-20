@@ -45,6 +45,10 @@ model Party {
   pollResults PollResult[]
   vector      PartyVector?
   platform    PlatformPlank[]
+  /// Set when a list withdraws from the race; isActive is then false and the
+  /// party drops out of the average, the projection and the quiz.
+  withdrawnOn         DateTime?
+  withdrawalSourceUrl String?
   surplusAsA  SurplusAgreement[] @relation("SurplusA")
   surplusAsB  SurplusAgreement[] @relation("SurplusB")
 

@@ -42,6 +42,8 @@ def load_parties(connection, parties: list[dict]) -> int:
                 "color": party["color"],
                 "colorDark": party.get("colorDark", party["color"]),
                 "isActive": party.get("isActive", True),
+                "withdrawnOn": to_db_datetime(party["withdrawnOn"]) if party.get("withdrawnOn") else None,
+                "withdrawalSourceUrl": party.get("withdrawalSourceUrl"),
                 "platformText": party.get("platformText", ""),
                 "sourceUrl": party["sourceUrl"],
                 "sourceName": party["sourceName"],

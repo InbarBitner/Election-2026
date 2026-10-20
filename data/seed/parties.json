@@ -174,6 +174,9 @@
     {
       "id": "kachol-lavan",
       "slug": "kachol-lavan",
+      "isActive": false,
+      "withdrawnOn": "2026-10-19",
+      "withdrawalSourceUrl": "https://www.kan.org.il/content/kan-news/politic/1110678/",
       "name": "כחול לבן",
       "shortName": "כחול לבן",
       "leader": "בני גנץ",

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import CandidateXray from "@/components/CandidateXray";
 import { Callout, Panel, PartySwatch, SectionTitle, SourceBadge, TrendPill } from "@/components/ui";
-import { AXIS_NAMES, BLOC_NAMES } from "@/lib/format";
+import { AXIS_NAMES, BLOC_NAMES, formatDate } from "@/lib/format";
 import { getPartyBySlug, getPollSnapshot } from "@/lib/queries";
 import { prisma } from "@/lib/db";
 
@@ -57,6 +57,22 @@ export default async function PartyPage({
         בראשות {party.leader} · {BLOC_NAMES[party.bloc] ?? party.bloc} ·{" "}
         <SourceBadge url={party.sourceUrl} name={party.sourceName} />
       </p>
+
+      {!party.isActive && (
+        <Callout tone="warning">
+          המפלגה פרשה מהמרוץ
+          {party.withdrawnOn && <> ב-{formatDate(party.withdrawnOn)}</>} ואינה מתמודדת בבחירות.
+          היא לא נכללת בממוצע הסקרים, בתחזית המנדטים ובשאלון.
+          {party.withdrawalSourceUrl && (
+            <>
+              {" "}
+              <a href={party.withdrawalSourceUrl} target="_blank" rel="noopener noreferrer">
+                מקור
+              </a>
+            </>
+          )}
+        </Callout>
+      )}
 
       <div
         style={{
