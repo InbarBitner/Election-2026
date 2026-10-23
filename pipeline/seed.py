@@ -328,42 +328,6 @@ def build_polls(anchors_config: dict, rng: random.Random) -> list[RawPoll]:
     return polls
 
 
-def build_events(anchors_config: dict) -> list[dict]:
-    """A few illustrative campaign events, clearly labelled as demo data."""
-    return [
-        {
-            "id": _id("event", "seed", "1"),
-            "kind": "split",
-            "date": date(2026, 4, 12),
-            "headline": "פיצול לדוגמה ברשימה (נתוני הדגמה)",
-            "description": "אירוע בדיוני להדגמת זיהוי אירועים בסקירה היומית.",
-            "sourceUrl": SEED_SOURCE_URL,
-            "sourceName": SEED_SOURCE_NAME,
-            "provenance": "seed",
-        },
-        {
-            "id": _id("event", "seed", "2"),
-            "kind": "merger",
-            "date": date(2026, 6, 20),
-            "headline": "איחוד לדוגמה בין שתי רשימות (נתוני הדגמה)",
-            "description": "אירוע בדיוני להדגמת זיהוי אירועים בסקירה היומית.",
-            "sourceUrl": SEED_SOURCE_URL,
-            "sourceName": SEED_SOURCE_NAME,
-            "provenance": "seed",
-        },
-        {
-            "id": _id("event", "seed", "3"),
-            "kind": "coalition",
-            "date": date(2026, 7, 8),
-            "headline": "הכרזה על מועד הבחירות — 27 באוקטובר 2026 (נתוני הדגמה)",
-            "description": "אירוע בדיוני להדגמת זיהוי אירועים בסקירה היומית.",
-            "sourceUrl": SEED_SOURCE_URL,
-            "sourceName": SEED_SOURCE_NAME,
-            "provenance": "seed",
-        },
-    ]
-
-
 # ---------------------------------------------------------------------------
 
 
@@ -437,7 +401,6 @@ def main() -> int:
         candidates, planks_by_party, rng, date(2026, 8, 31)
     )
     raw_polls = build_polls(anchors_config, rng)
-    events = build_events(anchors_config)
 
     # The synthetic polls go through the real cleaning step, so a bug in the
     # generator surfaces as a rejection rather than as bad data in the charts.
@@ -456,9 +419,9 @@ def main() -> int:
     if args.dry_run:
         log.info(
             "dry-run: %d מפלגות, %d מועמדים, %d הצבעות, %d הצעות חוק, "
-            "%d ציטוטים, %d קשרים, %d סקרים, %d אירועים",
+            "%d ציטוטים, %d קשרים, %d סקרים",
             len(parties), len(candidates), len(votes), len(bills),
-            len(quotes), len(connections), len(cleaned.polls), len(events),
+            len(quotes), len(connections), len(cleaned.polls),
         )
         return 0
 
@@ -485,7 +448,6 @@ def main() -> int:
         loader.load_quotes(connection, plan["quotes"])
         loader.load_connections(connection, plan["connections"])
         loader.load_polls(connection, plan["polls"])
-        loader.load_events(connection, events)
         loader.load_quiz(connection, quiz_config["questions"])
         loader.load_surplus_agreements(connection, surplus_rows)
 
