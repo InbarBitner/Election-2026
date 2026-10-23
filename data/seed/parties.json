@@ -3,19 +3,11 @@
   "blocs": [
     {
       "id": "right",
-      "name": "הגוש הימני"
+      "name": "הקואליציה"
     },
     {
       "id": "center",
-      "name": "מרכז"
-    },
-    {
-      "id": "center-left",
-      "name": "מרכז-שמאל"
-    },
-    {
-      "id": "haredi",
-      "name": "המפלגות החרדיות"
+      "name": "גוש השינוי"
     },
     {
       "id": "arab",
@@ -85,7 +77,7 @@
       "name": "הדמוקרטים",
       "shortName": "הדמוקרטים",
       "leader": "יאיר גולן",
-      "bloc": "center-left",
+      "bloc": "center",
       "color": "#d1417f",
       "sourceUrl": "https://he.wikipedia.org/wiki/הדמוקרטים_(מפלגה)",
       "sourceName": "ויקיפדיה",
@@ -420,7 +412,7 @@
       "name": "ש\"ס",
       "shortName": "ש\"ס",
       "leader": "אריה דרעי",
-      "bloc": "haredi",
+      "bloc": "right",
       "color": "#8d6a00",
       "sourceUrl": "https://he.wikipedia.org/wiki/ש\"ס",
       "sourceName": "ויקיפדיה",
@@ -522,7 +514,7 @@
       "name": "יהדות התורה",
       "shortName": "יהדות התורה",
       "leader": "יצחק גולדקנופף",
-      "bloc": "haredi",
+      "bloc": "right",
       "color": "#5f7a2e",
       "sourceUrl": "https://he.wikipedia.org/wiki/יהדות_התורה",
       "sourceName": "ויקיפדיה",
@@ -624,7 +616,7 @@
       "name": "ישראל ביתנו",
       "shortName": "ישראל ביתנו",
       "leader": "אביגדור ליברמן",
-      "bloc": "right",
+      "bloc": "center",
       "color": "#0d9488",
       "sourceUrl": "https://he.wikipedia.org/wiki/ישראל_ביתנו",
       "sourceName": "ויקיפדיה",

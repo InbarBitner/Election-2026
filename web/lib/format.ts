@@ -1,10 +1,8 @@
 /** Hebrew formatting helpers shared across the pages. */
 
 export const BLOC_NAMES: Record<string, string> = {
-  right: "הגוש הימני",
-  center: "מרכז",
-  "center-left": "מרכז-שמאל",
-  haredi: "המפלגות החרדיות",
+  right: "הקואליציה",
+  center: "גוש השינוי",
   arab: "המפלגות הערביות",
 };
 

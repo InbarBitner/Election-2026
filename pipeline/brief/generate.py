@@ -51,10 +51,8 @@ BUBBLE_MARGIN = 1.0
 LEAD_MARGIN = 1.0
 
 BLOC_NAMES = {
-    "right": "הגוש הימני",
-    "center": "מרכז",
-    "center-left": "מרכז-שמאל",
-    "haredi": "המפלגות החרדיות",
+    "right": "הקואליציה",
+    "center": "גוש השינוי",
     "arab": "המפלגות הערביות",
 }
 
