@@ -305,6 +305,49 @@ a:hover { text-decoration: underline; }
 .btn-ghost { color: var(--color-accent); background: transparent; border-color: transparent; padding-inline: var(--space-2); }
 .btn-ghost:hover { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
 .btn-block { width: 100%; }
+/* The coalition table on a phone: the party on one line, its seats and the
+   in / open / out choice on the next, so nothing scrolls sideways. */
+@media (max-width: 560px) {
+  .coalition-table thead { display: none; }
+  .coalition-table tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    border-bottom: 1px solid var(--color-divider);
+  }
+  .table.coalition-table td { border-bottom: none; padding-block: 4px; }
+  .coalition-table td:first-child { grid-column: 1 / -1; padding-top: 10px; }
+  .coalition-table td:last-child { padding-bottom: 10px; }
+}
+
+/* The "on the line" table on a phone: party and seats on one line, the last
+   candidate in and the next one up below, each with its own label. */
+.mobile-label { display: none; }
+@media (max-width: 560px) {
+  .edges-table thead { display: none; }
+  .edges-table tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    border-bottom: 1px solid var(--color-divider);
+  }
+  .table.edges-table td { border-bottom: none; padding-block: 3px; }
+  .edges-table td:nth-child(-n + 2) { padding-top: 10px; font-weight: 600; }
+  .edges-table td:nth-child(n + 3) { grid-column: 1 / -1; font-size: 13px; }
+  .edges-table td:last-child { padding-bottom: 10px; }
+  .mobile-label { display: inline; color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+}
+
+/* A button that reads as an inline link: a disclosure or a small action inside text. */
+.link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--color-accent);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
 
 .card {
   display: flex;

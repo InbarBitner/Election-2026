@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AXIS_NAMES, BLOC_NAMES } from "@/lib/format";
+import { Panel, SectionTitle } from "@/components/ui";
 
 export type Question = {
   id: string;
@@ -28,23 +29,25 @@ type Reason = {
   };
 };
 
+type PartyMatch = {
+  id: string;
+  name: string;
+  slug: string;
+  color: string;
+  colorDark: string;
+  bloc: string;
+  score: number;
+  /** Answered questions the party has a known position on. */
+  shared: number;
+  projectedSeats: number;
+  agreements: Reason[];
+  disagreements: Reason[];
+};
+
 type MatchResponse = {
   answered: number;
   totalQuestions: number;
-  parties: {
-    id: string;
-    name: string;
-    slug: string;
-    color: string;
-    colorDark: string;
-    bloc: string;
-    score: number;
-    /** Answered questions the party has a known position on. */
-    shared: number;
-    projectedSeats: number;
-    agreements: Reason[];
-    disagreements: Reason[];
-  }[];
+  parties: PartyMatch[];
   blocs: { bloc: string; score: number }[];
 };
 
@@ -58,8 +61,13 @@ const SCALE = [
 
 const STORAGE_KEY = "election2026:quiz";
 
+/** How many parties the results show in full; the rest open on tap. */
+const EXPANDED_PARTIES = 3;
+
 export default function QuizWizard({ questions }: { questions: Question[] }) {
+  const ordered = [...questions].sort((a, b) => a.order - b.order);
   const [answers, setAnswers] = useState<Record<string, Answer>>({});
+  const [step, setStep] = useState(0);
   useEffect(() => {
     // Answers live only in the reader's own browser — they are never stored
     // on the server, and the scoring request keeps nothing. They are read
@@ -68,16 +76,26 @@ export default function QuizWizard({ questions }: { questions: Question[] }) {
     // error whenever answers had been saved.
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (saved) setAnswers(JSON.parse(saved) as Record<string, Answer>);
+      if (saved) {
+        const parsed = JSON.parse(saved) as Record<string, Answer>;
+        setAnswers(parsed);
+        // A returning reader picks up at the first question they left open.
+        const next = ordered.findIndex((q) => !parsed[q.id]);
+        setStep(next === -1 ? ordered.length - 1 : next);
+      }
     } catch {
       // Storage blocked or corrupt: start empty.
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [result, setResult] = useState<MatchResponse | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const answered = Object.keys(answers).length;
+  const question = ordered[step];
+  const answer = answers[question.id];
+  const isLast = step === ordered.length - 1;
 
   function persist(next: Record<string, Answer>) {
     setAnswers(next);
@@ -100,6 +118,7 @@ export default function QuizWizard({ questions }: { questions: Question[] }) {
 
   function reset() {
     persist({});
+    setStep(0);
     setResult(null);
     setError(null);
   }
@@ -128,169 +147,164 @@ export default function QuizWizard({ questions }: { questions: Question[] }) {
     return <Results result={result} onRestart={reset} />;
   }
 
-  const grouped = groupByAxis(questions);
-
   return (
-    <div>
+    <Panel>
+      <div
+        className="text-muted"
+        style={{ display: "flex", justifyContent: "space-between", gap: "1rem", fontSize: "13px" }}
+      >
+        <span>
+          שאלה <span className="ltr-nums">{step + 1}</span> מתוך{" "}
+          <span className="ltr-nums">{ordered.length}</span> · {AXIS_NAMES[question.axis] ?? question.axis}
+        </span>
+        <span>
+          נענו <span className="ltr-nums">{answered}</span>
+          {answered > 0 && (
+            <>
+              {" · "}
+              <button type="button" onClick={reset} className="link-button">
+                איפוס
+              </button>
+            </>
+          )}
+        </span>
+      </div>
+
+      {/* One mark per question: filled when answered, ringed when current.
+          The shape carries the state, not only the colour, and each mark
+          jumps to its question. */}
+      <nav aria-label="מעבר בין השאלות" style={{ display: "flex", flexWrap: "wrap", gap: "4px", margin: "10px 0 22px" }}>
+        {ordered.map((q, i) => {
+          const done = Boolean(answers[q.id]);
+          const current = i === step;
+          return (
+            <button
+              key={q.id}
+              type="button"
+              onClick={() => setStep(i)}
+              aria-label={`שאלה ${i + 1}${done ? ", נענתה" : ""}`}
+              aria-current={current ? "step" : undefined}
+              style={{
+                width: "16px",
+                height: "6px",
+                padding: 0,
+                borderRadius: "3px",
+                cursor: "pointer",
+                border: current ? "1.5px solid var(--color-text)" : "1px solid var(--color-divider)",
+                background: done ? "var(--color-accent)" : "transparent",
+              }}
+            />
+          );
+        })}
+      </nav>
+
+      <fieldset style={{ border: "none", padding: 0, margin: 0 }}>
+        <legend style={{ fontSize: "22px", fontWeight: 600, lineHeight: 1.35, padding: 0 }}>
+          {question.text}
+        </legend>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "18px" }}>
+          {SCALE.map((option) => {
+            const selected = answer?.value === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                className="btn"
+                onClick={() => setValue(question.id, option.value)}
+                aria-pressed={selected}
+                style={
+                  selected
+                    ? {
+                        borderColor: "var(--color-accent)",
+                        background: "var(--tag-accent-bg)",
+                        color: "var(--color-accent)",
+                        fontWeight: 600,
+                      }
+                    : undefined
+                }
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+        <label
+          className="text-muted"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            fontSize: "13px",
+            marginTop: "14px",
+            visibility: answer ? "visible" : "hidden",
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={answer?.important ?? false}
+            onChange={() => toggleImportant(question.id)}
+            disabled={!answer}
+          />
+          חשוב לי במיוחד
+        </label>
+      </fieldset>
+
       <div
         style={{
-          position: "sticky",
-          top: 0,
-          background: "var(--color-bg)",
-          padding: "0.6rem 0",
-          borderBottom: "1px solid var(--color-divider)",
-          marginBottom: "1rem",
-          zIndex: 5,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: "8px",
+          flexWrap: "wrap",
+          marginTop: "22px",
+          paddingTop: "16px",
+          borderTop: "1px solid var(--color-divider)",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem" }}>
-          <span>
-            נענו <span className="ltr-nums">{answered}</span> מתוך{" "}
-            <span className="ltr-nums">{questions.length}</span>
-          </span>
-          {answered > 0 && (
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={() => setStep(step - 1)}
+          disabled={step === 0}
+        >
+          → הקודם
+        </button>
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          {!isLast && answered > 0 && (
+            <button type="button" className="btn btn-ghost" onClick={submit} disabled={busy}>
+              {busy ? "מחשב…" : "הצג תוצאה עכשיו"}
+            </button>
+          )}
+          {isLast ? (
             <button
               type="button"
-              onClick={reset}
-              style={{
-                border: "none",
-                background: "transparent",
-                color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
-                cursor: "pointer",
-                font: "inherit",
-                fontSize: "0.82rem",
-              }}
+              className="btn btn-primary"
+              onClick={submit}
+              disabled={answered === 0 || busy}
             >
-              איפוס
+              {busy ? "מחשב…" : "הצג את ההתאמה שלי"}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className={answer ? "btn btn-primary" : "btn btn-secondary"}
+              onClick={() => setStep(step + 1)}
+            >
+              {answer ? "הבא ←" : "דלג ←"}
             </button>
           )}
         </div>
-        <div
-          style={{
-            height: "0.3rem",
-            background: "color-mix(in srgb, var(--color-text) 6%, transparent)",
-            borderRadius: "4px",
-            marginTop: "0.4rem",
-          }}
-        >
-          <div
-            style={{
-              width: `${(answered / questions.length) * 100}%`,
-              height: "100%",
-              background: "var(--color-accent)",
-              borderRadius: "4px",
-            }}
-          />
-        </div>
       </div>
 
-      {grouped.map(([axis, axisQuestions]) => (
-        <section key={axis} style={{ marginBottom: "1.8rem" }}>
-          <h2 style={{ fontSize: "1rem", marginBottom: "0.7rem" }}>
-            {AXIS_NAMES[axis] ?? axis}
-          </h2>
-          {axisQuestions.map((question) => {
-            const answer = answers[question.id];
-            return (
-              <fieldset
-                key={question.id}
-                style={{
-                  border: "1px solid var(--color-divider)",
-                  borderRadius: "var(--radius-md)",
-                  padding: "0.8rem 1rem",
-                  marginBottom: "0.7rem",
-                  background: "var(--color-bg)",
-                }}
-              >
-                <legend style={{ fontSize: "0.9rem", padding: "0 0.3rem" }}>
-                  {question.text}
-                </legend>
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: "0.35rem",
-                    marginTop: "0.4rem",
-                  }}
-                >
-                  {SCALE.map((option) => {
-                    const selected = answer?.value === option.value;
-                    return (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => setValue(question.id, option.value)}
-                        aria-pressed={selected}
-                        style={{
-                          border: `1px solid ${
-                            selected ? "var(--color-accent)" : "var(--color-divider)"
-                          }`,
-                          background: selected ? "var(--tag-accent-bg)" : "transparent",
-                          color: selected ? "var(--color-accent)" : "color-mix(in srgb, var(--color-text) 75%, transparent)",
-                          borderRadius: "var(--radius-md)",
-                          padding: "0.3rem 0.65rem",
-                          fontSize: "0.82rem",
-                          cursor: "pointer",
-                          font: "inherit",
-                        }}
-                      >
-                        {option.label}
-                      </button>
-                    );
-                  })}
-                  {answer && (
-                    <label
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "0.35rem",
-                        fontSize: "0.8rem",
-                        color: "color-mix(in srgb, var(--color-text) 55%, transparent)",
-                        marginInlineStart: "0.4rem",
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={answer.important}
-                        onChange={() => toggleImportant(question.id)}
-                      />
-                      חשוב לי במיוחד
-                    </label>
-                  )}
-                </div>
-              </fieldset>
-            );
-          })}
-        </section>
-      ))}
-
       {error && (
-        <p style={{ color: "var(--color-warning)", fontSize: "0.85rem" }}>{error}</p>
+        <p style={{ color: "var(--color-warning)", fontSize: "13px", margin: "12px 0 0" }}>{error}</p>
       )}
-
-      <button
-        type="button"
-        onClick={submit}
-        disabled={answered === 0 || busy}
-        style={{
-          background: answered === 0 ? "var(--color-divider)" : "var(--color-accent)",
-          color: "#fff",
-          border: "none",
-          borderRadius: "var(--radius-md)",
-          padding: "0.6rem 1.4rem",
-          fontSize: "0.95rem",
-          cursor: answered === 0 ? "not-allowed" : "pointer",
-          font: "inherit",
-        }}
-      >
-        {busy ? "מחשב…" : "הצג את ההתאמה שלי"}
-      </button>
-      {answered > 0 && answered < questions.length && (
-        <p style={{ fontSize: "0.8rem", color: "color-mix(in srgb, var(--color-text) 55%, transparent)", marginTop: "0.5rem" }}>
-          אפשר לחשב גם בלי לענות על הכול — שאלות שלא נענו פשוט לא נספרות.
+      {isLast && answered > 0 && answered < ordered.length && (
+        <p className="text-muted" style={{ fontSize: "13px", margin: "12px 0 0" }}>
+          שאלות שלא נענו פשוט לא נספרות.
         </p>
       )}
-    </div>
+    </Panel>
   );
 }
 
@@ -304,123 +318,45 @@ function Results({
   const best = result.parties[0];
   return (
     <div>
-      <div
-        style={{
-          background: "var(--color-bg)",
-          border: "1px solid var(--color-divider)",
-          borderRadius: "var(--radius-md)",
-          padding: "1.2rem",
-          marginBottom: "1.2rem",
-        }}
-      >
-        <p style={{ margin: 0, color: "color-mix(in srgb, var(--color-text) 55%, transparent)", fontSize: "0.85rem" }}>
-          ההתאמה הגבוהה ביותר על בסיס{" "}
-          <span className="ltr-nums">{result.answered}</span> תשובות
+      <Panel style={{ marginBottom: "20px" }}>
+        <p className="text-muted" style={{ margin: 0, fontSize: "13px" }}>
+          ההתאמה הגבוהה ביותר, על בסיס <span className="ltr-nums">{result.answered}</span> תשובות
         </p>
-        <p style={{ margin: "0.3rem 0 0", fontSize: "1.5rem", fontWeight: 700 }}>
+        <p style={{ margin: "6px 0 0", fontSize: "28px", fontWeight: 700 }}>
           {best.name}{" "}
           <span className="ltr-nums" style={{ color: "var(--color-accent)" }}>
             {best.score}%
           </span>
         </p>
-      </div>
+        <p className="text-muted" style={{ margin: "8px 0 0", fontSize: "13px" }}>
+          <strong>כלי עזר להתמצאות, לא המלצה למי להצביע.</strong>
+        </p>
+      </Panel>
 
-      <h2 style={{ fontSize: "1.05rem" }}>התאמה לפי מפלגה</h2>
-      <ol style={{ listStyle: "none", padding: 0, margin: "0 0 1.5rem" }}>
-        {result.parties.map((party) => (
-          <li
-            key={party.id}
-            style={{
-              padding: "0.7rem 0",
-              borderBottom: "1px solid var(--color-divider)",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.6rem",
-                flexWrap: "wrap",
-              }}
-            >
-              <span
-                aria-hidden="true"
-                style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: 2,
-                  background: party.color,
-                  flexShrink: 0,
-                }}
-              />
-              {party.slug ? (
-                <Link href={`/parties/${party.slug}`} style={{ fontWeight: 600 }}>
-                  {party.name}
-                </Link>
-              ) : (
-                <strong>{party.name}</strong>
-              )}
-              <span
-                className="ltr-nums"
-                style={{ marginInlineStart: "auto", fontWeight: 700 }}
-              >
-                {party.score}%
-              </span>
-            </div>
-
-            <div
-              style={{
-                height: "0.4rem",
-                background: "color-mix(in srgb, var(--color-text) 6%, transparent)",
-                borderRadius: "4px",
-                margin: "0.4rem 0",
-              }}
-            >
-              <div
-                style={{
-                  width: `${party.score}%`,
-                  height: "100%",
-                  background: party.color,
-                  borderRadius: "4px",
-                }}
-              />
-            </div>
-
-            {/* The explanation is the point: a bare percentage is not an answer. */}
-            <div style={{ fontSize: "0.8rem", color: "color-mix(in srgb, var(--color-text) 75%, transparent)" }}>
-              <div style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
-                {party.shared === 0 ? (
-                  "אין לנו מידע על עמדות המפלגה בשאלות שענית עליהן"
-                ) : (
-                  <>
-                    על סמך <span className="ltr-nums">{party.shared}</span>{" "}
-                    {party.shared === 1 ? "שאלה" : "שאלות"} שידועה בהן עמדת המפלגה
-                  </>
-                )}
-              </div>
-              <Reasons title="מסכימים בעיקר על" reasons={party.agreements} />
-              <Reasons title="חלוקים בעיקר על" reasons={party.disagreements} />
-            </div>
-          </li>
-        ))}
-      </ol>
+      <Panel style={{ marginBottom: "20px" }}>
+        <SectionTitle hint="לחיצה על נושא מציגה את המקור לעמדת המפלגה.">התאמה לפי מפלגה</SectionTitle>
+        <ol style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          {result.parties.map((party, i) => (
+            <PartyRow key={party.id} party={party} expanded={i < EXPANDED_PARTIES} />
+          ))}
+        </ol>
+      </Panel>
 
       {result.blocs.length > 0 && (
-        <>
-          <h2 style={{ fontSize: "1.05rem" }}>התאמה לפי גוש</h2>
-          <p style={{ fontSize: "0.82rem", color: "color-mix(in srgb, var(--color-text) 55%, transparent)", marginTop: 0 }}>
-            ממוצע ההתאמה למפלגות הגוש, משוקלל לפי המנדטים החזויים שלהן.
-          </p>
-          <ul style={{ listStyle: "none", padding: 0, margin: "0 0 1.5rem" }}>
+        <Panel style={{ marginBottom: "20px" }}>
+          <SectionTitle hint="ממוצע ההתאמה למפלגות הגוש, משוקלל לפי המנדטים החזויים שלהן.">
+            התאמה לפי גוש
+          </SectionTitle>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
             {result.blocs.map((bloc) => (
               <li
                 key={bloc.bloc}
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  padding: "0.4rem 0",
+                  padding: "8px 0",
                   borderBottom: "1px solid var(--color-divider)",
-                  fontSize: "0.9rem",
+                  fontSize: "15px",
                 }}
               >
                 <span>{BLOC_NAMES[bloc.bloc] ?? bloc.bloc}</span>
@@ -428,45 +364,85 @@ function Results({
               </li>
             ))}
           </ul>
-        </>
+        </Panel>
       )}
 
-      <p
-        style={{
-          background: "color-mix(in srgb, var(--color-text) 6%, transparent)",
-          border: "1px solid var(--color-divider)",
-          borderRadius: "var(--radius-md)",
-          padding: "0.8rem 1rem",
-          fontSize: "0.83rem",
-          color: "color-mix(in srgb, var(--color-text) 75%, transparent)",
-        }}
-      >
-        ההתאמה משווה את תשובותיך, שאלה אחר שאלה, לעמדות המפלגה כפי שתויגו ממצעה
-        המפורסם או, למפלגה שאין לה מצע, מהצעות החוק של חבריה. לכל עמדה מצוין המקור.
-        שאלה שאין לנו בה מידע על המפלגה אינה נספרת, וציון שנשען על מעט שאלות מתקרב
-        ל-50% — כדי שמפלגה לא תקבל התאמה גבוהה רק מפני שידוע עליה מעט. זהו כלי עזר
-        להתמצאות — לא המלצה למי להצביע, ואינו מביא בחשבון שיקולים קואליציוניים,
-        אמון אישי או סוגיות שלא נכללו בשאלון.
-      </p>
-
-      <button
-        type="button"
-        onClick={onRestart}
-        style={{
-          marginTop: "1rem",
-          border: "1px solid var(--color-divider)",
-          background: "transparent",
-          color: "color-mix(in srgb, var(--color-text) 75%, transparent)",
-          borderRadius: "var(--radius-md)",
-          padding: "0.5rem 1rem",
-          cursor: "pointer",
-          font: "inherit",
-          fontSize: "0.88rem",
-        }}
-      >
+      <button type="button" className="btn btn-secondary" onClick={onRestart}>
         למלא מחדש
       </button>
     </div>
+  );
+}
+
+/**
+ * One party in the results. The leading parties show why they scored as they
+ * did; the rest keep that behind a tap, so the list stays short. The
+ * explanation is the point: a bare percentage is not an answer.
+ */
+function PartyRow({ party, expanded }: { party: PartyMatch; expanded: boolean }) {
+  const [open, setOpen] = useState(expanded);
+  const hasReasons = party.agreements.length + party.disagreements.length > 0;
+
+  return (
+    <li style={{ padding: expanded ? "12px 0" : "8px 0", borderBottom: "1px solid var(--color-divider)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+        <span
+          aria-hidden="true"
+          style={{ width: 10, height: 10, borderRadius: 2, background: party.color, flexShrink: 0 }}
+        />
+        {party.slug ? (
+          <Link href={`/parties/${party.slug}`} style={{ fontWeight: 600 }}>
+            {party.name}
+          </Link>
+        ) : (
+          <strong>{party.name}</strong>
+        )}
+        {!expanded && hasReasons && (
+          <button
+            type="button"
+            className="link-button"
+            onClick={() => setOpen(!open)}
+            aria-expanded={open}
+            style={{ fontSize: "12px" }}
+          >
+            {open ? "הסתר" : "למה?"}
+          </button>
+        )}
+        <span className="ltr-nums" style={{ marginInlineStart: "auto", fontWeight: 700 }}>
+          {party.score}%
+        </span>
+      </div>
+
+      <div
+        style={{
+          height: expanded ? "6px" : "4px",
+          background: "color-mix(in srgb, var(--color-text) 6%, transparent)",
+          borderRadius: "4px",
+          margin: "6px 0",
+        }}
+      >
+        <div
+          style={{ width: `${party.score}%`, height: "100%", background: party.color, borderRadius: "4px" }}
+        />
+      </div>
+
+      {open && (
+        <div style={{ fontSize: "13px", color: "color-mix(in srgb, var(--color-text) 75%, transparent)" }}>
+          <div className="text-muted">
+            {party.shared === 0 ? (
+              "אין לנו מידע על עמדות המפלגה בשאלות שענית עליהן"
+            ) : (
+              <>
+                על סמך <span className="ltr-nums">{party.shared}</span>{" "}
+                {party.shared === 1 ? "שאלה" : "שאלות"} שידועה בהן עמדת המפלגה
+              </>
+            )}
+          </div>
+          <Reasons title="מסכימים בעיקר על" reasons={party.agreements} />
+          <Reasons title="חלוקים בעיקר על" reasons={party.disagreements} />
+        </div>
+      )}
+    </li>
   );
 }
 
@@ -489,25 +465,16 @@ function Reasons({ title, reasons }: { title: string; reasons: Reason[] }) {
 
   return (
     <div style={{ marginTop: "0.2rem" }}>
-      <span style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>{title}: </span>
+      <span className="text-muted">{title}: </span>
       {reasons.map((r, i) => (
         <span key={r.questionId}>
           {i > 0 && ", "}
           {r.evidence ? (
             <button
               type="button"
+              className="link-button"
               onClick={() => setOpen(open === r.questionId ? null : r.questionId)}
               aria-expanded={open === r.questionId}
-              style={{
-                background: "none",
-                border: "none",
-                padding: 0,
-                font: "inherit",
-                color: "var(--color-accent)",
-                textDecoration: "underline dotted",
-                textUnderlineOffset: "3px",
-                cursor: "pointer",
-              }}
             >
               {r.label}
             </button>
@@ -525,7 +492,7 @@ function Reasons({ title, reasons }: { title: string; reasons: Reason[] }) {
             background: "color-mix(in srgb, var(--color-text) 4%, transparent)",
           }}
         >
-          <div style={{ color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
+          <div className="text-muted">
             {shown.label} · {evidenceLabel(shown.evidence)}
             {shown.evidence.status && ` · ${shown.evidence.status}`}
           </div>
@@ -541,14 +508,4 @@ function Reasons({ title, reasons }: { title: string; reasons: Reason[] }) {
       )}
     </div>
   );
-}
-
-function groupByAxis(questions: Question[]): [string, Question[]][] {
-  const groups = new Map<string, Question[]>();
-  for (const question of [...questions].sort((a, b) => a.order - b.order)) {
-    const list = groups.get(question.axis) ?? [];
-    list.push(question);
-    groups.set(question.axis, list);
-  }
-  return [...groups.entries()];
 }

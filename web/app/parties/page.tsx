@@ -44,8 +44,8 @@ export default async function PartiesPage() {
 
   return (
     <>
-      <h1 style={{ fontSize: "44px", margin: "0 0 6px" }}>מפלגות</h1>
-      <p className="text-muted" style={{ marginTop: 0, fontSize: "13px" }}>
+      <h1 style={{ margin: "0 0 4px" }}>מפלגות</h1>
+      <p className="text-muted" style={{ marginTop: 0, marginBottom: "20px", fontSize: "14px" }}>
         <span className="ltr-nums">{snapshot.parties.length}</span> רשימות, מקובצות
         לפי גוש ומסודרות לפי ממוצע הסקרים.
       </p>

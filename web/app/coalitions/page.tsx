@@ -57,18 +57,12 @@ export default async function CoalitionsPage() {
 
   return (
     <>
-      <h1 style={{ fontSize: "44px", margin: "0 0 6px" }}>בונה קואליציות</h1>
-      <p className="text-muted" style={{ marginTop: 0, fontSize: "13px" }}>
-        לפי תחזית המנדטים מממוצע הסקרים
+      <h1 style={{ margin: "0 0 4px" }}>בונה קואליציות</h1>
+      <p className="text-muted" style={{ marginTop: 0, marginBottom: "20px", fontSize: "14px" }}>
+        סמן מפלגות &quot;בפנים&quot; או &quot;בחוץ&quot; · חשבון בלבד, לא הערכה אם המפלגות ישבו
+        יחד · <strong>ממוצע סקרים אינו תחזית תוצאות</strong>
         {snapshot.asOf && <> · עודכן ל-{formatDate(snapshot.asOf)}</>}
       </p>
-
-      <Callout>
-        סמן מפלגות כ&quot;בפנים&quot; או כ&quot;בחוץ&quot;, והדף יחשב כמה מנדטים יש לבחירה שלך
-        ואילו צירופים של שאר המפלגות משלימים אותה ל-61. זה חשבון בלבד: הוא לא שופט אם
-        המפלגות אכן ישבו יחד. <strong>ממוצע סקרים אינו תחזית תוצאות</strong> — ולכן לצד
-        המנדטים מוצג גם הסיכוי להגיע לרוב, כשמביאים בחשבון את אי-הוודאות של הסקרים.
-      </Callout>
 
       <Panel style={{ marginBottom: "24px" }}>
         <SectionTitle hint="המנדטים הם התחזית שבדף הסקרים: אחרי אחוז החסימה וחלוקה בשיטת בדר-עופר.">
@@ -80,10 +74,10 @@ export default async function CoalitionsPage() {
         />
       </Panel>
 
-      <Panel>
-        <SectionTitle>איך מחושב הסיכוי</SectionTitle>
-        <div style={{ fontSize: "14px", maxWidth: "75ch" }}>
-          <p style={{ marginTop: 0 }}>
+      <details style={{ marginTop: "20px", fontSize: "14px" }}>
+        <summary style={{ cursor: "pointer", color: "var(--color-accent)" }}>איך מחושב הסיכוי</summary>
+        <div style={{ maxWidth: "75ch", color: "color-mix(in srgb, var(--color-text) 78%, transparent)" }}>
+          <p style={{ margin: "10px 0 0" }}>
             הדף מריץ <span className="ltr-nums">{SIMULATIONS.toLocaleString("he-IL")}</span>{" "}
             בחירות מדומות. בכל אחת, המנדטים של כל מפלגה מוגרלים סביב ממוצע הסקרים שלה,
             ואז עוברים את אותה חלוקה שבדף הסקרים — אחוז חסימה ובדר-עופר. הסיכוי של
@@ -112,7 +106,7 @@ export default async function CoalitionsPage() {
             ההצבעה — אינה נמדדת כאן.
           </p>
         </div>
-      </Panel>
+      </details>
     </>
   );
 }

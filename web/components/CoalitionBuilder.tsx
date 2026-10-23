@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BLOC_NAMES } from "@/lib/format";
 import { MAJORITY, coalitionSeats, completions } from "@/lib/coalitions";
 import { majorityProbability } from "@/lib/coalitionSim";
@@ -31,7 +31,7 @@ const STATES: { value: State; label: string }[] = [
   { value: "out", label: "בחוץ" },
 ];
 
-const SHOWN_COMPLETIONS = 12;
+const SHOWN_COMPLETIONS = 6;
 
 const muted = { color: "color-mix(in srgb, var(--color-text) 60%, transparent)" };
 
@@ -51,6 +51,8 @@ export default function CoalitionBuilder({
   draws: string;
 }) {
   const [state, setState] = useState<Record<string, State>>({});
+  const [shown, setShown] = useState(SHOWN_COMPLETIONS);
+  const headerHeight = useHeaderHeight();
   const draws = useMemo(() => Uint8Array.from(atob(encoded), (c) => c.charCodeAt(0)), [encoded]);
   const indexOf = useMemo(() => new Map(parties.map((p, i) => [p.id, i])), [parties]);
   const odds = (ids: string[]) =>
@@ -70,8 +72,19 @@ export default function CoalitionBuilder({
 
   return (
     <div>
-      {/* Where the chosen parties stand */}
-      <div style={{ marginBottom: "22px" }}>
+      {/* Where the chosen parties stand. It stays in view while the reader
+          marks parties further down the table. */}
+      <div
+        style={{
+          position: "sticky",
+          top: headerHeight,
+          zIndex: 4,
+          background: "var(--color-card)",
+          padding: "10px 0 16px",
+          marginBottom: "10px",
+          borderBottom: "1px solid var(--color-divider)",
+        }}
+      >
         <p style={{ margin: 0, fontSize: "30px", fontWeight: 700 }}>
           <span className="ltr-nums">{total}</span> מנדטים{" "}
           <span style={{ fontSize: "16px", fontWeight: 500, ...muted }}>
@@ -89,27 +102,31 @@ export default function CoalitionBuilder({
           </p>
         )}
         <SeatBar parties={included} total={total} />
-        {included.length > 0 && (
-          <p style={{ margin: "6px 0 0", fontSize: "13px" }}>
-            {included.map((p) => `${p.name} ${p.seats}`).join(" · ")}
-          </p>
-        )}
-      </div>
-
-      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "14px" }}>
-        <button type="button" className="btn btn-ghost" onClick={() => setState({})}>
-          איפוס
-        </button>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+            gap: "8px",
+            marginTop: "18px",
+            fontSize: "13px",
+          }}
+        >
+          <span>{included.map((p) => `${p.name} ${p.seats}`).join(" · ")}</span>
+          {included.length + excluded.length > 0 && (
+            <button type="button" className="link-button" onClick={() => setState({})}>
+              איפוס
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="scroll-x" style={{ marginBottom: "26px" }}>
-        <table className="table" style={{ minWidth: "36rem" }}>
+        <table className="table coalition-table">
           <thead>
             <tr>
               <th>מפלגה</th>
-              <th>גוש</th>
               <th>מנדטים</th>
-              <th title="החלק מהבחירות המדומות שבהן המפלגה עוברת את אחוז החסימה">סיכוי לעבור</th>
               <th>בקואליציה?</th>
             </tr>
           </thead>
@@ -121,22 +138,32 @@ export default function CoalitionBuilder({
                     <PartySwatch color={p.color} />
                     {p.name}
                   </span>
+                  <div style={{ ...muted, fontSize: "12px" }}>
+                    {BLOC_NAMES[p.bloc] ?? p.bloc}
+                    {/* Only where it is in doubt: for most parties it reads
+                        "more than 99%" and would be noise. */}
+                    {p.passChance <= 0.99 && (
+                      <>
+                        {" · "}
+                        <span title="החלק מהבחירות המדומות שבהן המפלגה עוברת את אחוז החסימה">
+                          סיכוי לעבור את אחוז החסימה:{" "}
+                          <strong className="ltr-nums">{chance(p.passChance)}</strong>
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </td>
-                <td style={muted}>{BLOC_NAMES[p.bloc] ?? p.bloc}</td>
-                <td className="ltr-nums">
+                <td className="ltr-nums" style={{ whiteSpace: "nowrap" }}>
                   {p.passedThreshold ? (
                     p.seats
                   ) : (
                     <span style={muted} title="ממוצע הסקרים, לפני אחוז החסימה">
-                      0 (מתחת לאחוז החסימה, {p.average.toFixed(1)})
+                      0 <span style={{ fontSize: "11px" }}>({p.average.toFixed(1)})</span>
                     </span>
                   )}
                   <span style={{ ...muted, fontSize: "11px" }} title="סטיית התקן בסימולציה">
                     {" "}±{p.spread.toFixed(1)}
                   </span>
-                </td>
-                <td className="ltr-nums" style={{ whiteSpace: "nowrap", ...(p.passChance > 0.99 ? muted : {}) }}>
-                  {chance(p.passChance)}
                 </td>
                 <td>
                   <div role="radiogroup" aria-label={`${p.name} בקואליציה`} style={{ display: "inline-flex", gap: "4px" }}>
@@ -178,7 +205,7 @@ export default function CoalitionBuilder({
       ) : (
         <>
           <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-            {options.slice(0, SHOWN_COMPLETIONS).map((option) => (
+            {options.slice(0, shown).map((option) => (
               <li
                 key={option.members.join()}
                 style={{
@@ -215,16 +242,41 @@ export default function CoalitionBuilder({
               </li>
             ))}
           </ul>
-          {options.length > SHOWN_COMPLETIONS && (
+          {options.length > shown && (
             <p style={{ fontSize: "12px", ...muted }}>
-              מוצגים <span className="ltr-nums">{SHOWN_COMPLETIONS}</span> מתוך{" "}
-              <span className="ltr-nums">{options.length}</span>. סמן מפלגות &quot;בחוץ&quot; כדי לצמצם.
+              מוצגים <span className="ltr-nums">{shown}</span> מתוך{" "}
+              <span className="ltr-nums">{options.length}</span>. סמן מפלגות &quot;בחוץ&quot; כדי לצמצם,
+              או{" "}
+              <button
+                type="button"
+                className="link-button"
+                onClick={() => setShown(shown + SHOWN_COMPLETIONS)}
+              >
+                הצג עוד
+              </button>
             </p>
           )}
         </>
       )}
     </div>
   );
+}
+
+/**
+ * Height of the site's sticky header, so a sticky element can sit just below
+ * it. The header wraps onto more lines on narrow screens, so it is measured
+ * rather than assumed.
+ */
+function useHeaderHeight(): number {
+  const [height, setHeight] = useState(0);
+  useEffect(() => {
+    const header = document.querySelector("header");
+    if (!header) return;
+    const observer = new ResizeObserver(() => setHeight(header.offsetHeight));
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
+  return height;
 }
 
 /** The chosen parties' seats on a 0–120 bar, with the majority line marked. */

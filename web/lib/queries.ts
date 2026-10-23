@@ -148,7 +148,7 @@ export async function getPartyBySlug(slug: string) {
     where: { slug },
     include: {
       candidates: { orderBy: { listPosition: "asc" } },
-      platform: { orderBy: { axis: "asc" } },
+      vector: true,
     },
   });
 }

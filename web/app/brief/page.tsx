@@ -29,19 +29,13 @@ export default async function BriefPage() {
 
   return (
     <>
-      <h1 style={{ fontSize: "46px", margin: "0 0 6px", maxWidth: "20ch" }}>סקירת בחירות יומית</h1>
-      <p className="text-muted" style={{ marginTop: 0, fontSize: "13px" }}>
+      <h1 style={{ margin: "0 0 4px" }}>סקירת בחירות יומית</h1>
+      <p className="text-muted" style={{ marginTop: 0, marginBottom: "20px", fontSize: "14px" }}>
         {formatDate(latest.date)} ·{" "}
         {latest.generator === "llm"
           ? "נוסחה במודל שפה מתוך עובדות שנשלפו מהנתונים"
           : "נוסחה אוטומטית מתוך הנתונים"}
       </p>
-
-      <Callout>
-        הסקירה נוצרת אוטומטית. זיהוי האירועים והמספרים נעשה בקוד דטרמיניסטי על
-        נתוני מסד הנתונים; אם נעשה שימוש במודל שפה, תפקידו ניסוח בלבד והוא מקבל
-        אך ורק את העובדות שזוהו. המספרים שבסקירה הם אותם מספרים שבדף הסקרים.
-      </Callout>
 
       <Panel style={{ marginBottom: "24px" }}>
         <h2 style={{ marginTop: 0, fontSize: "34px", lineHeight: 1.1 }}>{latest.headline}</h2>
@@ -64,17 +58,34 @@ export default async function BriefPage() {
             {archive.map((brief) => (
               <li
                 key={brief.date}
-                style={{ padding: "0.5rem 0", borderBottom: "1px solid var(--color-divider)" }}
+                style={{ padding: "10px 0", borderBottom: "1px solid var(--color-divider)" }}
               >
-                <div style={{ fontSize: "0.78rem", color: "color-mix(in srgb, var(--color-text) 55%, transparent)" }}>
-                  {formatDate(brief.date)}
-                </div>
-                <div style={{ fontSize: "0.9rem" }}>{brief.headline}</div>
+                <details>
+                  <summary style={{ cursor: "pointer" }}>
+                    <span className="text-muted" style={{ fontSize: "13px" }}>
+                      {formatDate(brief.date)}
+                    </span>{" "}
+                    · <span style={{ fontSize: "15px" }}>{brief.headline}</span>
+                  </summary>
+                  <div style={{ marginTop: "8px" }}>
+                    <Markdown source={brief.bodyMarkdown} />
+                  </div>
+                </details>
               </li>
             ))}
           </ul>
         </Panel>
       )}
+
+      <details style={{ marginTop: "20px", fontSize: "14px" }}>
+        <summary style={{ cursor: "pointer", color: "var(--color-accent)" }}>איך נוצרת הסקירה</summary>
+        <p style={{ margin: "10px 0 0", maxWidth: "70ch", color: "color-mix(in srgb, var(--color-text) 78%, transparent)" }}>
+          הסקירה נוצרת אוטומטית בכל בוקר. זיהוי האירועים והמספרים נעשה בקוד
+          דטרמיניסטי על נתוני מסד הנתונים; אם נעשה שימוש במודל שפה, תפקידו ניסוח
+          בלבד והוא מקבל אך ורק את העובדות שזוהו. המספרים שבסקירה הם אותם מספרים
+          שבדף הסקרים.
+        </p>
+      </details>
     </>
   );
 }
@@ -95,7 +106,7 @@ function SeatEdgesTable({ edges }: { edges: SeatEdge[] }) {
 
   return (
     <div className="scroll-x">
-      <table className="table" style={{ minWidth: "30rem" }}>
+      <table className="table edges-table">
         <thead>
           <tr>
             <th>מפלגה</th>
@@ -114,8 +125,14 @@ function SeatEdgesTable({ edges }: { edges: SeatEdge[] }) {
                 </span>
               </td>
               <td className="ltr-nums">{edge.seats}</td>
-              <td>{cell(edge.lastIn)}</td>
-              <td>{cell(edge.nextUp)}</td>
+              <td>
+                <span className="mobile-label">נכנס אחרון: </span>
+                {cell(edge.lastIn)}
+              </td>
+              <td>
+                <span className="mobile-label">הבא בתור: </span>
+                {cell(edge.nextUp)}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -139,9 +156,9 @@ function Markdown({ source }: { source: string }) {
   function flushList(key: string) {
     if (list.length === 0) return;
     blocks.push(
-      <ul key={key} style={{ paddingInlineStart: "1.2rem", margin: "0.4rem 0" }}>
+      <ul key={key} style={{ paddingInlineStart: "1.2rem", margin: "6px 0" }}>
         {list.map((item, index) => (
-          <li key={index} style={{ fontSize: "0.9rem", marginBottom: "0.2rem" }}>
+          <li key={index} style={{ fontSize: "16px", lineHeight: 1.6, marginBottom: "2px" }}>
             <Inline text={item} />
           </li>
         ))}
@@ -160,19 +177,19 @@ function Markdown({ source }: { source: string }) {
     if (line.length === 0) return;
     if (line.startsWith("### ")) {
       blocks.push(
-        <h3 key={index} style={{ fontSize: "0.98rem", margin: "1rem 0 0.3rem" }}>
+        <h3 key={index} style={{ fontSize: "18px", margin: "20px 0 6px" }}>
           {line.slice(4)}
         </h3>,
       );
     } else if (line.startsWith("## ")) {
       blocks.push(
-        <h2 key={index} style={{ fontSize: "1.05rem", margin: "1.1rem 0 0.3rem" }}>
+        <h2 key={index} style={{ fontSize: "20px", margin: "22px 0 6px" }}>
           {line.slice(3)}
         </h2>,
       );
     } else {
       blocks.push(
-        <p key={index} style={{ fontSize: "0.92rem", margin: "0.5rem 0" }}>
+        <p key={index} style={{ fontSize: "16px", lineHeight: 1.7, margin: "8px 0" }}>
           <Inline text={line} />
         </p>,
       );
@@ -180,7 +197,7 @@ function Markdown({ source }: { source: string }) {
   });
   flushList("list-final");
 
-  return <>{blocks}</>;
+  return <div style={{ maxWidth: "72ch" }}>{blocks}</div>;
 }
 
 /** Bold (**text**) and links ([label](url)) inside one line. */
